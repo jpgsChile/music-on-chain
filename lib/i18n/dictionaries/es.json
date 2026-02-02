@@ -1,0 +1,34 @@
+{
+  "header": {
+    "brand": "Music On Chain",
+    "whatIs": "¿Qué es MOC?",
+    "signIn": "Ingresar",
+    "modal": {
+      "line1": "MOC es la evolución de la música.",
+      "line2": "Los artistas reciben el {{percent}}% de lo que pagas.",
+      "line3": "Sin intermediarios.",
+      "line4": "Tú eres dueño de la música.",
+      "close": "Cerrar"
+    }
+  },
+  "landing": {
+    "title": "Apoya artistas directamente.",
+    "subtitle": "Descubre música independiente y aduéñate en cadena.",
+    "cta": "Entrar a la página del artista"
+  },
+  "hero": {
+    "countryGenre": "Chile · Rock Alternativo",
+    "bio": "Proyecto musical independiente enfocado en sonido crudo y honesto.",
+    "bioMore": "Ver más"
+  },
+  "music": {
+    "store": "Tienda Musical",
+    "buy": "Comprar ${{price}} USDC",
+    "download": "Descargar / Reproducir Completo",
+    "previewOnly": "Preview · 30 segundos"
+  },
+  "checkout": {
+    "confirm": "Confirmar Apoyo",
+    "success": "Compra realizada"
+  }
+}

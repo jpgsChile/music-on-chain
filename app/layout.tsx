@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Navigation from "@/components/Navigation";
-import WagmiProviderWrapper from "@/components/WagmiProvider";
+import { defaultLocale } from "@/lib/i18n/config";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -16,8 +15,9 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Music on Chain - Sell your music directly. Keep 98%.",
-  description: "A Web3 music platform where artists sell their music directly and keep 98% of the revenue.",
+  title: "Music on Chain - Demo MVP",
+  description:
+    "A public artist page demo with multilingual support and audio previews.",
 };
 
 export default function RootLayout({
@@ -26,14 +26,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <WagmiProviderWrapper>
-          <Navigation />
-          {children}
-        </WagmiProviderWrapper>
+    <html lang={defaultLocale}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {children}
       </body>
     </html>
   );
