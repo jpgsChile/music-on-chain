@@ -3,32 +3,37 @@
     "brand": "Music On Chain",
     "whatIs": "What is MOC?",
     "signIn": "Sign in",
-    "modal": {
-      "line1": "MOC is the evolution of music.",
-      "line2": "Artists receive {{percent}}% of what you pay.",
-      "line3": "No middlemen.",
-      "line4": "You own the music.",
-      "close": "Close"
-    }
-  },
-  "landing": {
-    "title": "Support artists directly.",
-    "subtitle": "Discover independent music and own it on-chain.",
-    "cta": "Enter the artist page"
+    "about": "MOC is the evolution of music. Artists receive 98% of what you pay. No intermediaries. You own the music."
   },
   "hero": {
+    "name": "CLEAVER",
     "countryGenre": "Chile · Alternative Rock",
     "bio": "Independent music project focused on raw and honest sound.",
-    "bioMore": "Read more"
+    "links": [
+      {
+        "label": "Warpcast",
+        "href": "#"
+      },
+      {
+        "label": "Instagram",
+        "href": "#"
+      }
+    ]
   },
   "music": {
     "store": "Music Store",
     "buy": "Buy ${{price}} USDC",
-    "download": "Download / Play Full",
-    "previewOnly": "Preview · 30 seconds"
+    "tracks": [
+      {
+        "id": "1",
+        "title": "The Soul – Intro",
+        "type": "Demo",
+        "price": 1,
+        "preview": "/preview1.mp3"
+      }
+    ]
   },
-  "checkout": {
-    "confirm": "Confirm Support",
-    "success": "Purchase completed"
+  "common": {
+    "close": "Close"
   }
 }

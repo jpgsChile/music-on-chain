@@ -1,86 +1,40 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
-import BuyModal from "@/components/ui/BuyModal";
-
-import TrackRow from "./TrackRow";
 import { useAudioPlayer } from "./useAudioPlayer";
 
-type Track = {
-  id: string;
-  title: string;
-  type: string;
-  price: number;
-  previewUrl: string;
-};
-
-type TrackListProps = {
-  tracks: Track[];
-  labels: {
-    buy: string;
-    previewOnly: string;
-  };
-  modalLabels: {
-    confirm: string;
-    success: string;
-    close: string;
-  };
-};
-
-const formatPrice = (price: number) => price.toFixed(2);
-
-const buildBuyLabel = (template: string, price: number) =>
-  template.replace("{{price}}", formatPrice(price));
-
-export default function TrackList({ tracks, labels, modalLabels }: TrackListProps) {
+export default function TrackList({ dict }: { dict: any }) {
   const { playPreview, playingId } = useAudioPlayer();
-  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const modalPriceLabel = useMemo(() => {
-    if (!selectedTrack) {
-      return "";
-    }
-    return buildBuyLabel(labels.buy, selectedTrack.price);
-  }, [labels.buy, selectedTrack]);
-
-  const handleBuy = (track: Track) => {
-    setSelectedTrack(track);
-    setModalOpen(true);
-  };
-
-  const handleClose = () => {
-    setModalOpen(false);
-  };
+  const tracks = Array.isArray(dict.music.tracks) ? dict.music.tracks : [];
 
   return (
-    <>
-      <div className="flex flex-col gap-4">
-        {tracks.map((track) => (
-          <TrackRow
-            key={track.id}
-            title={track.title}
-            type={track.type}
-            previewLabel={labels.previewOnly}
-            buyLabel={buildBuyLabel(labels.buy, track.price)}
-            isPlaying={playingId === track.id}
-            onPreview={() => playPreview(track.id, track.previewUrl)}
-            onBuy={() => handleBuy(track)}
-          />
-        ))}
-      </div>
+    <div className="flex flex-col gap-4">
+      {tracks.map((track: any) => (
+        <div
+          key={track.id}
+          className="flex items-center justify-between bg-zinc-900 p-3 rounded-lg"
+        >
+          <div>
+            <p className="font-medium">{track.title}</p>
+            <p className="text-xs opacity-60">{track.type}</p>
+          </div>
 
-      <BuyModal
-        open={modalOpen}
-        onClose={handleClose}
-        title={modalLabels.confirm}
-        confirmLabel={modalLabels.confirm}
-        successLabel={modalLabels.success}
-        closeLabel={modalLabels.close}
-        trackTitle={selectedTrack?.title ?? ""}
-        priceLabel={modalPriceLabel}
-      />
-    </>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => playPreview(track.id, track.preview)}
+              className="text-sm"
+            >
+              {playingId === track.id ? "⏸" : "▶"}
+            </button>
+
+            <button className="bg-green-400 text-black px-3 py-1 rounded-full text-sm">
+              {dict.music.buy.replace(
+                "{{price}}",
+                Number(track.price).toFixed(2),
+              )}
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
