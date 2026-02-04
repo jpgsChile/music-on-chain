@@ -9,6 +9,7 @@ export interface Artist {
 }
 
 export type AudioFormat = "WAV" | "FLAC";
+export type TrackType = "demo" | "album" | "live";
 
 export interface Split {
   id: string;
@@ -25,6 +26,7 @@ export interface Track {
   coverArt?: string;
   price: number; // in USDC
   format: AudioFormat;
+  type?: TrackType;
   previewUrl: string; // URL for preview audio
   splits: Split[];
   releaseDate?: string; // ISO date string

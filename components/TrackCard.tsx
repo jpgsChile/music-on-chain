@@ -7,44 +7,49 @@ import PurchaseModal from "./PurchaseModal";
 import { formatDuration } from "@/lib/utils";
 import { addMockSale } from "@/lib/mockSales";
 import { getTranslations } from "@/lib/i18n";
-import { useAccount } from "wagmi";
 import { useState } from "react";
+import { useAuth } from "@/lib/auth/useAuth";
 
 interface TrackCardProps {
   track: Track;
   onPurchase?: (trackId: string, sale: Sale) => void;
+  isOwned?: boolean;
 }
 
-export default function TrackCard({ track, onPurchase }: TrackCardProps) {
+export default function TrackCard({ track, onPurchase, isOwned }: TrackCardProps) {
   const [showModal, setShowModal] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
-  const [purchased, setPurchased] = useState(false);
-  const { address } = useAccount();
+  const [localOwned, setLocalOwned] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const { ready, authenticated, login, user } = useAuth();
   const t = getTranslations("es");
+  const owned = isOwned ?? localOwned;
 
   const handleBuyClick = () => {
-    if (purchased || isPurchasing) return;
-    if (!address) {
-      // In a real app, you might show a toast or redirect to connect wallet
-      alert(t.purchase.pleaseConnect);
+    if (!ready || owned || isPurchasing) return;
+    if (!authenticated) {
+      login();
       return;
     }
     setShowModal(true);
   };
 
   const handleConfirmPurchase = async () => {
-    if (purchased || isPurchasing || !address) return;
+    if (owned || isPurchasing || !authenticated) return;
 
     setIsPurchasing(true);
 
     // Simulate purchase processing
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
+    const buyerAddress =
+      user?.wallet?.address || user?.id || "privy-user";
+
     // Create mock sale
     const sale: Sale = {
       id: `sale-${Date.now()}-${track.id}`,
       trackId: track.id,
-      buyerAddress: address,
+      buyerAddress,
       sellerAddress: track.artist.walletAddress,
       amount: track.price,
       timestamp: new Date().toISOString(),
@@ -55,8 +60,13 @@ export default function TrackCard({ track, onPurchase }: TrackCardProps) {
     addMockSale(sale);
 
     setIsPurchasing(false);
-    setPurchased(true);
+    setLocalOwned(true);
     setShowModal(false);
+    setShowCelebration(true);
+
+    window.setTimeout(() => {
+      setShowCelebration(false);
+    }, 2200);
 
     if (onPurchase) {
       onPurchase(track.id, sale);
@@ -67,6 +77,23 @@ export default function TrackCard({ track, onPurchase }: TrackCardProps) {
     if (!isPurchasing) {
       setShowModal(false);
     }
+  };
+
+  const handleMockDownload = () => {
+    if (!owned) return;
+    const fileName = `${track.title}-${track.id}.${track.format.toLowerCase()}`;
+    const blob = new Blob(
+      [`Mock download for ${track.title} (${track.format}).`],
+      { type: "text/plain" }
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -115,6 +142,11 @@ export default function TrackCard({ track, onPurchase }: TrackCardProps) {
                 <span className="px-2 py-1 bg-accent/10 text-accent rounded text-xs font-medium">
                   {track.format}
                 </span>
+                {track.type && (
+                  <span className="px-2 py-1 bg-border/60 text-foreground/70 rounded text-xs font-medium uppercase">
+                    {track.type}
+                  </span>
+                )}
                 {track.genre && (
                   <span className="text-foreground/50">{track.genre}</span>
                 )}
@@ -129,27 +161,59 @@ export default function TrackCard({ track, onPurchase }: TrackCardProps) {
               <div className="text-xs text-foreground/60 mb-3">{t.general.usdc}</div>
               <button
                 onClick={handleBuyClick}
-                disabled={isPurchasing || purchased}
+                disabled={!ready || isPurchasing || owned}
                 className={`px-6 py-2 rounded-lg font-semibold text-sm transition-colors ${
-                  purchased
+                  owned
                     ? "bg-green-500/20 text-green-400 border border-green-500/30 cursor-not-allowed"
                     : isPurchasing
                     ? "bg-accent/50 text-background cursor-wait"
                     : "bg-accent text-background hover:bg-accent-hover"
                 }`}
               >
-                {purchased
+                {owned
                   ? t.tracks.purchased
                   : isPurchasing
                   ? t.tracks.processing
                   : t.tracks.buy}
               </button>
+              <button
+                onClick={handleMockDownload}
+                disabled={!owned}
+                className={`mt-2 px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                  owned
+                    ? "border border-accent/40 text-accent hover:bg-accent/10"
+                    : "border border-border/60 text-foreground/40 cursor-not-allowed"
+                }`}
+              >
+                {owned ? t.tracks.download : t.tracks.downloadLocked}
+              </button>
             </div>
           </div>
 
+          {showCelebration && (
+            <div className="mt-3 flex items-center gap-2 text-sm text-accent">
+              <span className="relative flex h-4 w-4 items-center justify-center">
+                <span className="absolute h-1.5 w-1.5 rounded-full bg-accent animate-ping" />
+                <span className="absolute h-1 w-1 rounded-full bg-green-400 -translate-x-2 -translate-y-1 animate-bounce" />
+                <span className="absolute h-1 w-1 rounded-full bg-purple-400 translate-x-2 translate-y-1 animate-bounce" />
+              </span>
+              {t.tracks.purchaseSuccess}
+            </div>
+          )}
+
           {/* Audio Player */}
           <div className="mt-4">
-            <AudioPlayer src={track.previewUrl} title={`${track.title} - Preview`} />
+            <div className="mb-2 flex items-center gap-2 text-xs text-foreground/60">
+              <span className="rounded-full bg-border/60 px-2 py-0.5">
+                {owned ? t.tracks.ownedBadge : t.tracks.preview}
+              </span>
+            </div>
+            <AudioPlayer
+              src={track.previewUrl}
+              title={`${track.title} - ${
+                owned ? t.tracks.ownedBadge : t.tracks.preview
+              }`}
+            />
           </div>
         </div>
       </div>

@@ -13,6 +13,11 @@ export const translations = {
       artists: "Artistas",
       dashboard: "Panel",
     },
+    auth: {
+      signIn: "Iniciar sesión",
+      logout: "Cerrar sesión",
+      loading: "Cargando...",
+    },
     // Landing
     landing: {
       title1: "Vende tu música",
@@ -40,13 +45,17 @@ export const translations = {
       purchased: "✓ Comprado",
       processing: "Procesando...",
       preview: "Vista previa",
+      ownedBadge: "Comprada",
+      download: "Descargar",
+      downloadLocked: "Descargar (bloqueado)",
+      purchaseSuccess: "Compra simulada completada",
     },
     // Dashboard
     dashboard: {
       title: "Panel de Artista",
       subtitle: "Rastrea tus ganancias y rendimiento de ventas",
-      connectWallet: "Conecta tu Wallet",
-      connectWalletDesc: "Por favor conecta tu wallet para ver tu panel de artista",
+      connectWallet: "Inicia sesión",
+      connectWalletDesc: "Inicia sesión para ver tu panel de artista",
       loading: "Cargando...",
       totalEarned: "Total Ganado",
       totalSales: "Total de Ventas",
@@ -81,7 +90,7 @@ export const translations = {
       cancel: "Cancelar",
       confirmButton: "Confirmar Compra",
       processing: "Procesando...",
-      pleaseConnect: "Por favor conecta tu wallet para comprar canciones",
+      pleaseConnect: "Por favor inicia sesión para comprar canciones",
     },
     // General
     general: {
@@ -97,6 +106,11 @@ export const translations = {
       explore: "Explore",
       artists: "Artists",
       dashboard: "Dashboard",
+    },
+    auth: {
+      signIn: "Sign in",
+      logout: "Sign out",
+      loading: "Loading...",
     },
     // Landing
     landing: {
@@ -125,14 +139,18 @@ export const translations = {
       purchased: "✓ Purchased",
       processing: "Processing...",
       preview: "Preview",
+      ownedBadge: "Owned",
+      download: "Download",
+      downloadLocked: "Download (locked)",
+      purchaseSuccess: "Mock purchase completed",
     },
     // Dashboard
     dashboard: {
       title: "Artist Dashboard",
       subtitle: "Track your earnings and sales performance",
-      connectWallet: "Connect Your Wallet",
+      connectWallet: "Sign in",
       connectWalletDesc:
-        "Please connect your wallet to view your artist dashboard",
+        "Sign in to view your artist dashboard",
       loading: "Loading...",
       totalEarned: "Total Earned",
       totalSales: "Total Sales",
@@ -167,7 +185,7 @@ export const translations = {
       cancel: "Cancel",
       confirmButton: "Confirm Purchase",
       processing: "Processing...",
-      pleaseConnect: "Please connect your wallet to purchase tracks",
+      pleaseConnect: "Please sign in to purchase tracks",
     },
     // General
     general: {

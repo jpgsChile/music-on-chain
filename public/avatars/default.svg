@@ -1,0 +1,12 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="128" fill="#0F172A"/>
+  <circle cx="128" cy="104" r="44" fill="#1F2937"/>
+  <path
+    d="M48 216c12-36 44-56 80-56s68 20 80 56"
+    fill="#1F2937"
+  />
+  <circle cx="128" cy="128" r="96" stroke="#38BDF8" stroke-width="4"/>
+  <text x="128" y="236" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#E2E8F0">
+    Artist
+  </text>
+</svg>

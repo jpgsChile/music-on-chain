@@ -1,21 +1,23 @@
 "use client";
 
-import { useAccount } from "wagmi";
 import { useEffect, useState } from "react";
 import { calculateArtistStats, ArtistStats } from "@/lib/dashboard";
 import { formatUSDC } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
 import StatCard from "@/components/StatCard";
 import CollaboratorEarnings from "@/components/CollaboratorEarnings";
+import { useAuth } from "@/lib/auth/useAuth";
 
 export default function DashboardPage() {
-  const { address, isConnected } = useAccount();
+  const { ready, authenticated, login, user } = useAuth();
+  const address = user?.wallet?.address || user?.id || "";
+  const canLoadStats = authenticated && Boolean(address);
   const [stats, setStats] = useState<ArtistStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const t = getTranslations("es");
 
   useEffect(() => {
-    if (!isConnected || !address) {
+    if (!canLoadStats) {
       setIsLoading(false);
       return;
     }
@@ -24,11 +26,11 @@ export default function DashboardPage() {
     const artistStats = calculateArtistStats(address);
     setStats(artistStats);
     setIsLoading(false);
-  }, [address, isConnected]);
+  }, [address, canLoadStats]);
 
   // Refresh stats when sales change (simple polling for demo)
   useEffect(() => {
-    if (!isConnected || !address) return;
+    if (!canLoadStats) return;
 
     const interval = setInterval(() => {
       const artistStats = calculateArtistStats(address);
@@ -36,9 +38,9 @@ export default function DashboardPage() {
     }, 2000); // Poll every 2 seconds
 
     return () => clearInterval(interval);
-  }, [address, isConnected]);
+  }, [address, canLoadStats]);
 
-  if (!isConnected) {
+  if (!authenticated) {
     return (
       <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-6xl mx-auto">
@@ -63,6 +65,13 @@ export default function DashboardPage() {
             <p className="text-foreground/70">
               {t.dashboard.connectWalletDesc}
             </p>
+            <button
+              onClick={login}
+              disabled={!ready}
+              className="mt-5 px-4 py-2 text-sm bg-accent text-background rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {ready ? t.auth.signIn : t.auth.loading}
+            </button>
           </div>
         </div>
       </div>
