@@ -5,7 +5,7 @@ import { Artist, Track, Split } from "@/types";
 // Mock wallet addresses (Base Sepolia format)
 const WALLETS = {
   artist1: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
-  artist2: "0x8ba1f109551bD432803012645Hac136c22C9e8",
+  artist2: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
   artist3: "0x1234567890123456789012345678901234567890",
   producer1: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
   producer2: "0xfedcbafedcbafedcbafedcbafedcbafedcbafedc",

@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { WagmiProvider } from "wagmi";
-import { base } from "viem/chains";
+import { baseSepolia } from "viem/chains";
 import { config } from "@/lib/wagmi";
 import { useState } from "react";
 
@@ -20,8 +20,9 @@ export default function WagmiProviderWrapper({
       config={{
         loginMethods: ["google", "passkey"],
         appearance: { theme: "dark" },
-        defaultChain: base,
-        supportedChains: [base],
+        embeddedWallets: { createOnLogin: "users-without-wallets" },
+        defaultChain: baseSepolia,
+        supportedChains: [baseSepolia],
       }}
     >
       <WagmiProvider config={config}>

@@ -18,15 +18,13 @@ interface TrackCardProps {
 
 export default function TrackCard({ track, onPurchase, isOwned }: TrackCardProps) {
   const [showModal, setShowModal] = useState(false);
-  const [isPurchasing, setIsPurchasing] = useState(false);
-  const [localOwned, setLocalOwned] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const { ready, authenticated, login, user } = useAuth();
   const t = getTranslations("es");
-  const owned = isOwned ?? localOwned;
+  const owned = Boolean(isOwned);
 
   const handleBuyClick = () => {
-    if (!ready || owned || isPurchasing) return;
+    if (!ready || owned) return;
     if (!authenticated) {
       login();
       return;
@@ -34,14 +32,7 @@ export default function TrackCard({ track, onPurchase, isOwned }: TrackCardProps
     setShowModal(true);
   };
 
-  const handleConfirmPurchase = async () => {
-    if (owned || isPurchasing || !authenticated) return;
-
-    setIsPurchasing(true);
-
-    // Simulate purchase processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
+  const handlePurchaseSuccess = (txHash: string) => {
     const buyerAddress =
       user?.wallet?.address || user?.id || "privy-user";
 
@@ -53,15 +44,12 @@ export default function TrackCard({ track, onPurchase, isOwned }: TrackCardProps
       sellerAddress: track.artist.walletAddress,
       amount: track.price,
       timestamp: new Date().toISOString(),
-      transactionHash: `0x${Math.random().toString(16).slice(2).padStart(64, "0")}`,
+      transactionHash: txHash,
     };
 
     // Save to mock state
     addMockSale(sale);
 
-    setIsPurchasing(false);
-    setLocalOwned(true);
-    setShowModal(false);
     setShowCelebration(true);
 
     window.setTimeout(() => {
@@ -74,9 +62,7 @@ export default function TrackCard({ track, onPurchase, isOwned }: TrackCardProps
   };
 
   const handleCloseModal = () => {
-    if (!isPurchasing) {
-      setShowModal(false);
-    }
+    setShowModal(false);
   };
 
   const handleMockDownload = () => {
@@ -161,19 +147,15 @@ export default function TrackCard({ track, onPurchase, isOwned }: TrackCardProps
               <div className="text-xs text-foreground/60 mb-3">{t.general.usdc}</div>
               <button
                 onClick={handleBuyClick}
-                disabled={!ready || isPurchasing || owned}
+                disabled={!ready || owned}
                 className={`px-6 py-2 rounded-lg font-semibold text-sm transition-colors ${
                   owned
                     ? "bg-green-500/20 text-green-400 border border-green-500/30 cursor-not-allowed"
-                    : isPurchasing
-                    ? "bg-accent/50 text-background cursor-wait"
                     : "bg-accent text-background hover:bg-accent-hover"
                 }`}
               >
                 {owned
                   ? t.tracks.purchased
-                  : isPurchasing
-                  ? t.tracks.processing
                   : t.tracks.buy}
               </button>
               <button
@@ -223,8 +205,7 @@ export default function TrackCard({ track, onPurchase, isOwned }: TrackCardProps
         track={track}
         isOpen={showModal}
         onClose={handleCloseModal}
-        onConfirm={handleConfirmPurchase}
-        isProcessing={isPurchasing}
+        onSuccess={handlePurchaseSuccess}
       />
     </div>
   );

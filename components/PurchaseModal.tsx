@@ -4,39 +4,77 @@ import { Track } from "@/types";
 import { calculatePurchaseBreakdown, formatUSDC } from "@/lib/purchase";
 import { formatAddress } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useUsdcPayment } from "@/lib/blockchain/useUsdcPayment";
 
 interface PurchaseModalProps {
   track: Track;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
-  isProcessing?: boolean;
+  onSuccess: (txHash: string) => void;
 }
 
 export default function PurchaseModal({
   track,
   isOpen,
   onClose,
-  onConfirm,
-  isProcessing = false,
+  onSuccess,
 }: PurchaseModalProps) {
   const breakdown = calculatePurchaseBreakdown(track);
   const t = getTranslations("es");
+  const { payWithUsdc } = useUsdcPayment();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isBusy = isProcessing || isSuccess;
+  const artistWallet = track.artist.walletAddress as `0x${string}`;
+  const amountToArtist = Number((track.price * 0.98).toFixed(6));
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsProcessing(false);
+      setIsSuccess(false);
+      setErrorMessage(null);
+    }
+  }, [isOpen]);
 
   // Close on Escape key
   useEffect(() => {
     if (!isOpen) return;
 
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isProcessing) {
+      if (e.key === "Escape" && !isBusy) {
         onClose();
       }
     };
 
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [isOpen, isProcessing, onClose]);
+  }, [isOpen, isBusy, onClose]);
+
+  const handleConfirm = async () => {
+    if (isBusy) return;
+    setIsProcessing(true);
+    setErrorMessage(null);
+
+    try {
+      const txHash = await payWithUsdc({
+        to: artistWallet,
+        amount: amountToArtist,
+      });
+
+      setIsSuccess(true);
+      window.setTimeout(() => {
+        onSuccess(txHash);
+        onClose();
+      }, 1500);
+    } catch (error) {
+      console.error(error);
+      setErrorMessage(t.purchase.paymentError);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -44,7 +82,7 @@ export default function PurchaseModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => {
-        if (e.target === e.currentTarget && !isProcessing) {
+        if (e.target === e.currentTarget && !isBusy) {
           onClose();
         }
       }}
@@ -61,7 +99,7 @@ export default function PurchaseModal({
                 {track.title} by {track.artist.name}
               </p>
             </div>
-            {!isProcessing && (
+            {!isBusy && (
               <button
                 onClick={onClose}
                 className="text-foreground/50 hover:text-foreground transition-colors"
@@ -165,28 +203,40 @@ export default function PurchaseModal({
               </svg>
               <div className="text-sm text-foreground/70">
                 <p className="font-medium text-foreground mb-1">
-                  {t.purchase.mockPurchase}
+                  {t.purchase.testnetTitle}
                 </p>
                 <p>
-                  {t.purchase.mockPurchaseDesc}
+                  {t.purchase.testnetDesc}
                 </p>
               </div>
             </div>
           </div>
+
+          {errorMessage && (
+            <div className="border border-red-500/30 bg-red-500/10 rounded-lg p-3 text-sm text-red-200">
+              {errorMessage}
+            </div>
+          )}
+
+          {isSuccess && (
+            <div className="border border-emerald-500/30 bg-emerald-500/10 rounded-lg p-3 text-sm text-emerald-200">
+              {t.purchase.paymentSuccess}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="border-t border-border p-6 flex gap-3 justify-end">
           <button
             onClick={onClose}
-            disabled={isProcessing}
+            disabled={isBusy}
             className="px-6 py-2 border border-border rounded-lg hover:bg-border/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t.purchase.cancel}
           </button>
           <button
-            onClick={onConfirm}
-            disabled={isProcessing}
+            onClick={handleConfirm}
+            disabled={isBusy}
             className="px-6 py-2 bg-accent text-background rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
           >
             {isProcessing ? t.purchase.processing : t.purchase.confirmButton}

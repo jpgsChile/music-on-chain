@@ -84,12 +84,14 @@ export const translations = {
       netAmount: "Monto Neto",
       revenueSplit: "Distribución de Ingresos",
       collaborator: "Colaborador",
-      mockPurchase: "Compra Simulada",
-      mockPurchaseDesc:
-        "Esta es una simulación. No se procesará ningún pago real. Los ingresos se distribuirán automáticamente entre los colaboradores según los porcentajes configurados.",
+      testnetTitle: "Pago USDC en testnet",
+      testnetDesc:
+        "Se ejecutará una transferencia real de USDC en Base Sepolia. No hay custodia ni marketplace aún.",
       cancel: "Cancelar",
       confirmButton: "Confirmar Compra",
       processing: "Procesando...",
+      paymentSuccess: "Pago enviado. Confirmando en Base Sepolia...",
+      paymentError: "No se pudo completar el pago. Intenta de nuevo.",
       pleaseConnect: "Por favor inicia sesión para comprar canciones",
     },
     // General
@@ -179,12 +181,14 @@ export const translations = {
       netAmount: "Net Amount",
       revenueSplit: "Revenue Split",
       collaborator: "Collaborator",
-      mockPurchase: "Mock Purchase",
-      mockPurchaseDesc:
-        "This is a simulation. No real payment will be processed. The revenue will be split automatically among collaborators based on the configured percentages.",
+      testnetTitle: "USDC payment on testnet",
+      testnetDesc:
+        "A real USDC transfer will be sent on Base Sepolia. No escrow or marketplace yet.",
       cancel: "Cancel",
       confirmButton: "Confirm Purchase",
       processing: "Processing...",
+      paymentSuccess: "Payment sent. Confirming on Base Sepolia...",
+      paymentError: "Payment failed. Please try again.",
       pleaseConnect: "Please sign in to purchase tracks",
     },
     // General
