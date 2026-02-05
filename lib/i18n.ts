@@ -13,6 +13,11 @@ export const translations = {
       artists: "Artistas",
       dashboard: "Panel",
     },
+    auth: {
+      signIn: "Iniciar sesión",
+      logout: "Cerrar sesión",
+      loading: "Cargando...",
+    },
     // Landing
     landing: {
       title1: "Vende tu música",
@@ -40,13 +45,17 @@ export const translations = {
       purchased: "✓ Comprado",
       processing: "Procesando...",
       preview: "Vista previa",
+      ownedBadge: "Comprada",
+      download: "Descargar",
+      downloadLocked: "Descargar (bloqueado)",
+      purchaseSuccess: "Compra simulada completada",
     },
     // Dashboard
     dashboard: {
       title: "Panel de Artista",
       subtitle: "Rastrea tus ganancias y rendimiento de ventas",
-      connectWallet: "Conecta tu Wallet",
-      connectWalletDesc: "Por favor conecta tu wallet para ver tu panel de artista",
+      connectWallet: "Inicia sesión",
+      connectWalletDesc: "Inicia sesión para ver tu panel de artista",
       loading: "Cargando...",
       totalEarned: "Total Ganado",
       totalSales: "Total de Ventas",
@@ -75,13 +84,15 @@ export const translations = {
       netAmount: "Monto Neto",
       revenueSplit: "Distribución de Ingresos",
       collaborator: "Colaborador",
-      mockPurchase: "Compra Simulada",
-      mockPurchaseDesc:
-        "Esta es una simulación. No se procesará ningún pago real. Los ingresos se distribuirán automáticamente entre los colaboradores según los porcentajes configurados.",
+      testnetTitle: "Pago USDC en testnet",
+      testnetDesc:
+        "Se ejecutará una transferencia real de USDC en Base Sepolia. No hay custodia ni marketplace aún.",
       cancel: "Cancelar",
       confirmButton: "Confirmar Compra",
       processing: "Procesando...",
-      pleaseConnect: "Por favor conecta tu wallet para comprar canciones",
+      paymentSuccess: "Pago enviado. Confirmando en Base Sepolia...",
+      paymentError: "No se pudo completar el pago. Intenta de nuevo.",
+      pleaseConnect: "Por favor inicia sesión para comprar canciones",
     },
     // General
     general: {
@@ -97,6 +108,11 @@ export const translations = {
       explore: "Explore",
       artists: "Artists",
       dashboard: "Dashboard",
+    },
+    auth: {
+      signIn: "Sign in",
+      logout: "Sign out",
+      loading: "Loading...",
     },
     // Landing
     landing: {
@@ -125,14 +141,18 @@ export const translations = {
       purchased: "✓ Purchased",
       processing: "Processing...",
       preview: "Preview",
+      ownedBadge: "Owned",
+      download: "Download",
+      downloadLocked: "Download (locked)",
+      purchaseSuccess: "Mock purchase completed",
     },
     // Dashboard
     dashboard: {
       title: "Artist Dashboard",
       subtitle: "Track your earnings and sales performance",
-      connectWallet: "Connect Your Wallet",
+      connectWallet: "Sign in",
       connectWalletDesc:
-        "Please connect your wallet to view your artist dashboard",
+        "Sign in to view your artist dashboard",
       loading: "Loading...",
       totalEarned: "Total Earned",
       totalSales: "Total Sales",
@@ -161,13 +181,15 @@ export const translations = {
       netAmount: "Net Amount",
       revenueSplit: "Revenue Split",
       collaborator: "Collaborator",
-      mockPurchase: "Mock Purchase",
-      mockPurchaseDesc:
-        "This is a simulation. No real payment will be processed. The revenue will be split automatically among collaborators based on the configured percentages.",
+      testnetTitle: "USDC payment on testnet",
+      testnetDesc:
+        "A real USDC transfer will be sent on Base Sepolia. No escrow or marketplace yet.",
       cancel: "Cancel",
       confirmButton: "Confirm Purchase",
       processing: "Processing...",
-      pleaseConnect: "Please connect your wallet to purchase tracks",
+      paymentSuccess: "Payment sent. Confirming on Base Sepolia...",
+      paymentError: "Payment failed. Please try again.",
+      pleaseConnect: "Please sign in to purchase tracks",
     },
     // General
     general: {

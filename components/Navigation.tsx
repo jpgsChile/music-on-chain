@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import WalletConnect from "./WalletConnect";
 import { getTranslations } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth/useAuth";
 
 export default function Navigation() {
   const t = getTranslations("es");
+  const { ready, authenticated, login, logout } = useAuth();
 
   return (
     <nav className="border-b border-border">
@@ -33,7 +34,22 @@ export default function Navigation() {
             >
               {t.nav.dashboard}
             </Link>
-            <WalletConnect />
+            {!authenticated ? (
+              <button
+                onClick={login}
+                disabled={!ready}
+                className="px-4 py-2 text-sm bg-accent text-background rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {ready ? t.auth.signIn : t.auth.loading}
+              </button>
+            ) : (
+              <button
+                onClick={logout}
+                className="px-4 py-2 text-sm border border-border rounded-lg hover:bg-border/50 transition-colors"
+              >
+                {t.auth.logout}
+              </button>
+            )}
           </div>
         </div>
       </div>

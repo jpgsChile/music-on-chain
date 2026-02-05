@@ -8,6 +8,7 @@ import { formatAddress } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
 import Link from "next/link";
 import { useMemo } from "react";
+import { useOwnership } from "@/lib/ownership/useOwnership";
 
 interface ArtistDetailPageProps {
   params: {
@@ -22,6 +23,7 @@ export default function ArtistDetailPage({ params }: ArtistDetailPageProps) {
     () => (artist ? getTracksByArtist(artist.id) : []),
     [artist]
   );
+  const { owned, addOwned } = useOwnership();
 
   if (!artist) {
     notFound();
@@ -31,6 +33,7 @@ export default function ArtistDetailPage({ params }: ArtistDetailPageProps) {
     // Mock purchase handler - sale is already saved in mock state
     console.log(`Purchase completed for track: ${trackId}`, sale);
     // You could show a toast notification here
+    addOwned(trackId);
   };
 
   return (
@@ -110,6 +113,7 @@ export default function ArtistDetailPage({ params }: ArtistDetailPageProps) {
                   key={track.id}
                   track={track}
                   onPurchase={handlePurchase}
+                  isOwned={owned.includes(track.id)}
                 />
               ))}
             </div>
