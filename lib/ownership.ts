@@ -25,10 +25,12 @@ export function userOwnsTrack(
   const a = artist.toLowerCase();
   const t = trackId;
 
-  return data.some((o: Record<string, unknown>) => {
-    const buyer = (o.buyer ?? o.wallet) as string | undefined;
-    const art = (o.artist ?? "") as string;
-    const id = (o.trackId ?? o.track) as string | undefined;
+  return data.some((o: unknown) => {
+    if (typeof o !== "object" || o === null) return false;
+    const obj = o as Record<string, unknown>;
+    const buyer = (obj.buyer ?? obj.wallet) as string | undefined;
+    const art = (obj.artist ?? "") as string;
+    const id = (obj.trackId ?? obj.track) as string | undefined;
     return (
       buyer?.toLowerCase() === w &&
       art?.toLowerCase() === a &&

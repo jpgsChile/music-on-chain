@@ -379,8 +379,10 @@ export const translations = {
   },
 } as const;
 
-export function getTranslations(lang: Language = defaultLanguage) {
-  return translations[lang];
+export type Translations = (typeof translations)["es"];
+
+export function getTranslations(lang: Language = defaultLanguage): Translations {
+  return translations[lang] as Translations;
 }
 
 export function t(key: string, lang: Language = defaultLanguage): string {

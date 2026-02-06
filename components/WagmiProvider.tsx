@@ -8,7 +8,7 @@ import { config } from "@/lib/wagmi";
 import { useState } from "react";
 
 const privyConfig = {
-  loginMethods: ["google", "passkey"],
+  loginMethods: ["google", "passkey"] as ("google" | "passkey")[],
   appearance: { theme: "dark" as const },
   embeddedWallets: {
     ethereum: {

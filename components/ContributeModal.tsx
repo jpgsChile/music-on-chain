@@ -112,7 +112,7 @@ export default function ContributeModal({
               <button
                 key={a}
                 type="button"
-                onClick={() => setAmount(a) || setCustomAmount("")}
+                onClick={() => { setAmount(a); setCustomAmount(""); }}
                 className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                   !customAmount && amount === a
                     ? "border-accent bg-accent/20 text-accent"
