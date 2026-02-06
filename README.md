@@ -1,43 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎵 Music On Chain — Demo MVP
 
-## Music on Chain PoC
+**Music On Chain** es una plataforma Web3 que permite a **artistas independientes** publicar su música, financiar proyectos y vender experiencias digitales directamente a sus fans, utilizando **blockchain** para garantizar **propiedad, transparencia y nuevas formas de monetización**.
 
-Artist + track PoC with USDC payments on Base Sepolia. Copy `.env.example` to `.env.local` and set:
+Esta demo muestra un **MVP funcional**, enfocado en artistas y fans reales.
 
-- **NEXT_PUBLIC_PRIVY_APP_ID** — Privy app ID for wallet auth.
-- **NEXT_PUBLIC_CLEAVER_WALLET** — Base Sepolia address that receives USDC (must be a valid address on Base Sepolia; use your own wallet for testing).
+---
 
-## Getting Started
+##  Qué es esta demo
 
-First, run the development server:
+Esta demo permite ver y probar:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- 🎸 **Múltiples artistas**, cada uno con su propia página
+- 🎧 **Reproducción de música con preview**
+- 💳 **Compra de tracks usando USDC (Base testnet)**
+- 🔐 **Ownership real del track** tras la compra
+- 🎵 **Desbloqueo del audio completo**
+- 💰 **Crowdfunding por artista**
+- 🎟️ **NFTs como tickets / accesos (MVP)**
+- 🌐 **Redes sociales del artista integradas**
+- 🤖 **Guía IA** para explicar el uso a fans y artistas
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 👥 Para quién es Music On Chain
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🎵 Artistas
+- Publicar música sin intermediarios  
+- Financiar proyectos (crowdfunding)  
+- Vender tracks, NFTs y tickets  
+- Construir comunidad directamente con sus fans  
 
-## Learn More
+### 🎧 Fans
+- Apoyar directamente a los artistas  
+- Comprar música como **activo digital**  
+- Acceder a contenido exclusivo  
+- Participar en una economía musical más justa  
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🧭 Cómo funciona (resumen)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. El fan explora artistas  
+2. Escucha un preview del track  
+3. Compra el track usando USDC  
+4. La blockchain registra la transacción  
+5. El fan obtiene **propiedad digital**  
+6. El contenido se desbloquea automáticamente  
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🖥️ Estructura de la demo
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Home**  
+  Lista de artistas disponibles
+
+- **Página de Artista**  
+  - Información del artista  
+  - Tracks disponibles  
+  - Crowdfunding activo (si aplica)  
+  - NFTs / tickets (MVP)  
+  - Redes sociales  
+
+- **Compra Web3**
+  - Login social (Privy)
+  - Wallet embebida automática
+  - Pago en USDC (Base testnet)
+
+---
+
+## 🔗 Tecnología utilizada
+
+- **Frontend:** Next.js (App Router)
+- **Web3 Auth:** Privy
+- **Blockchain:** Base (testnet)
+- **Pagos:** USDC
+- **Wallets:** Embedded Wallet / Coinbase Wallet
+- **Audio:** HTML5 Audio
+- **Persistencia (MVP):** LocalStorage
+- **Arquitectura:** Multi-artista, data-driven
+
+---
+
+## ⚠️ Importante (sobre esta demo)
+
+- Esta demo corre sobre **testnet**
+- Los tokens utilizados **no tienen valor real**
+- El objetivo es **mostrar funcionalidad y experiencia**, no producción f
