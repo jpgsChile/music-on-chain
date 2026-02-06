@@ -1,9 +1,11 @@
 import { artists } from "@/data/artists";
 import ArtistCard from "@/components/ArtistCard";
 import { getTranslations } from "@/lib/i18n";
+import { getLocaleFromCookie } from "@/lib/locale-server";
 
-export default function ArtistsPage() {
-  const t = getTranslations("es");
+export default async function ArtistsPage() {
+  const locale = await getLocaleFromCookie();
+  const t = getTranslations(locale);
 
   return (
     <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-12">
@@ -17,7 +19,7 @@ export default function ArtistsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {artists.map((artist) => (
-            <ArtistCard key={artist.slug} artist={artist} />
+            <ArtistCard key={artist.slug} artist={artist} lang={locale} />
           ))}
         </div>
       </div>

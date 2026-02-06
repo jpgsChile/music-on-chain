@@ -9,16 +9,25 @@ export const translations = {
   es: {
     // Navegación
     nav: {
+      home: "Inicio",
       explore: "Explorar",
       artists: "Artistas",
       dashboard: "Panel",
       aiGuide: "Guía",
       howItWorks: "Cómo funciona",
+      fanDashboard: "Mi Panel",
     },
     auth: {
       signIn: "Iniciar sesión",
       logout: "Cerrar sesión",
       loading: "Cargando...",
+    },
+    // Hero (Home banner)
+    hero: {
+      title: "Music On Chain",
+      subtitle: "Música directa de artista a fan. Sin intermediarios. Pagos en USDC.",
+      ctaExplore: "Explorar Artistas",
+      ctaArtist: "Soy Artista",
     },
     // Landing
     landing: {
@@ -70,6 +79,23 @@ export const translations = {
       noSales: "Aún no hay ventas",
       noSalesDesc:
         "Tu panel se llenará una vez que comiences a vender canciones. Todas las estadísticas se calculan a partir de datos de ventas simuladas.",
+    },
+    // Fan Dashboard
+    fanDashboard: {
+      title: "Mi Panel",
+      subtitle: "Tus compras, historial y artistas",
+      myPlaylist: "Mi Playlist",
+      purchaseHistory: "Historial de Compras",
+      myArtists: "Mis Artistas",
+      noPurchases: "Aún no has comprado canciones.",
+      noContributions: "Sin contribuciones aún.",
+      track: "Canción",
+      artist: "Artista",
+      date: "Fecha",
+      amount: "Monto",
+      txHash: "Tx",
+      connectToSee: "Inicia sesión para ver tu panel de fan",
+      contribution: "Contribución",
     },
     // Wallet
     wallet: {
@@ -197,16 +223,25 @@ export const translations = {
   en: {
     // Navigation
     nav: {
+      home: "Home",
       explore: "Explore",
       artists: "Artists",
       dashboard: "Dashboard",
-      aiGuide: "AI Guide",
+      aiGuide: "Guide",
       howItWorks: "How it works",
+      fanDashboard: "My Panel",
     },
     auth: {
       signIn: "Sign in",
       logout: "Sign out",
       loading: "Loading...",
+    },
+    // Hero (Home banner)
+    hero: {
+      title: "Music On Chain",
+      subtitle: "Music straight from artist to fan. No middlemen. Payments in USDC.",
+      ctaExplore: "Explore Artists",
+      ctaArtist: "I'm an Artist",
     },
     // Landing
     landing: {
@@ -259,6 +294,23 @@ export const translations = {
       noSales: "No sales yet",
       noSalesDesc:
         "Your dashboard will populate once you start selling tracks. All statistics are calculated from mock sales data.",
+    },
+    // Fan Dashboard
+    fanDashboard: {
+      title: "My Panel",
+      subtitle: "Your purchases, history and artists",
+      myPlaylist: "My Playlist",
+      purchaseHistory: "Purchase History",
+      myArtists: "My Artists",
+      noPurchases: "You haven't bought any tracks yet.",
+      noContributions: "No contributions yet.",
+      track: "Track",
+      artist: "Artist",
+      date: "Date",
+      amount: "Amount",
+      txHash: "Tx",
+      connectToSee: "Sign in to see your fan panel",
+      contribution: "Contribution",
     },
     // Wallet
     wallet: {

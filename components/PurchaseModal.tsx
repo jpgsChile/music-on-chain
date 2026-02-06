@@ -4,6 +4,7 @@ import { Track } from "@/types";
 import { calculatePurchaseBreakdown, formatUSDC } from "@/lib/purchase";
 import { formatAddress } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 import { useEffect, useState } from "react";
 import { useUsdcPayment } from "@/lib/blockchain/useUsdcPayment";
 
@@ -39,8 +40,9 @@ export default function PurchaseModal({
   onClose,
   onSuccess,
 }: PurchaseModalProps) {
+  const locale = useLocale();
+  const t = getTranslations(locale);
   const breakdown = calculatePurchaseBreakdown(track);
-  const t = getTranslations("es");
   const { payWithUsdc } = useUsdcPayment();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);

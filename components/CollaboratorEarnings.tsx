@@ -3,6 +3,7 @@
 import { CollaboratorEarning } from "@/lib/dashboard";
 import { formatAddress } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 
 function formatUSDC(amount: number): string {
   return amount.toFixed(2);
@@ -13,7 +14,8 @@ interface CollaboratorEarningsProps {
 }
 
 export default function CollaboratorEarnings({ earnings }: CollaboratorEarningsProps) {
-  const t = getTranslations("es");
+  const locale = useLocale();
+  const t = getTranslations(locale);
 
   if (earnings.length === 0) {
     return (

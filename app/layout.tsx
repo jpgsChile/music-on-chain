@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import WagmiProviderWrapper from "@/components/WagmiProvider";
+import { getLocaleFromCookie } from "@/lib/locale-server";
+import { LocaleProvider } from "@/lib/locale/LocaleContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -20,19 +22,22 @@ export const metadata: Metadata = {
   description: "Plataforma Web3 donde los artistas venden su música directamente a los fans y se quedan con el 98% de los ingresos.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocaleFromCookie();
   return (
-    <html lang="es">
+    <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <WagmiProviderWrapper>
-          <Navigation />
-          {children}
+          <LocaleProvider locale={locale}>
+            <Navigation locale={locale} />
+            {children}
+          </LocaleProvider>
         </WagmiProviderWrapper>
       </body>
     </html>

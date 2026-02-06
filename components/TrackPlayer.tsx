@@ -10,6 +10,7 @@ import { buildTrackForPurchase } from "@/lib/buildTrackForPurchase";
 import GatedAudioPlayer from "@/components/GatedAudioPlayer";
 import PurchaseModal from "@/components/PurchaseModal";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 
 export interface TrackPlayerProps {
   artist: Artist;
@@ -23,7 +24,8 @@ export default function TrackPlayer({
   track,
   artistWalletOverride,
 }: TrackPlayerProps) {
-  const t = getTranslations("es");
+  const locale = useLocale();
+  const t = getTranslations(locale);
   const { wallets } = useWallets();
   const walletAddress = wallets[0]?.address ?? "";
   const { addOwnership } = useTrackOwnership();

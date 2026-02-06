@@ -3,6 +3,7 @@
 import type { Artist } from "@/data/artists";
 import type { ArtistNFT } from "@/data/artists";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 
 interface ArtistNFTSectionProps {
   artist: Artist;
@@ -10,7 +11,8 @@ interface ArtistNFTSectionProps {
 }
 
 export default function ArtistNFTSection({ artist, nfts }: ArtistNFTSectionProps) {
-  const t = getTranslations("es");
+  const locale = useLocale();
+  const t = getTranslations(locale);
   const UTILITY_LABELS: Record<ArtistNFT["utility"], string> = {
     ticket: t.nft.ticket,
     access: t.nft.access,

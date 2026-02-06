@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { getTranslations } from "@/lib/i18n";
+import { getLocaleFromCookie } from "@/lib/locale-server";
 
 export const metadata = {
   title: "Cómo funciona | Music on Chain",
   description: "Explicación breve de cómo funciona Music on Chain para artistas y fans.",
 };
 
-export default function HowItWorksPage() {
-  const t = getTranslations("es");
+export default async function HowItWorksPage() {
+  const locale = await getLocaleFromCookie();
+  const t = getTranslations(locale);
 
   const steps = [
     { title: t.howItWorks.step1Title, body: t.howItWorks.step1Body },

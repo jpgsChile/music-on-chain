@@ -3,13 +3,15 @@ import Link from "next/link";
 import type { Artist } from "@/data/artists";
 import ArtistSocials from "@/components/ArtistSocials";
 import { getTranslations } from "@/lib/i18n";
+import type { Language } from "@/lib/i18n";
 
 interface ArtistHeaderProps {
   artist: Artist;
+  lang?: Language;
 }
 
-export default function ArtistHeader({ artist }: ArtistHeaderProps) {
-  const t = getTranslations("es");
+export default function ArtistHeader({ artist, lang = "es" }: ArtistHeaderProps) {
+  const t = getTranslations(lang);
   return (
     <>
       <div className="mb-6">
@@ -31,13 +33,15 @@ export default function ArtistHeader({ artist }: ArtistHeaderProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 flex items-end gap-4">
-          <Image
-            src={artist.logoUrl}
-            alt=""
-            width={120}
-            height={64}
-            className="h-14 w-auto object-contain drop-shadow-lg"
-          />
+          <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-background/80 border-2 border-background/80 flex-shrink-0 aspect-square">
+            <Image
+              src={artist.logoUrl || "/avatars/default.svg"}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="64px"
+            />
+          </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
               {artist.name}

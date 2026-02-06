@@ -4,13 +4,15 @@ import { useAccount, useConnect, useDisconnect, useChainId } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
 import { formatAddress } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 
 export default function WalletConnect() {
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const chainId = useChainId();
-  const t = getTranslations("es");
+  const locale = useLocale();
+  const t = getTranslations(locale);
 
   const isWrongNetwork = chainId !== baseSepolia.id;
 

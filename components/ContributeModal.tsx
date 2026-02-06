@@ -9,6 +9,7 @@ import type { CrowdfundingCampaign } from "@/data/artists";
 import type { CrowdfundingContribution } from "@/types/ownership";
 import { addContribution } from "@/lib/crowdfunding";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 
 interface ContributeModalProps {
   artist: Artist;
@@ -29,7 +30,8 @@ export default function ContributeModal({
   onClose,
   onSuccess,
 }: ContributeModalProps) {
-  const t = getTranslations("es");
+  const locale = useLocale();
+  const t = getTranslations(locale);
   const { wallets } = useWallets();
   const walletAddress = wallets[0]?.address ?? "";
   const { payWithUsdc } = useUsdcPayment();

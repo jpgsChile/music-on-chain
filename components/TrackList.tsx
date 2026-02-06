@@ -3,6 +3,7 @@
 import type { Artist } from "@/data/artists";
 import TrackPlayer from "@/components/TrackPlayer";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 
 interface TrackListProps {
   artist: Artist;
@@ -14,7 +15,8 @@ export default function TrackList({
   artist,
   artistWalletOverride,
 }: TrackListProps) {
-  const t = getTranslations("es");
+  const locale = useLocale();
+  const t = getTranslations(locale);
   if (!artist.tracks.length) {
     return (
       <p className="text-foreground/50 text-sm">{t.artistPage.noTracks}</p>

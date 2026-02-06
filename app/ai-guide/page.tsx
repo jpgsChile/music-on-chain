@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 
 type Role = "artist" | "fan" | null;
 
 export default function AIGuidePage() {
-  const t = getTranslations("es");
+  const locale = useLocale();
+  const t = getTranslations(locale);
   const [role, setRole] = useState<Role>(null);
 
   return (
@@ -74,6 +77,17 @@ export default function AIGuidePage() {
                     {t.guide.forArtistsIntro}
                   </p>
                 </div>
+                <div className="rounded-xl overflow-hidden border border-border">
+                  <Image
+                    src="/assets/artists/artist1.jpg"
+                    alt=""
+                    width={800}
+                    height={450}
+                    className="w-full h-auto aspect-video object-cover"
+                    sizes="(max-width: 768px) 100vw, 800px"
+                    loading="lazy"
+                  />
+                </div>
                 <div>
                   <h3 className="text-lg font-medium text-foreground mb-2">{t.guide.forArtistsWhat}</h3>
                   <ul className="space-y-2 text-foreground/80">
@@ -94,6 +108,17 @@ export default function AIGuidePage() {
                       {t.guide.socialsItem}
                     </li>
                   </ul>
+                </div>
+                <div className="rounded-xl overflow-hidden border border-border">
+                  <Image
+                    src="/assets/artists/artist2.jpg"
+                    alt=""
+                    width={800}
+                    height={450}
+                    className="w-full h-auto aspect-video object-cover"
+                    sizes="(max-width: 768px) 100vw, 800px"
+                    loading="lazy"
+                  />
                 </div>
                 <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
                   <p className="text-sm text-foreground/90">
@@ -121,6 +146,17 @@ export default function AIGuidePage() {
                     {t.guide.forFansIntro}
                   </p>
                 </div>
+                <div className="rounded-xl overflow-hidden border border-border">
+                  <Image
+                    src="/assets/fans/fan1.png"
+                    alt=""
+                    width={800}
+                    height={450}
+                    className="w-full h-auto aspect-video object-cover"
+                    sizes="(max-width: 768px) 100vw, 800px"
+                    loading="lazy"
+                  />
+                </div>
                 <div>
                   <h3 className="text-lg font-medium text-foreground mb-2">{t.guide.forArtistsWhat}</h3>
                   <ul className="space-y-2 text-foreground/80">
@@ -141,6 +177,17 @@ export default function AIGuidePage() {
                       {t.guide.collectNfts}
                     </li>
                   </ul>
+                </div>
+                <div className="rounded-xl overflow-hidden border border-border">
+                  <Image
+                    src="/assets/fans/fan2.jpg"
+                    alt=""
+                    width={800}
+                    height={450}
+                    className="w-full h-auto aspect-video object-cover"
+                    sizes="(max-width: 768px) 100vw, 800px"
+                    loading="lazy"
+                  />
                 </div>
                 <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
                   <p className="text-sm text-foreground/90">

@@ -4,9 +4,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { getTranslations } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth/useAuth";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import type { Language } from "@/lib/i18n";
 
-export default function Navigation() {
-  const t = getTranslations("es");
+interface NavigationProps {
+  locale: Language;
+}
+
+export default function Navigation({ locale }: NavigationProps) {
+  const t = getTranslations(locale);
   const { ready, authenticated, login, logout } = useAuth();
 
   return (
@@ -27,13 +33,13 @@ export default function Navigation() {
               href="/"
               className="text-foreground/70 hover:text-foreground transition-colors"
             >
-              {t.nav.artists}
+              {t.nav.home}
             </Link>
             <Link
-              href="/tracks"
+              href="/"
               className="text-foreground/70 hover:text-foreground transition-colors"
             >
-              {t.nav.explore}
+              {t.nav.artists}
             </Link>
             <Link
               href="/ai-guide"
@@ -46,6 +52,13 @@ export default function Navigation() {
               className="text-foreground/70 hover:text-foreground transition-colors"
             >
               {t.nav.howItWorks}
+            </Link>
+            <LanguageSwitcher currentLocale={locale} />
+            <Link
+              href="/fan-dashboard"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
+              {t.nav.fanDashboard}
             </Link>
             <Link
               href="/dashboard"

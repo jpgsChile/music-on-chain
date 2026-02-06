@@ -73,6 +73,13 @@ export const artists: Artist[] = [
         price: 1,
         currency: "USDC",
       },
+      {
+        id: "cleaver-track-2",
+        title: "Vengeance",
+        audioUrl: "/assets/cleaver/VENGEANCE.wav",
+        price: 2,
+        currency: "USDC",
+      },
     ],
     crowdfunding: {
       id: "cleaver-album-2026",
@@ -105,6 +112,31 @@ export const artists: Artist[] = [
       youtube: "https://www.youtube.com/channel/UC0YaD7PQahOyWit4OC2MzmA",
     },
   },
+  {
+    slug: "sou",
+    name: "The SOU (Sound of the Universe)",
+    description:
+      "The SOU (Sound of the Universe) es una banda chilena formada por Pía Carpanetti y Carlos Cleaver, con un estilo que fusiona dark pop, new wave y rock. Surgida en 2020, se caracteriza por paisajes sonoros atmosféricos, letras emocionales y la creación de su álbum debut \"X\".",
+    logoUrl: "/assets/sou/sou-logo.jpg",
+    coverUrl: "/assets/sou/sou-band.PNG",
+    wallet: getEnvWallet("NEXT_PUBLIC_SOU_WALLET") || "0x0000000000000000000000000000000000000000",
+    tracks: [
+      {
+        id: "sou-track-1",
+        title: "Burn Again",
+        audioUrl: "/assets/sou/Burn Again.wav",
+        price: 1,
+        currency: "USDC",
+      },
+      {
+        id: "sou-track-2",
+        title: "Do What U Want",
+        audioUrl: "/assets/sou/Do What U Want.wav",
+        price: 1,
+        currency: "USDC",
+      },
+    ],
+  },
 ];
 
 export const PREVIEW_SECONDS = 30;
@@ -113,10 +145,17 @@ export function getArtistBySlug(slug: string): Artist | undefined {
   return artists.find((a) => a.slug === slug);
 }
 
-/** Resolve artist wallet (server can inject env for cleaver). */
+/** Resolve artist wallet (server can inject env per artist). */
 export function getArtistWallet(artist: Artist): string {
-  if (artist.slug === "cleaver" && typeof process !== "undefined") {
-    const env = (process.env as Record<string, string | undefined>).NEXT_PUBLIC_CLEAVER_WALLET;
+  if (typeof process === "undefined") return artist.wallet;
+  const envKey =
+    artist.slug === "cleaver"
+      ? "NEXT_PUBLIC_CLEAVER_WALLET"
+      : artist.slug === "sou"
+        ? "NEXT_PUBLIC_SOU_WALLET"
+        : null;
+  if (envKey) {
+    const env = (process.env as Record<string, string | undefined>)[envKey];
     if (env?.trim()) return env.trim();
   }
   return artist.wallet;

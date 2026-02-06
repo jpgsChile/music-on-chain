@@ -6,6 +6,7 @@ import type { CrowdfundingCampaign } from "@/data/artists";
 import { getArtistWallet } from "@/data/artists";
 import ContributeModal from "@/components/ContributeModal";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 
 interface CrowdfundingCardProps {
   artist: Artist;
@@ -27,7 +28,8 @@ export default function CrowdfundingCard({
   campaign,
   artistWalletOverride,
 }: CrowdfundingCardProps) {
-  const t = getTranslations("es");
+  const locale = useLocale();
+  const t = getTranslations(locale);
   const [modalOpen, setModalOpen] = useState(false);
   const artistWallet = artistWalletOverride?.trim() || getArtistWallet(artist);
   const progress = Math.min(

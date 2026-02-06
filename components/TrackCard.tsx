@@ -7,6 +7,7 @@ import PurchaseModal from "./PurchaseModal";
 import { formatDuration } from "@/lib/utils";
 import { addMockSale } from "@/lib/mockSales";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth/useAuth";
 
@@ -20,7 +21,8 @@ export default function TrackCard({ track, onPurchase, isOwned }: TrackCardProps
   const [showModal, setShowModal] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const { ready, authenticated, login, user } = useAuth();
-  const t = getTranslations("es");
+  const locale = useLocale();
+  const t = getTranslations(locale);
   const owned = Boolean(isOwned);
 
   const handleBuyClick = () => {

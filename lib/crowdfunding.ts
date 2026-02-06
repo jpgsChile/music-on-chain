@@ -30,3 +30,9 @@ export function getContributionsByCampaign(artistSlug: string, campaignId: strin
     (c) => c.artist === artistSlug && c.campaignId === campaignId
   );
 }
+
+export function getContributionsByWallet(wallet: string): CrowdfundingContribution[] {
+  if (typeof window === "undefined") return [];
+  const w = wallet.toLowerCase();
+  return load().filter((c) => c.wallet.toLowerCase() === w);
+}

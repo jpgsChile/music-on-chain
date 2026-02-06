@@ -4,17 +4,19 @@ import { useEffect, useState } from "react";
 import { calculateArtistStats, ArtistStats } from "@/lib/dashboard";
 import { formatUSDC } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
+import { useLocale } from "@/lib/locale/LocaleContext";
 import StatCard from "@/components/StatCard";
 import CollaboratorEarnings from "@/components/CollaboratorEarnings";
 import { useAuth } from "@/lib/auth/useAuth";
 
 export default function DashboardPage() {
+  const locale = useLocale();
+  const t = getTranslations(locale);
   const { ready, authenticated, login, user } = useAuth();
   const address = user?.wallet?.address || user?.id || "";
   const canLoadStats = authenticated && Boolean(address);
   const [stats, setStats] = useState<ArtistStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const t = getTranslations("es");
 
   useEffect(() => {
     if (!canLoadStats) {

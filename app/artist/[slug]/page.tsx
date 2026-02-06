@@ -5,6 +5,7 @@ import TrackList from "@/components/TrackList";
 import CrowdfundingCard from "@/components/CrowdfundingCard";
 import ArtistNFTSection from "@/components/ArtistNFTSection";
 import { getTranslations } from "@/lib/i18n";
+import { getLocaleFromCookie } from "@/lib/locale-server";
 
 export function generateStaticParams() {
   return artists.map((a) => ({ slug: a.slug }));
@@ -15,7 +16,8 @@ interface PageProps {
 }
 
 export default async function ArtistPage({ params }: PageProps) {
-  const t = getTranslations("es");
+  const locale = await getLocaleFromCookie();
+  const t = getTranslations(locale);
   const { slug } = await params;
   const artist = getArtistBySlug(slug);
   if (!artist) notFound();
@@ -28,7 +30,7 @@ export default async function ArtistPage({ params }: PageProps) {
   return (
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <ArtistHeader artist={artist} />
+        <ArtistHeader artist={artist} lang={locale} />
         <div className="mt-8 space-y-10">
           <TrackList
             artist={artist}
