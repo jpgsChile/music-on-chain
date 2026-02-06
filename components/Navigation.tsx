@@ -33,12 +33,6 @@ export default function Navigation({ locale }: NavigationProps) {
               href="/"
               className="text-foreground/70 hover:text-foreground transition-colors"
             >
-              {t.nav.home}
-            </Link>
-            <Link
-              href="/"
-              className="text-foreground/70 hover:text-foreground transition-colors"
-            >
               {t.nav.artists}
             </Link>
             <Link
@@ -53,7 +47,6 @@ export default function Navigation({ locale }: NavigationProps) {
             >
               {t.nav.howItWorks}
             </Link>
-            <LanguageSwitcher currentLocale={locale} />
             <Link
               href="/fan-dashboard"
               className="text-foreground/70 hover:text-foreground transition-colors"
@@ -66,6 +59,7 @@ export default function Navigation({ locale }: NavigationProps) {
             >
               {t.nav.dashboard}
             </Link>
+            <LanguageSwitcher currentLocale={locale} />
             {!authenticated ? (
               <button
                 onClick={login}

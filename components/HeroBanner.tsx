@@ -8,16 +8,26 @@ interface HeroBannerProps {
   lang?: Language;
 }
 
+const LOGO_SRC = "/assets/moc/moc-logo.jpg";
+
 export default function HeroBanner({ lang = "es" }: HeroBannerProps) {
   const t = getTranslations(lang);
   return (
     <section className="relative w-full overflow-hidden bg-gradient-to-b from-accent/10 via-background to-background border-b border-border">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         <div className="text-center max-w-2xl mx-auto">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground tracking-tight">
-            {t.hero.title}
-          </h1>
-          <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-foreground/70">
+          <Link href="/" className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-lg min-h-[72px] flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={LOGO_SRC}
+              alt="Music On Chain"
+              className="w-full max-w-[280px] sm:max-w-[320px] h-auto mx-auto drop-shadow-[0_0_20px_rgba(0,0,0,0.4)] hover:drop-shadow-[0_0_28px_rgba(34,211,238,0.35)] transition-shadow duration-300"
+              width={320}
+              height={80}
+              fetchPriority="high"
+            />
+          </Link>
+          <p className="mt-5 sm:mt-6 text-lg sm:text-xl text-foreground/70">
             {t.hero.subtitle}
           </p>
           <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
