@@ -1,5 +1,12 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Music on Chain PoC
+
+Artist + track PoC with USDC payments on Base Sepolia. Copy `.env.example` to `.env.local` and set:
+
+- **NEXT_PUBLIC_PRIVY_APP_ID** — Privy app ID for wallet auth.
+- **NEXT_PUBLIC_CLEAVER_WALLET** — Base Sepolia address that receives USDC (must be a valid address on Base Sepolia; use your own wallet for testing).
+
 ## Getting Started
 
 First, run the development server:

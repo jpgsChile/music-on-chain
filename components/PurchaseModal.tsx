@@ -7,6 +7,25 @@ import { getTranslations } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { useUsdcPayment } from "@/lib/blockchain/useUsdcPayment";
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className="text-xs text-accent hover:underline"
+      title="Copiar dirección"
+    >
+      {copied ? "Copiado" : "Copiar"}
+    </button>
+  );
+}
+
 interface PurchaseModalProps {
   track: Track;
   isOpen: boolean;
@@ -27,7 +46,7 @@ export default function PurchaseModal({
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isBusy = isProcessing || isSuccess;
-  const artistWallet = track.artist.walletAddress as `0x${string}`;
+  const artistWallet = track.artist.walletAddress;
   const amountToArtist = Number((track.price * 0.98).toFixed(6));
 
   useEffect(() => {
@@ -149,6 +168,22 @@ export default function PurchaseModal({
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Destino del pago — dirección que recibe el USDC */}
+          <div className="bg-border/20 rounded-lg p-4 border border-border/50">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-sm font-medium text-foreground">
+                Destino del pago (recibe USDC)
+              </span>
+              <CopyButton text={artistWallet} />
+            </div>
+            <p className="text-xs font-mono text-foreground/80 break-all">
+              {artistWallet || "— No configurada (wallet del artista en .env.local)"}
+            </p>
+            <p className="text-xs text-foreground/50 mt-1">
+              Red: Base Sepolia. Esta es la wallet del artista; los USDC se envían aquí.
+            </p>
           </div>
 
           {/* Splits Breakdown */}

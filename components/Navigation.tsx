@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { getTranslations } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth/useAuth";
 
@@ -12,10 +13,22 @@ export default function Navigation() {
     <nav className="border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-bold text-foreground">
-            Music on Chain
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/assets/moc/MOC-logo.png"
+              alt="Music on Chain"
+              width={140}
+              height={32}
+              className="h-8 w-auto"
+            />
           </Link>
           <div className="flex gap-6 items-center">
+            <Link
+              href="/"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
+              {t.nav.artists}
+            </Link>
             <Link
               href="/tracks"
               className="text-foreground/70 hover:text-foreground transition-colors"
@@ -23,10 +36,16 @@ export default function Navigation() {
               {t.nav.explore}
             </Link>
             <Link
-              href="/artists"
+              href="/ai-guide"
               className="text-foreground/70 hover:text-foreground transition-colors"
             >
-              {t.nav.artists}
+              {t.nav.aiGuide}
+            </Link>
+            <Link
+              href="/how-it-works"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
+              {t.nav.howItWorks}
             </Link>
             <Link
               href="/dashboard"

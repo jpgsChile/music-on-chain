@@ -7,24 +7,27 @@ import { baseSepolia } from "viem/chains";
 import { config } from "@/lib/wagmi";
 import { useState } from "react";
 
-export default function WagmiProviderWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const privyConfig = {
+  loginMethods: ["google", "passkey"],
+  appearance: { theme: "dark" as const },
+  embeddedWallets: {
+    ethereum: {
+      createOnLogin: "users-without-wallets" as const,
+    },
+  },
+  defaultChain: baseSepolia,
+  supportedChains: [baseSepolia],
+};
+
+type Props = { children: React.ReactNode };
+
+export default function WagmiProviderWrapper(props: Props) {
+  const { children } = props;
   const [queryClient] = useState(() => new QueryClient());
+  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID!;
 
   return (
-    <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
-      config={{
-        loginMethods: ["google", "passkey"],
-        appearance: { theme: "dark" },
-        embeddedWallets: { createOnLogin: "users-without-wallets" },
-        defaultChain: baseSepolia,
-        supportedChains: [baseSepolia],
-      }}
-    >
+    <PrivyProvider appId={appId} config={privyConfig}>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
       </WagmiProvider>

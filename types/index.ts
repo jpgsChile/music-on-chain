@@ -49,3 +49,6 @@ export interface User {
   name?: string;
 }
 
+/** @deprecated Use TrackOwnership from "@/types/ownership" */
+export type { TrackOwnership } from "./ownership";
+

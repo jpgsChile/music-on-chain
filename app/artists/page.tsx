@@ -1,4 +1,4 @@
-import { mockArtists } from "@/data/mock";
+import { artists } from "@/data/artists";
 import ArtistCard from "@/components/ArtistCard";
 import { getTranslations } from "@/lib/i18n";
 
@@ -16,8 +16,8 @@ export default function ArtistsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockArtists.map((artist) => (
-            <ArtistCard key={artist.id} artist={artist} />
+          {artists.map((artist) => (
+            <ArtistCard key={artist.slug} artist={artist} />
           ))}
         </div>
       </div>

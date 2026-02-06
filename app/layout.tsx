@@ -16,8 +16,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Music on Chain - Sell your music directly. Keep 98%.",
-  description: "A Web3 music platform where artists sell their music directly and keep 98% of the revenue.",
+  title: "Music on Chain - Vende tu música directamente. Quédate con el 98%.",
+  description: "Plataforma Web3 donde los artistas venden su música directamente a los fans y se quedan con el 98% de los ingresos.",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
