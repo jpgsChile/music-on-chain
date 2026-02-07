@@ -9,6 +9,7 @@ import { useTrackOwnership } from "@/lib/ownership/useTrackOwnership";
 import { useContributions } from "@/lib/crowdfunding/useContributions";
 import { artists, getArtistBySlug } from "@/data/artists";
 import GatedAudioPlayer from "@/components/GatedAudioPlayer";
+import FanWalletCard from "@/components/FanWalletCard";
 import { formatUSDC } from "@/lib/utils";
 
 export default function FanDashboardPage() {
@@ -68,6 +69,11 @@ export default function FanDashboardPage() {
           <h1 className="text-4xl font-bold mb-2">{t.fanDashboard.title}</h1>
           <p className="text-foreground/70">{t.fanDashboard.subtitle}</p>
         </div>
+
+        {/* Tu cuenta Music On Chain (solo si hay dirección tipo wallet) */}
+        {wallet.startsWith("0x") && wallet.length >= 42 && (
+          <FanWalletCard address={wallet} />
+        )}
 
         {/* Mi Playlist */}
         <section className="mb-10">
