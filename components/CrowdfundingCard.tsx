@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Artist } from "@/data/artists";
-import type { CrowdfundingCampaign } from "@/data/artists";
+import type { CrowdfundingCampaign, CrowdfundingPerkType } from "@/data/artists";
 import { getArtistWallet } from "@/data/artists";
 import ContributeModal from "@/components/ContributeModal";
 import { getTranslations } from "@/lib/i18n";
@@ -12,6 +12,8 @@ interface CrowdfundingCardProps {
   artist: Artist;
   campaign: CrowdfundingCampaign;
   artistWalletOverride?: string;
+  /** Override raised amount (e.g. from contributions or contract) for real-time progress */
+  raisedAmountOverride?: number;
 }
 
 function formatDeadline(deadline: string): string {
@@ -23,20 +25,26 @@ function formatDeadline(deadline: string): string {
   }
 }
 
+const PERK_LABELS: Record<CrowdfundingPerkType, string> = {
+  nft: "NFT",
+  early_access: "Acceso anticipado",
+  exclusive_content: "Contenido exclusivo",
+};
+
 export default function CrowdfundingCard({
   artist,
   campaign,
   artistWalletOverride,
+  raisedAmountOverride,
 }: CrowdfundingCardProps) {
   const locale = useLocale();
   const t = getTranslations(locale);
   const [modalOpen, setModalOpen] = useState(false);
   const artistWallet = artistWalletOverride?.trim() || getArtistWallet(artist);
+  const raised = raisedAmountOverride ?? campaign.raisedAmount;
   const progress = Math.min(
     100,
-    campaign.targetAmount > 0
-      ? (campaign.raisedAmount / campaign.targetAmount) * 100
-      : 0
+    campaign.targetAmount > 0 ? (raised / campaign.targetAmount) * 100 : 0
   );
 
   return (
@@ -48,7 +56,7 @@ export default function CrowdfundingCard({
           <div className="mt-4">
             <div className="flex justify-between text-sm mb-1">
               <span className="text-foreground/70">
-                {campaign.raisedAmount.toLocaleString()} / {campaign.targetAmount.toLocaleString()} {campaign.currency}
+                {raised.toLocaleString()} / {campaign.targetAmount.toLocaleString()} {campaign.currency}
               </span>
               <span className="text-foreground/70">{progress.toFixed(0)}%</span>
             </div>

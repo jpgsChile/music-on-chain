@@ -1,12 +1,18 @@
-import { createConfig, http } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
-import { injected } from "@wagmi/connectors";
+import { createConfig } from "@privy-io/wagmi";
+import { http } from "wagmi";
+import { baseSepolia } from "viem/chains";
 
 export const config = createConfig({
   chains: [baseSepolia],
-  connectors: [injected()],
   transports: {
     [baseSepolia.id]: http(),
   },
+  connectors: [],
 });
+
+declare module "wagmi" {
+  interface Register {
+    config: typeof config;
+  }
+}
 

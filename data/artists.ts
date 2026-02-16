@@ -11,6 +11,17 @@ export interface Track {
   currency: "USDC";
 }
 
+/** Perk type for campaign rewards (NFT, early access, exclusive content) */
+export type CrowdfundingPerkType = "nft" | "early_access" | "exclusive_content";
+
+export interface CrowdfundingPerk {
+  type: CrowdfundingPerkType;
+  title: string;
+  description?: string;
+  /** Minimum contribution (USDC) to unlock this perk */
+  minAmount?: number;
+}
+
 export interface CrowdfundingCampaign {
   id: string;
   title: string;
@@ -20,6 +31,10 @@ export interface CrowdfundingCampaign {
   currency: "USDC";
   deadline: string; // ISO date or YYYY-MM-DD
   benefits: string[];
+  /** Track IDs linked to this campaign (e.g. album tracks) */
+  linkedTrackIds?: string[];
+  /** Structured perks (NFTs, early access, exclusive content) */
+  perks?: CrowdfundingPerk[];
 }
 
 export interface ArtistNFT {
@@ -159,4 +174,13 @@ export function getArtistWallet(artist: Artist): string {
     if (env?.trim()) return env.trim();
   }
   return artist.wallet;
+}
+
+/** Find artist whose wallet matches the given address (case-insensitive). */
+export function getArtistByWallet(address: string): Artist | undefined {
+  if (!address?.trim()) return undefined;
+  const normalized = address.trim().toLowerCase();
+  return artists.find(
+    (a) => getArtistWallet(a).toLowerCase() === normalized
+  );
 }

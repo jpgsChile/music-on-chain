@@ -3,7 +3,9 @@ import { artists, getArtistBySlug } from "@/data/artists";
 import ArtistHeader from "@/components/ArtistHeader";
 import TrackList from "@/components/TrackList";
 import CrowdfundingCard from "@/components/CrowdfundingCard";
+import ArtistEventsSection from "@/components/tickets/ArtistEventsSection";
 import ArtistNFTSection from "@/components/ArtistNFTSection";
+import ArtistProfilePublicSection from "@/components/artist-profile/ArtistProfilePublicSection";
 import { getTranslations } from "@/lib/i18n";
 import { getLocaleFromCookie } from "@/lib/locale-server";
 
@@ -32,6 +34,9 @@ export default async function ArtistPage({ params }: PageProps) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <ArtistHeader artist={artist} lang={locale} />
         <div className="mt-8 space-y-10">
+          <ArtistProfilePublicSection
+            artistWallet={artistWalletOverride || artist.wallet}
+          />
           <TrackList
             artist={artist}
             artistWalletOverride={artistWalletOverride || undefined}
@@ -46,6 +51,10 @@ export default async function ArtistPage({ params }: PageProps) {
               />
             </section>
           )}
+          <ArtistEventsSection
+            artist={artist}
+            artistWalletOverride={artistWalletOverride || undefined}
+          />
           {artist.nfts && artist.nfts.length > 0 && (
             <section>
               <ArtistNFTSection artist={artist} nfts={artist.nfts} />

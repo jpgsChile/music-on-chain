@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getTranslations } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth/useAuth";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ConnectArtist from "@/components/ConnectArtist";
 import type { Language } from "@/lib/i18n";
 
 interface NavigationProps {
@@ -13,7 +14,7 @@ interface NavigationProps {
 
 export default function Navigation({ locale }: NavigationProps) {
   const t = getTranslations(locale);
-  const { ready, authenticated, login, logout } = useAuth();
+  const { authenticated, logout } = useAuth();
 
   return (
     <nav className="border-b border-border">
@@ -61,13 +62,7 @@ export default function Navigation({ locale }: NavigationProps) {
             </Link>
             <LanguageSwitcher currentLocale={locale} />
             {!authenticated ? (
-              <button
-                onClick={login}
-                disabled={!ready}
-                className="px-4 py-2 text-sm bg-accent text-background rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {ready ? t.auth.signIn : t.auth.loading}
-              </button>
+              <ConnectArtist variant="modal" className="px-4 py-2 text-sm font-medium rounded-lg bg-accent text-background hover:bg-accent-hover transition-colors" />
             ) : (
               <button
                 onClick={logout}

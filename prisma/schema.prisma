@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model ArtistProfile {
+  id                    String   @id @default(cuid())
+  wallet                String   @unique
+  artisticName          String
+  country               String?
+  creativeRoles         Json?
+  defaultRoyaltySplits  Json?
+  attestationHash       String?
+  attestationChainId    Int?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}

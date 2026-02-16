@@ -7,6 +7,8 @@ import { useLocale } from "@/lib/locale/LocaleContext";
 import { useAuth } from "@/lib/auth/useAuth";
 import { useTrackOwnership } from "@/lib/ownership/useTrackOwnership";
 import { useContributions } from "@/lib/crowdfunding/useContributions";
+import { useTicketOwnership } from "@/lib/tickets/useTicketOwnership";
+import FanTicketList from "@/components/tickets/FanTicketList";
 import { artists, getArtistBySlug } from "@/data/artists";
 import GatedAudioPlayer from "@/components/GatedAudioPlayer";
 import FanWalletCard from "@/components/FanWalletCard";
@@ -19,6 +21,7 @@ export default function FanDashboardPage() {
   const wallet = user?.wallet?.address ?? "";
   const { ownership } = useTrackOwnership();
   const contributions = useContributions(wallet);
+  const { tickets: myTickets } = useTicketOwnership(wallet);
 
   const myOwnership = useMemo(
     () =>
@@ -74,6 +77,14 @@ export default function FanDashboardPage() {
         {wallet.startsWith("0x") && wallet.length >= 42 && (
           <FanWalletCard address={wallet} />
         )}
+
+        {/* Mis entradas */}
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold text-foreground mb-4">
+            🎟️ {t.tickets?.myTickets ?? "Mis entradas"}
+          </h2>
+          <FanTicketList tickets={myTickets} />
+        </section>
 
         {/* Mi Playlist */}
         <section className="mb-10">

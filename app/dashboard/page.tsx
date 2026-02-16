@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { calculateArtistStats, ArtistStats } from "@/lib/dashboard";
 import { formatUSDC } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
@@ -8,6 +9,10 @@ import { useLocale } from "@/lib/locale/LocaleContext";
 import StatCard from "@/components/StatCard";
 import CollaboratorEarnings from "@/components/CollaboratorEarnings";
 import { useAuth } from "@/lib/auth/useAuth";
+import { getArtistByWallet } from "@/data/artists";
+import ConnectArtist from "@/components/ConnectArtist";
+import ArtistTrackConfig from "@/components/ArtistTrackConfig";
+import ArtistProfileForm from "@/components/artist-profile/ArtistProfileForm";
 
 export default function DashboardPage() {
   const locale = useLocale();
@@ -15,6 +20,7 @@ export default function DashboardPage() {
   const { ready, authenticated, login, user } = useAuth();
   const address = user?.wallet?.address || user?.id || "";
   const canLoadStats = authenticated && Boolean(address);
+  const currentArtist = getArtistByWallet(address || "");
   const [stats, setStats] = useState<ArtistStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -47,33 +53,23 @@ export default function DashboardPage() {
       <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">{t.dashboard.title}</h1>
-          <div className="border border-border rounded-lg p-8 bg-background text-center">
-            <svg
-              className="w-16 h-16 mx-auto mb-4 text-foreground/40"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-            <h2 className="text-xl font-semibold text-foreground mb-2">
-              {t.dashboard.connectWallet}
-            </h2>
-            <p className="text-foreground/70">
-              {t.dashboard.connectWalletDesc}
-            </p>
-            <button
-              onClick={login}
-              disabled={!ready}
-              className="mt-5 px-4 py-2 text-sm bg-accent text-background rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {ready ? t.auth.signIn : t.auth.loading}
-            </button>
+          <div className="border border-border rounded-2xl p-8 sm:p-10 bg-background max-w-lg mx-auto">
+            <div className="text-center mb-6">
+              <div className="inline-flex p-4 rounded-2xl bg-accent/10 text-accent mb-4">
+                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-semibold text-foreground mb-2">
+                {t.auth.connectAsArtist}
+              </h2>
+              <p className="text-sm text-foreground/70">
+                {t.dashboard.connectWalletDesc} {t.auth.connectOptions}
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <ConnectArtist variant="modal" asCardGrid={false} className="px-6 py-3 rounded-xl font-medium bg-accent text-background hover:bg-accent-hover" />
+            </div>
           </div>
         </div>
       </div>
@@ -170,6 +166,57 @@ export default function DashboardPage() {
           <CollaboratorEarnings
             earnings={stats?.collaboratorEarnings || []}
           />
+        </div>
+
+        {/* Enlaces rápidos */}
+        <div className="mb-6 flex flex-wrap gap-3">
+          <Link
+            href="/dashboard/canciones"
+            className="text-sm font-medium text-accent hover:underline"
+          >
+            🎵 {t.dashboard.ingresarCanciones}
+          </Link>
+          <Link
+            href="/dashboard/tickets"
+            className="text-sm font-medium text-accent hover:underline"
+          >
+            🎟️ {t.dashboard.tickets}
+          </Link>
+          <Link
+            href="/dashboard/upload"
+            className="text-sm font-medium text-accent hover:underline"
+          >
+            📤 Subir canción (NFT)
+          </Link>
+        </div>
+
+        {/* Perfil de artista (solo artistas: wallet como llave; reutilizable en todas las obras) */}
+        {address && (
+          <div className="mb-8">
+            <ArtistProfileForm wallet={address} />
+          </div>
+        )}
+
+        {/* Configuración de canciones / Declaración de obras */}
+        <div className="mb-8">
+          {currentArtist ? (
+            <ArtistTrackConfig artist={currentArtist} />
+          ) : (
+            <div className="border border-border rounded-lg p-6 bg-background">
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                {t.dashboard.trackConfig}
+              </h3>
+              <p className="text-sm text-foreground/60 mb-4">
+                {t.dashboard.notArtistWallet}
+              </p>
+              <Link
+                href="/dashboard/canciones"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-accent text-background hover:bg-accent-hover"
+              >
+                🎵 {t.dashboard.ingresarCanciones}
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Info Note */}
