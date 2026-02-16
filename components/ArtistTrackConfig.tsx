@@ -136,7 +136,7 @@ export default function ArtistTrackConfig({ artist }: ArtistTrackConfigProps) {
             type="url"
             value={audioUrl}
             onChange={(e) => setAudioUrl(e.target.value)}
-            placeholder="https://... o /assets/mi-audio.mp3"
+            placeholder="https://... o /assets/mi-tema.wav"
             className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent/50"
           />
         </div>

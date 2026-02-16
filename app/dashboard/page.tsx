@@ -11,7 +11,6 @@ import CollaboratorEarnings from "@/components/CollaboratorEarnings";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getArtistByWallet } from "@/data/artists";
 import ConnectArtist from "@/components/ConnectArtist";
-import ArtistTrackConfig from "@/components/ArtistTrackConfig";
 import ArtistProfileForm from "@/components/artist-profile/ArtistProfileForm";
 
 export default function DashboardPage() {
@@ -197,26 +196,24 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Configuración de canciones / Declaración de obras */}
+        {/* Canciones: enlace a la página dedicada (evitar duplicar el formulario) */}
         <div className="mb-8">
-          {currentArtist ? (
-            <ArtistTrackConfig artist={currentArtist} />
-          ) : (
-            <div className="border border-border rounded-lg p-6 bg-background">
-              <h3 className="text-lg font-semibold text-foreground mb-1">
-                {t.dashboard.trackConfig}
-              </h3>
-              <p className="text-sm text-foreground/60 mb-4">
-                {t.dashboard.notArtistWallet}
-              </p>
-              <Link
-                href="/dashboard/canciones"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-accent text-background hover:bg-accent-hover"
-              >
-                🎵 {t.dashboard.ingresarCanciones}
-              </Link>
-            </div>
-          )}
+          <div className="border border-border rounded-lg p-6 bg-background">
+            <h3 className="text-lg font-semibold text-foreground mb-1">
+              {t.dashboard.trackConfig}
+            </h3>
+            <p className="text-sm text-foreground/60 mb-4">
+              {currentArtist
+                ? t.dashboard.trackConfigDesc
+                : t.dashboard.notArtistWallet}
+            </p>
+            <Link
+              href="/dashboard/canciones"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-accent text-background hover:bg-accent-hover"
+            >
+              🎵 {t.dashboard.ingresarCanciones}
+            </Link>
+          </div>
         </div>
 
         {/* Info Note */}
