@@ -1,5 +1,5 @@
 /**
- * Ticket NFT contract interface (Base testnet).
+ * Ticket NFT contract interface (Avalanche Fuji testnet).
  * ERC-1155 style: one event = one token id, supply = number of tickets.
  * Transferable; ownership on-chain for traceability.
  */
@@ -20,10 +20,10 @@ export interface MintTicketResult {
   error?: string;
 }
 
-const BASE_SEPOLIA_CHAIN_ID = 84532;
+const AVALANCHE_FUJI_CHAIN_ID = 43113;
 
 /**
- * Mint ticket NFT batch (ERC-1155) on Base Sepolia.
+ * Mint ticket NFT batch (ERC-1155) on Avalanche Fuji.
  * Stub: replace with writeContract when deployed.
  */
 export async function mintTicketNFT(
@@ -52,5 +52,5 @@ export async function mintTicketNFT(
 }
 
 export function getTicketNftChainId(): number {
-  return BASE_SEPOLIA_CHAIN_ID;
+  return AVALANCHE_FUJI_CHAIN_ID;
 }

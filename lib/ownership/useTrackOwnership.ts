@@ -17,7 +17,7 @@ function normalizeEntry(o: Record<string, unknown>): TrackOwnership | null {
     artist,
     trackId,
     txHash,
-    chain: "base-sepolia",
+    chain: "avalanche-fuji",
     purchasedAt,
   };
 }

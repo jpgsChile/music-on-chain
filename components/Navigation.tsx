@@ -22,7 +22,7 @@ export default function Navigation({ locale }: NavigationProps) {
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/assets/moc/MOC-logo.png"
+              src="/assets/moc/moc-logo.png"
               alt="Music on Chain"
               width={140}
               height={32}

@@ -1,6 +1,6 @@
 import type { TicketEvent, TicketMetadata, AccessRule } from "@/types/ticketNft";
 
-const BASE_SEPOLIA_CHAIN_ID = 84532;
+const AVALANCHE_FUJI_CHAIN_ID = 43113;
 
 /**
  * Build NFT metadata JSON for a ticket (ERC-721/1155).
@@ -36,7 +36,7 @@ export function buildTicketMetadata(
       location: event.location,
       accessRules: event.accessRules,
       artistSlug: event.artistSlug,
-      chainId: BASE_SEPOLIA_CHAIN_ID,
+      chainId: AVALANCHE_FUJI_CHAIN_ID,
     },
   };
 }

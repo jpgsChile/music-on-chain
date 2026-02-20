@@ -29,7 +29,7 @@ export default function Step5Mint({
           <span className="text-foreground/60">Canción:</span> {title || "—"}
         </p>
         <p className="text-xs text-foreground/50 mt-1">
-          Se registrará en Base Sepolia (testnet).
+          Se registrará en Avalanche Fuji (testnet).
         </p>
       </div>
       {success && (

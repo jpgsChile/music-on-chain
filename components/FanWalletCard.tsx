@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
 
-const BASE_SEPOLIA_CHAIN_ID = "84532";
+const AVALANCHE_FUJI_CHAIN_ID = "43113";
 
 function truncateAddress(address: string): string {
   if (!address || address.length < 10) return address;
@@ -146,7 +146,7 @@ export default function FanWalletCard({ address }: FanWalletCardProps) {
               </p>
               <p>
                 <span className="text-foreground/50">{t.fanWallet.advancedChainId}:</span>{" "}
-                {BASE_SEPOLIA_CHAIN_ID}
+                {AVALANCHE_FUJI_CHAIN_ID}
               </p>
               <p>
                 <span className="text-foreground/50">{t.fanWallet.advancedWalletType}</span>

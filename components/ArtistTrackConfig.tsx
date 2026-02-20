@@ -92,7 +92,7 @@ export default function ArtistTrackConfig({ artist }: ArtistTrackConfigProps) {
                       {track.title}
                     </span>
                     <span className="text-xs text-foreground/50">
-                      {track.price} USDC
+                      {track.price} AVAX
                       {isExtra && " · Añadida por ti"}
                     </span>
                   </div>

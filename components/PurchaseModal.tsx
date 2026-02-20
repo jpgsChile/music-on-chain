@@ -6,7 +6,7 @@ import { formatAddress } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
 import { useEffect, useState } from "react";
-import { useUsdcPayment } from "@/lib/blockchain/useUsdcPayment";
+import { useNativePayment } from "@/lib/blockchain/useUsdcPayment";
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -43,7 +43,7 @@ export default function PurchaseModal({
   const locale = useLocale();
   const t = getTranslations(locale);
   const breakdown = calculatePurchaseBreakdown(track);
-  const { payWithUsdc } = useUsdcPayment();
+  const { payWithNative } = useNativePayment();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -79,7 +79,7 @@ export default function PurchaseModal({
     setErrorMessage(null);
 
     try {
-      const txHash = await payWithUsdc({
+      const txHash = await payWithNative({
         to: artistWallet,
         amount: amountToArtist,
       });
@@ -172,11 +172,11 @@ export default function PurchaseModal({
             </div>
           </div>
 
-          {/* Destino del pago — dirección que recibe el USDC */}
+          {/* Destino del pago — dirección que recibe AVAX */}
           <div className="bg-border/20 rounded-lg p-4 border border-border/50">
             <div className="flex items-center justify-between gap-2 mb-2">
               <span className="text-sm font-medium text-foreground">
-                Destino del pago (recibe USDC)
+                Destino del pago (recibe AVAX)
               </span>
               <CopyButton text={artistWallet} />
             </div>
@@ -184,7 +184,7 @@ export default function PurchaseModal({
               {artistWallet || "— No configurada (wallet del artista en .env.local)"}
             </p>
             <p className="text-xs text-foreground/50 mt-1">
-              Red: Base Sepolia. Esta es la wallet del artista; los USDC se envían aquí.
+              Red: Avalanche Fuji. Esta es la wallet del artista; el AVAX se envia aqui.
             </p>
           </div>
 

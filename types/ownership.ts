@@ -7,7 +7,7 @@ export interface TrackOwnership {
   artist: string;
   trackId: string;
   txHash: string;
-  chain: "base-sepolia";
+  chain: "avalanche-fuji";
   purchasedAt: string;
 }
 
@@ -21,6 +21,6 @@ export interface CrowdfundingContribution {
   campaignId: string;
   amount: number;
   txHash: string;
-  chain: "base-sepolia";
+  chain: "avalanche-fuji";
   contributedAt: string;
 }

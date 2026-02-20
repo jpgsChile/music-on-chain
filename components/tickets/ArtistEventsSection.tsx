@@ -64,7 +64,7 @@ export default function ArtistEventsSection({
                 {event.location} ({event.locationType})
               </p>
               <p className="text-sm text-foreground/80 mt-2">
-                {event.price} USDC
+                {event.price} AVAX
               </p>
               <button
                 type="button"

@@ -1,51 +1,45 @@
 "use client";
 
 import { useWallets } from "@privy-io/react-auth";
-import { encodeFunctionData, getAddress, parseUnits } from "viem";
-import { baseSepolia } from "viem/chains";
-import { USDC_ADDRESS, USDC_DECIMALS } from "./constants";
-import { usdcAbi } from "./usdcAbi";
+import { getAddress, parseEther, toHex } from "viem";
+import { avalancheFuji } from "viem/chains";
 
-type PayWithUsdcArgs = {
-  /** Recipient address (Base Sepolia). Will be normalized with getAddress for EIP-55 checksum. */
+type PayWithNativeArgs = {
+  /** Recipient address (Avalanche Fuji). Will be normalized with getAddress for EIP-55 checksum. */
   to: string;
   amount: number;
 };
 
-export function useUsdcPayment() {
+export function useNativePayment() {
   const { wallets } = useWallets();
 
-  const payWithUsdc = async ({ to, amount }: PayWithUsdcArgs) => {
+  const payWithNative = async ({ to, amount }: PayWithNativeArgs) => {
     const wallet = wallets[0];
     if (!wallet) {
       throw new Error("No wallet");
     }
     if (!to?.trim()) {
       throw new Error(
-        "Recipient address is missing. Configure the artist wallet in .env.local (Base Sepolia) and refresh the page."
+        "Recipient address is missing. Configure the artist wallet in .env.local (Avalanche Fuji) and refresh the page."
       );
+    }
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error("Invalid amount");
     }
 
     const recipient = getAddress(to);
     const provider = await wallet.getEthereumProvider();
-    const amountInUnits = parseUnits(
-      amount.toFixed(USDC_DECIMALS),
-      USDC_DECIMALS
-    );
-    const data = encodeFunctionData({
-      abi: usdcAbi,
-      functionName: "transfer",
-      args: [recipient, amountInUnits],
-    });
+    const amountInWei = parseEther(amount.toString());
 
     const txHash = await provider.request({
       method: "eth_sendTransaction",
       params: [
         {
           from: wallet.address,
-          to: USDC_ADDRESS,
-          data,
-          chainId: baseSepolia.id,
+          to: recipient,
+          value: toHex(amountInWei),
+          chainId: avalancheFuji.id,
         },
       ],
     });
@@ -53,5 +47,8 @@ export function useUsdcPayment() {
     return txHash as string;
   };
 
-  return { payWithUsdc };
+  return { payWithNative };
 }
+
+// Backward-compatible alias while migrating imports.
+export const useUsdcPayment = useNativePayment;

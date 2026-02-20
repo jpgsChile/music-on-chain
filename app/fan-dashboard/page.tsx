@@ -155,7 +155,7 @@ export default function FanDashboardPage() {
                       </td>
                       <td className="py-2 pr-4">{date}</td>
                       <td className="py-2 pr-4">
-                        {track ? formatUSDC(track.price) : "—"} USDC
+                        {track ? formatUSDC(track.price) : "—"} AVAX
                       </td>
                       <td className="py-2 pr-4 font-mono text-xs truncate max-w-[100px]" title={o.txHash}>
                         {o.txHash ? `${o.txHash.slice(0, 8)}…` : "—"}
@@ -176,7 +176,7 @@ export default function FanDashboardPage() {
                         ? new Date(c.contributedAt).toLocaleDateString()
                         : "—"}
                     </td>
-                    <td className="py-2 pr-4">{formatUSDC(c.amount)} USDC</td>
+                    <td className="py-2 pr-4">{formatUSDC(c.amount)} AVAX</td>
                     <td className="py-2 pr-4 font-mono text-xs truncate max-w-[100px]" title={c.txHash}>
                       {c.txHash ? `${c.txHash.slice(0, 8)}…` : "—"}
                     </td>

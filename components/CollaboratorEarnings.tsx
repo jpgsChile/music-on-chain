@@ -59,7 +59,7 @@ export default function CollaboratorEarnings({ earnings }: CollaboratorEarningsP
                 </div>
                 <div className="text-right ml-4">
                   <div className="text-lg font-bold text-foreground">
-                    ${formatUSDC(earning.totalEarned)} USDC
+                    ${formatUSDC(earning.totalEarned)} AVAX
                   </div>
                   <div className="text-xs text-foreground/60">
                     {earning.salesCount} sale{earning.salesCount !== 1 ? "s" : ""}
@@ -81,7 +81,7 @@ export default function CollaboratorEarnings({ earnings }: CollaboratorEarningsP
         <div className="flex justify-between items-center">
           <span className="text-sm font-medium text-foreground/70">{t.dashboard.totalDistributed}</span>
           <span className="text-xl font-bold text-accent">
-            ${formatUSDC(totalEarned)} USDC
+            ${formatUSDC(totalEarned)} AVAX
           </span>
         </div>
       </div>

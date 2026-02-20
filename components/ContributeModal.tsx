@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useWallets } from "@privy-io/react-auth";
-import { useUsdcPayment } from "@/lib/blockchain/useUsdcPayment";
+import { useNativePayment } from "@/lib/blockchain/useUsdcPayment";
 import { formatUSDC } from "@/lib/utils";
 import type { Artist } from "@/data/artists";
 import type { CrowdfundingCampaign } from "@/data/artists";
@@ -34,7 +34,7 @@ export default function ContributeModal({
   const t = getTranslations(locale);
   const { wallets } = useWallets();
   const walletAddress = wallets[0]?.address ?? "";
-  const { payWithUsdc } = useUsdcPayment();
+  const { payWithNative } = useNativePayment();
   const [amount, setAmount] = useState(10);
   const [customAmount, setCustomAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -68,7 +68,7 @@ export default function ContributeModal({
     setIsProcessing(true);
     setErrorMessage(null);
     try {
-      const txHash = await payWithUsdc({
+      const txHash = await payWithNative({
         to: artistWallet,
         amount: effectiveAmount,
       });
@@ -78,7 +78,7 @@ export default function ContributeModal({
         campaignId: campaign.id,
         amount: effectiveAmount,
         txHash,
-        chain: "base-sepolia",
+        chain: "avalanche-fuji",
         contributedAt: new Date().toISOString(),
       };
       addContribution(record);
@@ -121,7 +121,7 @@ export default function ContributeModal({
                     : "border-border hover:bg-border/30"
                 }`}
               >
-                {a} USDC
+                {a} AVAX
               </button>
             ))}
           </div>
@@ -169,7 +169,7 @@ export default function ContributeModal({
             disabled={isBusy || !validAmount || !walletAddress}
             className="px-4 py-2 bg-accent text-background font-medium rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isProcessing ? t.contributeModal.processing : `${t.contributeModal.contribute} ${formatUSDC(effectiveAmount)} USDC`}
+            {isProcessing ? t.contributeModal.processing : `${t.contributeModal.contribute} ${formatUSDC(effectiveAmount)} AVAX`}
           </button>
         </div>
       </div>

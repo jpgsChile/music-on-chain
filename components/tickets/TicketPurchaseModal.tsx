@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { TicketEvent } from "@/types/ticketNft";
 import type { Artist } from "@/data/artists";
 import { useWallets } from "@privy-io/react-auth";
-import { useUsdcPayment } from "@/lib/blockchain/useUsdcPayment";
+import { useNativePayment } from "@/lib/blockchain/useUsdcPayment";
 import { addTicketOwnership } from "@/lib/tickets/ownership";
 import { formatUSDC } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
@@ -25,7 +25,7 @@ export default function TicketPurchaseModal(props: TicketPurchaseModalProps) {
   const t = getTranslations(locale);
   const { wallets } = useWallets();
   const walletAddress = wallets[0]?.address ?? "";
-  const { payWithUsdc } = useUsdcPayment();
+  const { payWithNative } = useNativePayment();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -35,14 +35,14 @@ export default function TicketPurchaseModal(props: TicketPurchaseModalProps) {
     setIsProcessing(true);
     setErrorMessage(null);
     try {
-      const txHash = await payWithUsdc({ to: artistWallet, amount: event.price });
+      const txHash = await payWithNative({ to: artistWallet, amount: event.price });
       addTicketOwnership({
         eventId: event.id,
         tokenId: event.tokenId || event.id,
         ownerWallet: walletAddress,
         artistSlug: artist.slug,
         txHash,
-        chain: "base-sepolia",
+        chain: "avalanche-fuji",
         acquiredAt: new Date().toISOString(),
         eventTitle: event.title,
         eventDate: event.date,
@@ -79,7 +79,7 @@ export default function TicketPurchaseModal(props: TicketPurchaseModalProps) {
           {event.date} · {event.location}
         </p>
         <p className="text-lg font-semibold text-foreground mt-4">
-          {event.price} USDC
+          {event.price} AVAX
         </p>
         {errorMessage && (
           <p className="text-sm text-red-500 mt-2">{errorMessage}</p>
@@ -106,7 +106,7 @@ export default function TicketPurchaseModal(props: TicketPurchaseModalProps) {
           >
             {isProcessing
               ? t.contributeModal?.processing ?? "Procesando…"
-              : `${confirmLabel} ${formatUSDC(event.price)} USDC`}
+              : `${confirmLabel} ${formatUSDC(event.price)} AVAX`}
           </button>
         </div>
       </div>

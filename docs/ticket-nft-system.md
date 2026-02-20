@@ -45,7 +45,7 @@ ticket: {
   location: string;      // Dirección o enlace virtual
   accessRules: Array<{ type: string; description?: string }>;
   artistSlug: string;
-  chainId: number;       // 84532 = Base Sepolia
+  chainId: number;       // 43113 = Avalanche Fuji
 }
 ```
 
@@ -78,7 +78,7 @@ ticket: {
 3. El contrato (ERC-1155 style): un evento = un `tokenId`; `supply` = número de tickets.
 4. Tras éxito, se guarda `tokenId` (y opcionalmente `contractAddress`) en el evento para trazabilidad.
 
-**Nota:** La implementación actual usa un stub en `lib/contracts/ticketNft.ts`. Al desplegar el contrato en Base Sepolia, se sustituye por `writeContract` (wagmi/viem) y, si aplica, lectura de balance por wallet para el fan.
+**Nota:** La implementación actual usa un stub en `lib/contracts/ticketNft.ts`. Al desplegar el contrato en Avalanche Fuji, se sustituye por `writeContract` (wagmi/viem) y, si aplica, lectura de balance por wallet para el fan.
 
 ### 2.3 Fan: comprar entrada
 
@@ -94,7 +94,7 @@ ticket: {
 ## 3. Transferible y rastreable
 
 - **Transferible:** El NFT puede ser transferido por el propietario (ERC-721/1155). La UI puede mostrar un aviso “Transferible” y en el futuro un botón “Transferir” o enlace al marketplace.
-- **Rastreable:** Cada registro de propiedad incluye `txHash` y `chain`. En la UI del fan se puede mostrar “Rastreable en blockchain” y un enlace al explorador (p. ej. BaseScan) con `txHash` para ver la transacción de compra (y futuras transferencias on-chain).
+- **Rastreable:** Cada registro de propiedad incluye `txHash` y `chain`. En la UI del fan se puede mostrar “Rastreable en blockchain” y un enlace al explorador (p. ej. Snowtrace) con `txHash` para ver la transacción de compra (y futuras transferencias on-chain).
 
 Datos de trazabilidad en `TicketOwnership`: `txHash`, `chain`, `tokenId`, `eventId`, `artistSlug`.
 
@@ -116,7 +116,7 @@ Datos de trazabilidad en `TicketOwnership`: `txHash`, `chain`, `tokenId`, `event
 | **ArtistEventsSection** | `/artist/[slug]` | Lista de eventos del artista; botón “Comprar entrada” por evento. |
 | **TicketPurchaseModal** | Desde ArtistEventsSection | Modal con resumen del evento y precio; pago USDC; registro de propiedad al completar. |
 | **FanTicketList** | `/fan-dashboard` | Lista de tickets del fan (por wallet); usa **TicketCard** por entrada. |
-| **TicketCard** | Dentro de FanTicketList | Tarjeta por entrada: fecha, lugar, tipo físico/virtual, reglas de acceso, badges Transferible y Rastreable, enlace al artista y al explorador (BaseScan) vía txHash. | Lista de tickets del fan (por wallet); muestra evento, fecha, lugar, reglas de acceso, y nota “Transferible · Rastreable”. |
+| **TicketCard** | Dentro de FanTicketList | Tarjeta por entrada: fecha, lugar, tipo físico/virtual, reglas de acceso, badges Transferible y Rastreable, enlace al artista y al explorador (Snowtrace) vía txHash. | Lista de tickets del fan (por wallet); muestra evento, fecha, lugar, reglas de acceso, y nota “Transferible · Rastreable”. |
 
 ### Datos y hooks
 

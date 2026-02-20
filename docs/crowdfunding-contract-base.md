@@ -1,8 +1,8 @@
-# Crowdfunding Smart Contract — Base Testnet
+# Crowdfunding Smart Contract — Avalanche Fuji Testnet
 
 ## Objetivo
 
-Campañas de crowdfunding on-chain en Base (testnet): el artista define meta y deadline; los fans envían USDC al contrato; el artista retira cuando se cumple la meta o tras el deadline.
+Campañas de crowdfunding on-chain en Avalanche Fuji (testnet): el artista define meta y deadline; los fans envían USDC al contrato; el artista retira cuando se cumple la meta o tras el deadline.
 
 ## Diseño
 
@@ -19,7 +19,7 @@ Campañas de crowdfunding on-chain en Base (testnet): el artista define meta y d
 | `deadline`     | uint256 | Timestamp fin de campaña              |
 | `raised`       | uint256 | Total recaudado                       |
 | `owner`        | address | Creador de la campaña (artista)        |
-| `usdc`         | address | Dirección del token USDC (Base Sepolia) |
+| `usdc`         | address | Dirección del token USDC (Avalanche Fuji) |
 
 ## Funciones
 
@@ -30,9 +30,9 @@ Campañas de crowdfunding on-chain en Base (testnet): el artista define meta y d
 ## Integración en el frontend
 
 - El ABI y tipos están en `lib/contracts/crowdfundingContract.ts`.
-- Cuando el contrato esté desplegado en Base Sepolia, asignar la dirección a `CROWDFUNDING_CAMPAIGN_ADDRESS`.
+- Cuando el contrato esté desplegado en Avalanche Fuji, asignar la dirección a `CROWDFUNDING_CAMPAIGN_ADDRESS`.
 - Opcional: leer `raised` desde el contrato para progreso en tiempo real; las contribuciones vía app pueden seguir yendo a la wallet del artista (flujo actual) hasta que todo pase por contrato.
 
 ## Red
 
-- **Base Sepolia** (testnet): Chain ID 84532. USDC testnet según documentación de Base.
+- **Avalanche Fuji** (testnet): Chain ID 43113. USDC testnet según documentación de Avalanche.

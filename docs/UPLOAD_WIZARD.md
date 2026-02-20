@@ -1,6 +1,6 @@
 # Song Upload Wizard – Design
 
-Multi-step wizard for uploading a song and minting a Song NFT on Base testnet.
+Multi-step wizard for uploading a song and minting a Song NFT on Avalanche Fuji testnet.
 
 ## Component structure
 
@@ -38,7 +38,7 @@ SongUploadWizard (container)
 - **Module**: `lib/contracts/songNft.ts`
 - **Params**: `MintSongParams { artistAddress, tokenURI, royaltyPercentBps? }`
 - **Result**: `MintSongResult { success, txHash?, tokenId?, error? }`
-- **Function**: `mintSongNFT(params)` – stub that resolves after 1.5s; replace with `writeContract` when the Song NFT contract is deployed on Base Sepolia.
+- **Function**: `mintSongNFT(params)` – stub that resolves after 1.5s; replace with `writeContract` when the Song NFT contract is deployed on Avalanche Fuji.
 - **Token URI**: Wizard builds a JSON metadata object (name, genre, language, aiUsage, aiUsageDescription, royaltySplits) and passes it as a data URI or IPFS URI to `mintSongNFT`.
 
 ## Routes

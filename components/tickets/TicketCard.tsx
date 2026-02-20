@@ -5,7 +5,7 @@ import type { TicketOwnership } from "@/types/ticketNft";
 import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
 
-const BASE_SEPOLIA_EXPLORER = "https://sepolia.basescan.org";
+const AVALANCHE_FUJI_EXPLORER = "https://testnet.snowtrace.io";
 
 function formatDate(d: string) {
   try {
@@ -26,7 +26,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
   const locale = useLocale();
   const t = (getTranslations(locale).tickets || {}) as Record<string, string>;
   const explorerUrl = ticket.txHash
-    ? `${BASE_SEPOLIA_EXPLORER}/tx/${ticket.txHash}`
+    ? `${AVALANCHE_FUJI_EXPLORER}/tx/${ticket.txHash}`
     : null;
 
   return (

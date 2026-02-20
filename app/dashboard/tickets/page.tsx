@@ -140,7 +140,7 @@ export default function DashboardTicketsPage() {
                 {ticketsT.eventDate}: {formatDate(event.date)} · {ticketsT.eventLocation}: {event.location} ({event.locationType})
               </p>
               <p className="text-sm text-foreground/80 mt-2">
-                {event.price} USDC · {event.supply} {ticketsT.supply}
+                {event.price} AVAX · {event.supply} {ticketsT.supply}
               </p>
               <button
                 type="button"

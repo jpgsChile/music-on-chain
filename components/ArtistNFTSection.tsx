@@ -41,7 +41,7 @@ export default function ArtistNFTSection({ artist, nfts }: ArtistNFTSectionProps
                 </span>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="text-sm font-semibold text-foreground">{nft.price} USDC</p>
+                <p className="text-sm font-semibold text-foreground">{nft.price} AVAX</p>
                 <p className="text-xs text-foreground/50">{t.nft.supply}: {nft.supply}</p>
               </div>
             </div>

@@ -47,7 +47,7 @@ export default function TrackPlayer({
       artist: artist.slug,
       trackId: track.id,
       txHash,
-      chain: "base-sepolia",
+      chain: "avalanche-fuji",
       purchasedAt: new Date().toISOString(),
     };
     addOwnership(record);

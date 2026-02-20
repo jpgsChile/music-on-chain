@@ -42,7 +42,7 @@ export function addExtraTrack(artistSlug: string, track: Omit<Track, "id" | "cur
   const newTrack: Track = {
     ...track,
     id,
-    currency: "USDC",
+    currency: "AVAX",
   };
   all[artistSlug] = [...list, newTrack];
   saveAll(all);

@@ -55,7 +55,7 @@ export interface TicketEvent {
   accessRules: AccessRule[];
   supply: number;
   price: number;
-  currency: "USDC";
+  currency: "AVAX";
   /** After mint: tokenId and contract for traceability */
   tokenId?: string;
   contractAddress?: string;
@@ -71,7 +71,7 @@ export interface TicketOwnership {
   ownerWallet: string;
   artistSlug: string;
   txHash: string;
-  chain: "base-sepolia";
+  chain: "avalanche-fuji";
   acquiredAt: string;
   /** For display: snapshot of event at acquisition */
   eventTitle: string;

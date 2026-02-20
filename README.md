@@ -12,7 +12,7 @@ Esta demo permite ver y probar:
 
 - 🎸 **Múltiples artistas**, cada uno con su propia página
 - 🎧 **Reproducción de música con preview**
-- 💳 **Compra de tracks usando USDC (Base testnet)**
+- 💳 **Compra de tracks usando USDC (Avalanche Fuji testnet)**
 - 🔐 **Ownership real del track** tras la compra
 - 🎵 **Desbloqueo del audio completo**
 - 💰 **Crowdfunding por artista**
@@ -64,7 +64,7 @@ Esta demo permite ver y probar:
 - **Compra Web3**
   - Login social (Privy)
   - Wallet embebida automática
-  - Pago en USDC (Base testnet)
+  - Pago en USDC (Avalanche Fuji testnet)
 
 ---
 
@@ -72,7 +72,7 @@ Esta demo permite ver y probar:
 
 - **Frontend:** Next.js (App Router)
 - **Web3 Auth:** Privy
-- **Blockchain:** Base (testnet)
+- **Blockchain:** Avalanche Fuji (testnet)
 - **Pagos:** USDC
 - **Wallets:** Embedded Wallet / Coinbase Wallet
 - **Audio:** HTML5 Audio

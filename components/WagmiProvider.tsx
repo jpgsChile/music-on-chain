@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider, type PrivyClientConfig } from "@privy-io/react-auth";
 import { WagmiProvider } from "@privy-io/wagmi";
-import { baseSepolia } from "viem/chains";
+import { avalancheFuji } from "viem/chains";
 import { config } from "@/lib/wagmi";
 import { useState, useEffect } from "react";
 
@@ -12,6 +12,7 @@ const privyConfig = {
   appearance: {
     theme: "dark",
     walletList: [
+      "core",
       "coinbase_wallet",
       "base_account",
       "metamask",
@@ -24,8 +25,8 @@ const privyConfig = {
       createOnLogin: "users-without-wallets",
     },
   },
-  defaultChain: baseSepolia,
-  supportedChains: [baseSepolia],
+  defaultChain: avalancheFuji,
+  supportedChains: [avalancheFuji],
 } as PrivyClientConfig;
 
 type Props = { children: React.ReactNode };

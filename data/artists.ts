@@ -8,7 +8,7 @@ export interface Track {
   title: string;
   audioUrl: string;
   price: number;
-  currency: "USDC";
+  currency: "AVAX";
 }
 
 /** Perk type for campaign rewards (NFT, early access, exclusive content) */
@@ -18,7 +18,7 @@ export interface CrowdfundingPerk {
   type: CrowdfundingPerkType;
   title: string;
   description?: string;
-  /** Minimum contribution (USDC) to unlock this perk */
+  /** Minimum contribution (AVAX) to unlock this perk */
   minAmount?: number;
 }
 
@@ -28,7 +28,7 @@ export interface CrowdfundingCampaign {
   description: string;
   targetAmount: number;
   raisedAmount: number;
-  currency: "USDC";
+  currency: "AVAX";
   deadline: string; // ISO date or YYYY-MM-DD
   benefits: string[];
   /** Track IDs linked to this campaign (e.g. album tracks) */
@@ -86,14 +86,14 @@ export const artists: Artist[] = [
         title: "Mirrors",
         audioUrl: "/assets/cleaver/mirrors.wav",
         price: 1,
-        currency: "USDC",
+        currency: "AVAX",
       },
       {
         id: "cleaver-track-2",
         title: "Vengeance",
         audioUrl: "/assets/cleaver/VENGEANCE.wav",
         price: 2,
-        currency: "USDC",
+        currency: "AVAX",
       },
     ],
     crowdfunding: {
@@ -102,7 +102,7 @@ export const artists: Artist[] = [
       description: "Help us fund our next studio album",
       targetAmount: 5000,
       raisedAmount: 1250,
-      currency: "USDC",
+      currency: "AVAX",
       deadline: "2026-06-30",
       benefits: [
         "Exclusive NFT",
@@ -141,14 +141,14 @@ export const artists: Artist[] = [
         title: "Burn Again",
         audioUrl: "/assets/sou/Burn Again.wav",
         price: 1,
-        currency: "USDC",
+        currency: "AVAX",
       },
       {
         id: "sou-track-2",
         title: "Do What U Want",
         audioUrl: "/assets/sou/Do What U Want.wav",
         price: 1,
-        currency: "USDC",
+        currency: "AVAX",
       },
     ],
   },

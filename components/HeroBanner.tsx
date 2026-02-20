@@ -8,7 +8,7 @@ interface HeroBannerProps {
   lang?: Language;
 }
 
-const LOGO_SRC = "/assets/moc/moc-logo.jpg";
+const LOGO_SRC = "/assets/moc/moc-logo.png";
 
 export default function HeroBanner({ lang = "es" }: HeroBannerProps) {
   const t = getTranslations(lang);

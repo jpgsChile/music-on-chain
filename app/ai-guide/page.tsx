@@ -79,7 +79,7 @@ export default function AIGuidePage() {
                 </div>
                 <div className="rounded-xl overflow-hidden border border-border">
                   <Image
-                    src="/assets/artists/artist1.jpg"
+                    src="/assets/artists/artist1.png"
                     alt=""
                     width={800}
                     height={450}
@@ -111,7 +111,7 @@ export default function AIGuidePage() {
                 </div>
                 <div className="rounded-xl overflow-hidden border border-border">
                   <Image
-                    src="/assets/artists/artist2.jpg"
+                    src="/assets/artists/artist2.png"
                     alt=""
                     width={800}
                     height={450}
