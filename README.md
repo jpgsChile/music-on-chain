@@ -1,40 +1,47 @@
-# 🎵 Music On Chain — Demo MVP
+# Music On Chain Protocol
 
-**Music On Chain** es una plataforma Web3 que permite a **artistas independientes** publicar su música, financiar proyectos y vender experiencias digitales directamente a sus fans, utilizando **blockchain** para garantizar **propiedad, transparencia y nuevas formas de monetización**.
+**Music On Chain** es un **protocolo de derechos musicales**: ownership, licensing, distribución, regalías y liquidación.
 
-Esta demo muestra un **MVP funcional**, enfocado en artistas y fans reales.
-
----
-
-##  Qué es esta demo
-
-Esta demo permite ver y probar:
-
-- 🎸 **Múltiples artistas**, cada uno con su propia página
-- 🎧 **Reproducción de música con preview**
-- 💳 **Compra de tracks usando USDC (Avalanche Fuji testnet)**
-- 🔐 **Ownership real del track** tras la compra
-- 🎵 **Desbloqueo del audio completo**
-- 💰 **Crowdfunding por artista**
-- 🎟️ **NFTs como tickets / accesos (MVP)**
-- 🌐 **Redes sociales del artista integradas**
-- 🤖 **Guía IA** para explicar el uso a fans y artistas
+El **Marketplace** es la **primera aplicación** construida sobre el protocolo. Encima también viven el **Portal del Artista**, el **Portal del Fan** y la **Developer Platform** (SDK).
 
 ---
 
-## 👥 Para quién es Music On Chain
+## Jerarquía del producto
 
-### 🎵 Artistas
-- Publicar música sin intermediarios  
-- Financiar proyectos (crowdfunding)  
-- Vender tracks, NFTs y tickets  
-- Construir comunidad directamente con sus fans  
+1. Music On Chain Protocol  
+2. SDK  
+3. Marketplace  
+4. Artist Portal  
+5. Fan Portal  
+6. Developer Platform  
 
-### 🎧 Fans
-- Apoyar directamente a los artistas  
-- Comprar música como **activo digital**  
-- Acceder a contenido exclusivo  
-- Participar en una economía musical más justa  
+---
+
+## Qué puedes probar en esta demo
+
+- Protocolo / Architecture Experience (`/protocol`)
+- Marketplace de obras y artistas (`/`)
+- Portal del Artista (publicar obras, regalías, ingresos)
+- Portal del Fan (licencias, acceso, ownership)
+- SDK playground (métodos públicos simulados)
+- Liquidación etiquetada en USDC · Base
+
+---
+
+## Para quién
+
+### Artistas
+- Publicar obras con ownership y regalías programables
+- Distribución de ingresos transparente
+- Portal dedicado encima del protocolo
+
+### Fans
+- Adquirir licencias
+- Acceso y ownership verificables
+- Marketplace como primera app
+
+### Desarrolladores
+- SDK para construir más apps sobre el mismo núcleo
 
 ---
 
@@ -64,7 +71,7 @@ Esta demo permite ver y probar:
 - **Compra Web3**
   - Login social (Privy)
   - Wallet embebida automática
-  - Pago en USDC (Avalanche Fuji testnet)
+  - Pago en USDT/USDC 
 
 ---
 
@@ -72,7 +79,7 @@ Esta demo permite ver y probar:
 
 - **Frontend:** Next.js (App Router)
 - **Web3 Auth:** Privy
-- **Blockchain:** Avalanche Fuji (testnet)
+- **Blockchain:** Base Sepolia (desarrollo)
 - **Pagos:** USDC
 - **Wallets:** Embedded Wallet / Coinbase Wallet
 - **Audio:** HTML5 Audio

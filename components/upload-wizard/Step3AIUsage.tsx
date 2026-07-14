@@ -19,7 +19,7 @@ export default function Step3AIUsage({
     <div className="space-y-4">
       <p className="text-sm text-foreground/70">{t.step3Desc}</p>
       <div>
-        <label className="block text-sm font-medium text-foreground mb-2">¿Utilizaste IA?</label>
+        <label className="block text-sm font-medium text-foreground mb-2">{t.aiUsageQuestion}</label>
         <div className="flex gap-4">
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="radio" name="aiUsage" checked={aiUsage} onChange={() => onAiUsageChange(true)} />

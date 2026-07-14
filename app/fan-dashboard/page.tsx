@@ -45,19 +45,22 @@ export default function FanDashboardPage() {
     [uniqueArtistSlugs]
   );
 
+  const hasActivity =
+    myOwnership.length > 0 || contributions.length > 0 || myTickets.length > 0;
+
   if (!authenticated) {
     return (
       <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl font-bold mb-4">{t.fanDashboard.title}</h1>
-          <div className="border border-border rounded-lg p-8 bg-background text-center">
+          <div className="border border-border rounded-lg p-8 bg-background text-center max-w-md">
             <p className="text-foreground/70 mb-4">{t.fanDashboard.connectToSee}</p>
             <button
               onClick={login}
               disabled={!ready}
               className="px-4 py-2 text-sm bg-accent text-background rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50"
             >
-              {ready ? t.auth.signIn : t.auth.loading}
+              {ready ? t.auth.connectTitle : t.auth.loading}
             </button>
           </div>
         </div>
@@ -69,152 +72,184 @@ export default function FanDashboardPage() {
     <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-12">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
+          <Link
+            href="/#marketplace"
+            className="text-sm text-foreground/60 hover:text-foreground mb-3 inline-block"
+          >
+            {t.fanDashboard.backMarketplace}
+          </Link>
+          <p className="text-xs uppercase tracking-[0.2em] text-accent mb-2">
+            {t.fanDashboard.investorQuestion}
+          </p>
           <h1 className="text-4xl font-bold mb-2">{t.fanDashboard.title}</h1>
           <p className="text-foreground/70">{t.fanDashboard.subtitle}</p>
+          <p className="mt-2 text-sm text-foreground/50 max-w-2xl">{t.fanDashboard.thesis}</p>
+          {hasActivity && (
+            <p className="mt-2 text-sm text-foreground/50">
+              {t.fanDashboard.metricsSummary
+                .replace("{{licenses}}", String(myOwnership.length))
+                .replace("{{tickets}}", String(myTickets.length))
+                .replace("{{contributions}}", String(contributions.length))}
+            </p>
+          )}
         </div>
 
-        {/* Tu cuenta Music On Chain (solo si hay dirección tipo wallet) */}
         {wallet.startsWith("0x") && wallet.length >= 42 && (
           <FanWalletCard address={wallet} />
         )}
 
-        {/* Mis entradas */}
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold text-foreground mb-4">
-            🎟️ {t.tickets?.myTickets ?? "Mis entradas"}
-          </h2>
-          <FanTicketList tickets={myTickets} />
-        </section>
-
-        {/* Mi Playlist */}
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold text-foreground mb-4">
-            {t.fanDashboard.myPlaylist}
-          </h2>
-          {myOwnership.length === 0 ? (
-            <p className="text-foreground/60">{t.fanDashboard.noPurchases}</p>
-          ) : (
-            <ul className="space-y-4">
-              {myOwnership.map((o) => {
-                const artist = getArtistBySlug(o.artist);
-                const track = artist?.tracks.find((tr) => tr.id === o.trackId);
-                if (!artist || !track) return null;
-                return (
-                  <li
-                    key={`${o.artist}-${o.trackId}-${o.purchasedAt}`}
-                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border border-border bg-background"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground">{track.title}</p>
-                      <p className="text-sm text-foreground/60">{artist.name}</p>
-                    </div>
-                    <div className="w-full sm:w-72 flex-shrink-0">
-                      <GatedAudioPlayer
-                        src={track.audioUrl}
-                        title={track.title}
-                        isOwned
-                      />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
-
-        {/* Historial de Compras (tracks + contribuciones) */}
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold text-foreground mb-4">
-            {t.fanDashboard.purchaseHistory}
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-foreground/70">
-                  <th className="py-2 pr-4">{t.fanDashboard.track}</th>
-                  <th className="py-2 pr-4">{t.fanDashboard.artist}</th>
-                  <th className="py-2 pr-4">{t.fanDashboard.date}</th>
-                  <th className="py-2 pr-4">{t.fanDashboard.amount}</th>
-                  <th className="py-2 pr-4">{t.fanDashboard.txHash}</th>
-                </tr>
-              </thead>
-              <tbody className="text-foreground/90">
-                {myOwnership.map((o) => {
-                  const artist = getArtistBySlug(o.artist);
-                  const track = artist?.tracks.find((tr) => tr.id === o.trackId);
-                  const date = o.purchasedAt
-                    ? new Date(o.purchasedAt).toLocaleDateString()
-                    : "—";
-                  return (
-                    <tr key={`t-${o.artist}-${o.trackId}-${o.txHash}`} className="border-b border-border/50">
-                      <td className="py-2 pr-4">{track?.title ?? o.trackId}</td>
-                      <td className="py-2 pr-4">
-                        <Link href={`/artist/${o.artist}`} className="hover:text-accent">
-                          {artist?.name ?? o.artist}
-                        </Link>
-                      </td>
-                      <td className="py-2 pr-4">{date}</td>
-                      <td className="py-2 pr-4">
-                        {track ? formatUSDC(track.price) : "—"} AVAX
-                      </td>
-                      <td className="py-2 pr-4 font-mono text-xs truncate max-w-[100px]" title={o.txHash}>
-                        {o.txHash ? `${o.txHash.slice(0, 8)}…` : "—"}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {contributions.map((c) => (
-                  <tr key={`c-${c.artist}-${c.contributedAt}-${c.txHash}`} className="border-b border-border/50">
-                    <td className="py-2 pr-4">{t.fanDashboard.contribution}</td>
-                    <td className="py-2 pr-4">
-                      <Link href={`/artist/${c.artist}`} className="hover:text-accent">
-                        {getArtistBySlug(c.artist)?.name ?? c.artist}
-                      </Link>
-                    </td>
-                    <td className="py-2 pr-4">
-                      {c.contributedAt
-                        ? new Date(c.contributedAt).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    <td className="py-2 pr-4">{formatUSDC(c.amount)} AVAX</td>
-                    <td className="py-2 pr-4 font-mono text-xs truncate max-w-[100px]" title={c.txHash}>
-                      {c.txHash ? `${c.txHash.slice(0, 8)}…` : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {myOwnership.length === 0 && contributions.length === 0 && (
+        {!hasActivity ? (
+          <div className="border border-border rounded-xl p-10 bg-background text-center max-w-lg mx-auto">
+            <p className="text-xl font-semibold text-foreground">
+              {t.fanDashboard.emptyActivity}
+            </p>
             <p className="text-foreground/60 mt-2">{t.fanDashboard.noPurchases}</p>
-          )}
-        </section>
+            <Link
+              href="/#marketplace"
+              className="inline-flex mt-6 px-5 py-2.5 rounded-lg bg-accent text-background font-medium hover:bg-accent-hover"
+            >
+              {t.fanDashboard.emptyActivityCta}
+            </Link>
+          </div>
+        ) : (
+          <>
+            <section className="mb-10">
+              <h2 className="text-xl font-semibold text-foreground mb-4">
+                {t.tickets.myTickets}
+              </h2>
+              <FanTicketList tickets={myTickets} />
+            </section>
 
-        {/* Mis Artistas */}
-        <section>
-          <h2 className="text-xl font-semibold text-foreground mb-4">
-            {t.fanDashboard.myArtists}
-          </h2>
-          {myArtists.length === 0 ? (
-            <p className="text-foreground/60">{t.fanDashboard.noPurchases}</p>
-          ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {myArtists.map((artist) => (
-                <li key={artist!.slug}>
+            <section className="mb-10">
+              <h2 className="text-xl font-semibold text-foreground mb-4">
+                {t.fanDashboard.myPlaylist}
+              </h2>
+              {myOwnership.length === 0 ? (
+                <div>
+                  <p className="text-foreground/60">{t.fanDashboard.playlistEmptyHint}</p>
                   <Link
-                    href={`/artist/${artist!.slug}`}
-                    className="block p-4 rounded-xl border border-border bg-background hover:border-accent/40 transition-colors"
+                    href="/#marketplace"
+                    className="inline-flex mt-3 text-sm text-accent hover:underline"
                   >
-                    <span className="font-medium text-foreground">{artist!.name}</span>
-                    <span className="text-foreground/60 text-sm block mt-1">
-                      {t.artistPage.viewArtist} →
-                    </span>
+                    {t.fanDashboard.goBuyLicense}
                   </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+                </div>
+              ) : (
+                <ul className="space-y-4">
+                  {myOwnership.map((o) => {
+                    const artist = getArtistBySlug(o.artist);
+                    const track = artist?.tracks.find((tr) => tr.id === o.trackId);
+                    if (!artist || !track) return null;
+                    return (
+                      <li
+                        key={`${o.artist}-${o.trackId}-${o.purchasedAt}`}
+                        className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border border-border bg-background"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground">{track.title}</p>
+                          <p className="text-sm text-foreground/60">{artist.name}</p>
+                        </div>
+                        <div className="w-full sm:w-72 flex-shrink-0">
+                          <GatedAudioPlayer
+                            src={track.audioUrl}
+                            title={track.title}
+                            isOwned
+                          />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+
+            <section className="mb-10">
+              <h2 className="text-xl font-semibold text-foreground mb-4">
+                {t.fanDashboard.purchaseHistory}
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-foreground/70">
+                      <th className="py-2 pr-4">{t.fanDashboard.track}</th>
+                      <th className="py-2 pr-4">{t.fanDashboard.artist}</th>
+                      <th className="py-2 pr-4">{t.fanDashboard.date}</th>
+                      <th className="py-2 pr-4">{t.fanDashboard.amount}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-foreground/90">
+                    {myOwnership.map((o) => {
+                      const artist = getArtistBySlug(o.artist);
+                      const track = artist?.tracks.find((tr) => tr.id === o.trackId);
+                      const date = o.purchasedAt
+                        ? new Date(o.purchasedAt).toLocaleDateString()
+                        : "—";
+                      return (
+                        <tr
+                          key={`t-${o.artist}-${o.trackId}-${o.txHash}`}
+                          className="border-b border-border/50"
+                        >
+                          <td className="py-2 pr-4">{track?.title ?? o.trackId}</td>
+                          <td className="py-2 pr-4">
+                            <Link href={`/artist/${o.artist}`} className="hover:text-accent">
+                              {artist?.name ?? o.artist}
+                            </Link>
+                          </td>
+                          <td className="py-2 pr-4">{date}</td>
+                          <td className="py-2 pr-4">
+                            {track ? formatUSDC(track.price) : "—"} {t.general.usdc}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {contributions.map((c) => (
+                      <tr
+                        key={`c-${c.artist}-${c.contributedAt}-${c.txHash}`}
+                        className="border-b border-border/50"
+                      >
+                        <td className="py-2 pr-4">{t.fanDashboard.contribution}</td>
+                        <td className="py-2 pr-4">
+                          <Link href={`/artist/${c.artist}`} className="hover:text-accent">
+                            {getArtistBySlug(c.artist)?.name ?? c.artist}
+                          </Link>
+                        </td>
+                        <td className="py-2 pr-4">
+                          {c.contributedAt
+                            ? new Date(c.contributedAt).toLocaleDateString()
+                            : "—"}
+                        </td>
+                        <td className="py-2 pr-4">
+                          {formatUSDC(c.amount)} {t.general.usdc}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">
+                {t.fanDashboard.myArtists}
+              </h2>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {myArtists.map((artist) => (
+                  <li key={artist!.slug}>
+                    <Link
+                      href={`/artist/${artist!.slug}`}
+                      className="block p-4 rounded-xl border border-border bg-background hover:border-accent/40 transition-colors"
+                    >
+                      <span className="font-medium text-foreground">{artist!.name}</span>
+                      <span className="text-foreground/60 text-sm block mt-1">
+                        {t.artistPage.viewArtist} →
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </>
+        )}
       </div>
     </div>
   );

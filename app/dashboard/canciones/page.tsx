@@ -70,9 +70,15 @@ export default function DashboardCancionesPage() {
         <h1 className="text-2xl font-bold text-foreground mb-2">
           {t.dashboard.declaracionObras ?? t.dashboard.ingresarCanciones}
         </h1>
-        <p className="text-foreground/70 text-sm mb-6">
+        <p className="text-foreground/70 text-sm mb-4">
           {t.dashboard.trackConfigDesc}
         </p>
+        <Link
+          href="/dashboard/upload"
+          className="inline-flex mb-6 text-sm text-accent hover:underline"
+        >
+          {t.dashboard.goPublishCanonical}
+        </Link>
 
         {artist && (
           <ArtistTrackConfig artist={artist} />
@@ -80,9 +86,7 @@ export default function DashboardCancionesPage() {
 
         {artist && artist.slug.startsWith("wallet-") && (
           <p className="mt-4 text-xs text-foreground/50">
-            Tus canciones se guardan en este navegador. Para tener una página
-            pública de artista en la plataforma, tu wallet debe estar registrada
-            como artista.
+            {t.dashboard.localWorksHint}
           </p>
         )}
       </div>

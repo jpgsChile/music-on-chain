@@ -3,8 +3,9 @@ import { getTranslations } from "@/lib/i18n";
 import { getLocaleFromCookie } from "@/lib/locale-server";
 
 export const metadata = {
-  title: "Cómo funciona | Music on Chain",
-  description: "Explicación breve de cómo funciona Music on Chain para artistas y fans.",
+  title: "Cómo funciona | Music On Chain Protocol",
+  description:
+    "Protocolo → SDK → Marketplace → Portales. Propiedad, licencias, distribución y liquidación.",
 };
 
 export default async function HowItWorksPage() {
@@ -67,10 +68,28 @@ export default async function HowItWorksPage() {
             {t.howItWorks.ctaGuide}
           </Link>
           <Link
-            href="/"
+            href="/protocol"
+            className="px-5 py-2.5 border border-border rounded-lg hover:bg-border/30 transition-colors"
+          >
+            {t.howItWorks.ctaProtocol}
+          </Link>
+          <Link
+            href="/#marketplace"
             className="px-5 py-2.5 border border-border rounded-lg hover:bg-border/30 transition-colors"
           >
             {t.howItWorks.ctaExplore}
+          </Link>
+          <Link
+            href="/dashboard"
+            className="px-5 py-2.5 border border-border rounded-lg hover:bg-border/30 transition-colors"
+          >
+            {t.howItWorks.ctaArtist}
+          </Link>
+          <Link
+            href="/fan-dashboard"
+            className="px-5 py-2.5 border border-border rounded-lg hover:bg-border/30 transition-colors"
+          >
+            {t.howItWorks.ctaFan}
           </Link>
         </div>
       </div>

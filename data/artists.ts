@@ -8,7 +8,7 @@ export interface Track {
   title: string;
   audioUrl: string;
   price: number;
-  currency: "AVAX";
+  currency: "USDC";
 }
 
 /** Perk type for campaign rewards (NFT, early access, exclusive content) */
@@ -18,7 +18,7 @@ export interface CrowdfundingPerk {
   type: CrowdfundingPerkType;
   title: string;
   description?: string;
-  /** Minimum contribution (AVAX) to unlock this perk */
+  /** Minimum contribution (USDC) to unlock this perk */
   minAmount?: number;
 }
 
@@ -28,7 +28,7 @@ export interface CrowdfundingCampaign {
   description: string;
   targetAmount: number;
   raisedAmount: number;
-  currency: "AVAX";
+  currency: "USDC";
   deadline: string; // ISO date or YYYY-MM-DD
   benefits: string[];
   /** Track IDs linked to this campaign (e.g. album tracks) */
@@ -86,14 +86,14 @@ export const artists: Artist[] = [
         title: "Mirrors",
         audioUrl: "/assets/cleaver/mirrors.wav",
         price: 1,
-        currency: "AVAX",
+        currency: "USDC",
       },
       {
         id: "cleaver-track-2",
         title: "Vengeance",
         audioUrl: "/assets/cleaver/VENGEANCE.wav",
         price: 2,
-        currency: "AVAX",
+        currency: "USDC",
       },
     ],
     crowdfunding: {
@@ -102,7 +102,7 @@ export const artists: Artist[] = [
       description: "Help us fund our next studio album",
       targetAmount: 5000,
       raisedAmount: 1250,
-      currency: "AVAX",
+      currency: "USDC",
       deadline: "2026-06-30",
       benefits: [
         "Exclusive NFT",
@@ -114,7 +114,7 @@ export const artists: Artist[] = [
       {
         id: "cleaver-live-2026",
         name: "Live Show Santiago 2026",
-        description: "NFT Ticket",
+        description: "Entrada",
         price: 20,
         supply: 300,
         utility: "ticket",
@@ -141,14 +141,14 @@ export const artists: Artist[] = [
         title: "Burn Again",
         audioUrl: "/assets/sou/Burn Again.wav",
         price: 1,
-        currency: "AVAX",
+        currency: "USDC",
       },
       {
         id: "sou-track-2",
         title: "Do What U Want",
         audioUrl: "/assets/sou/Do What U Want.wav",
         price: 1,
-        currency: "AVAX",
+        currency: "USDC",
       },
     ],
   },

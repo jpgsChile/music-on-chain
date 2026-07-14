@@ -1,0 +1,44 @@
+---
+description: Spanish UI terminology glossary — fixed product vocabulary
+alwaysApply: true
+---
+
+# Spanish UI Terminology
+
+Use this glossary for all Spanish (`es`) user-facing copy in `lib/i18n.ts` and the UI.
+
+| English | Spanish UI |
+| --- | --- |
+| Asset | Activo Musical |
+| Musical Work | Obra Musical |
+| License | Licencia |
+| Royalty | Regalía |
+| Settlement | Liquidación |
+| Listing | Publicación |
+| Protocol | Protocolo |
+| Marketplace | Marketplace |
+| SDK | SDK |
+| Wallet (UI) | Cuenta |
+| Session | Sesión |
+| Ownership | Propiedad |
+| Publish | Publicar |
+| Purchase | Compra |
+| Developer / Builder | Desarrollador |
+| Core Protocol | Núcleo del Protocolo |
+| Blockchain Adapter (UI) | Adaptador de Liquidación |
+| Settlement Layer | Capa de Liquidación |
+
+Never show users: Wallet Address, Transaction Hash, Gas, RPC, Signer, Nonce.
+Prefer: Cuenta, Propiedad, Pago, Liquidación, Actividad, Historial.
+
+## SDK method names
+
+Never translate technical SDK / API identifiers.
+
+```text
+UI:  Publicar Obra
+Code: sdk.publishAsset()   ✅
+Code: sdk.publicarObra()   ❌
+```
+
+Keep method names, port names, and package identifiers in English in code samples and monospace UI (e.g. `connectWallet`, `validateRoyaltySplits`, `ISettlement`).

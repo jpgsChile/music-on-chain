@@ -1,0 +1,43 @@
+---
+description: Premium investor-facing UX copy — concise, never literal
+alwaysApply: true
+---
+
+# UX Copy
+
+The interface is **investor-facing**. Spanish copy must feel premium.
+
+## Principles
+
+- Prefer concise language over full sentences
+- Avoid literal / amateur translations
+- Use product terminology (see spanish-terminology.mdc)
+- Prefer title case for short CTAs and section labels in Spanish when they match product phrases
+
+## Prefer (es)
+
+- Publicar Obra
+- Conectar cuenta
+- Comprar Licencia
+- Liquidación Verificada
+- Distribución de Regalías
+- Actividad del Protocolo
+- Explorador del SDK
+- Métricas del Protocolo
+- Arquitectura
+- Cuenta / Propiedad / Pago / Liquidación / Actividad / Historial
+
+## Avoid (es)
+
+- Subir Canción
+- Enviar
+- Comprar NFT
+- Data / Stuff
+- Processing... / Procesando...
+- Wallet Address / Transaction Hash / Gas / RPC / Signer / Nonce
+- Informal demo chatter in investor surfaces (“Haz clic…”, “stack”, “playground”)
+- Beginner blockchain language for end users
+
+## Tone check
+
+If a string sounds like a DIY upload form or a loading spinner from a consumer app, rewrite it for a protocol / capital-markets product.

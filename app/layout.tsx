@@ -18,8 +18,9 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Music on Chain - Vende tu música directamente. Quédate con el 98%.",
-  description: "Plataforma Web3 donde los artistas venden su música directamente a los fans y se quedan con el 98% de los ingresos.",
+  title: "Music On Chain — Protocolo de derechos musicales",
+  description:
+    "Infraestructura escalable de propiedad, licencias y liquidación. Protocolo primero. Apps encima. Liquidación en Base.",
 };
 
 export default async function RootLayout({
@@ -29,9 +30,12 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocaleFromCookie();
   return (
-    <html lang={locale}>
+    // suppressHydrationWarning: browser extensions (e.g. Bybit wallet) inject
+    // attributes on <html>/<body> before React hydrates, causing false mismatches.
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
         <WagmiProviderWrapper>
           <LocaleProvider locale={locale}>

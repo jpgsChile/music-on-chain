@@ -41,14 +41,13 @@ export default function ArtistNFTSection({ artist, nfts }: ArtistNFTSectionProps
                 </span>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="text-sm font-semibold text-foreground">{nft.price} AVAX</p>
+                <p className="text-sm font-semibold text-foreground">{nft.price} USDC</p>
                 <p className="text-xs text-foreground/50">{t.nft.supply}: {nft.supply}</p>
               </div>
             </div>
             <button
               type="button"
               disabled
-              title="ERC-1155: conectar contrato en la config del artista para habilitar"
               className="mt-4 w-full px-4 py-2 border border-border rounded-lg text-foreground/60 text-sm cursor-not-allowed"
             >
               {t.nft.mintComingSoon}

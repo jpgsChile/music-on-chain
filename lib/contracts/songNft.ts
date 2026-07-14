@@ -1,9 +1,11 @@
+import { appChain } from "@/lib/wagmi";
+
 /**
- * Smart contract interface for Song NFT (Avalanche Fuji testnet).
+ * Smart contract interface for Song NFT (Base Sepolia / Base).
  *
  * Mint flow: Wizard builds metadata (title, genre, language, AI usage, royalty splits),
  * encodes as JSON tokenURI, then calls mint(artistAddress, tokenURI).
- * Implement with wagmi writeContract when SongNFT contract is deployed on Avalanche Fuji.
+ * Implement with wagmi writeContract when SongNFT contract is deployed on Base.
  *
  * Contract interface (expected):
  * - mint(address to, string uri) returns (uint256 tokenId)
@@ -25,14 +27,14 @@ export interface MintSongResult {
   error?: string;
 }
 
-const AVALANCHE_FUJI_CHAIN_ID = 43113;
+
 
 /**
- * Mint Song NFT on Avalanche Fuji.
+ * Mint Song NFT on Base.
  * Stub: replace with actual contract call (writeContract) when deployed.
  */
 export async function mintSongNFT(params: MintSongParams): Promise<MintSongResult> {
-  // TODO: connect to deployed SongNFT contract on Avalanche Fuji
+  // TODO: connect to deployed SongNFT contract on Base
   // Example with viem:
   // const hash = await writeContract(config, { address: SONG_NFT_ADDRESS, abi: SONG_NFT_ABI, functionName: 'mint', args: [params.artistAddress, params.tokenURI] });
   // return { success: true, txHash: hash, tokenId: ... };
@@ -58,5 +60,5 @@ export async function mintSongNFT(params: MintSongParams): Promise<MintSongResul
 }
 
 export function getSongNftChainId(): number {
-  return AVALANCHE_FUJI_CHAIN_ID;
+  return appChain.id;
 }

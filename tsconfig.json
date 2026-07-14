@@ -24,6 +24,21 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@moc/domain": [
+        "./packages/domain/src/index.ts"
+      ],
+      "@moc/ports": [
+        "./packages/ports/src/index.ts"
+      ],
+      "@moc/application": [
+        "./packages/application/src/index.ts"
+      ],
+      "@moc/adapters": [
+        "./packages/adapters/src/index.ts"
+      ],
+      "@moc/shared": [
+        "./packages/shared/src/index.ts"
       ]
     },
     "target": "ES2017"

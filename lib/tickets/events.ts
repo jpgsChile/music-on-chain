@@ -60,7 +60,7 @@ export function createEvent(
     accessRules: input.accessRules ?? [],
     supply: Math.max(1, input.supply ?? 1),
     price: Math.max(0, input.price ?? 0),
-    currency: "AVAX",
+    currency: "USDC",
     createdAt: new Date().toISOString(),
   };
   const list = load();

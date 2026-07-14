@@ -7,6 +7,14 @@ const nextConfig = {
   // Silencia error Turbopack
   turbopack: {},
 
+  transpilePackages: [
+    '@moc/domain',
+    '@moc/ports',
+    '@moc/application',
+    '@moc/adapters',
+    '@moc/shared',
+  ],
+
   experimental: {
     optimizePackageImports: ['wagmi', 'viem', '@tanstack/react-query'],
   },

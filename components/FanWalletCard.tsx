@@ -3,8 +3,7 @@
 import { useState, useCallback } from "react";
 import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
-
-const AVALANCHE_FUJI_CHAIN_ID = "43113";
+import { appChain } from "@/lib/wagmi";
 
 function truncateAddress(address: string): string {
   if (!address || address.length < 10) return address;
@@ -73,16 +72,13 @@ export default function FanWalletCard({ address }: FanWalletCardProps) {
               <p className="text-sm text-foreground/70 mt-0.5">
                 {t.fanWallet.subtitle}
               </p>
-              <p className="text-xs text-foreground/50 mt-1">
-                {t.fanWallet.subtitleHint}
-              </p>
               <p className="text-sm font-medium text-foreground/80 mt-2">
                 {t.fanWallet.fanWalletLabel} • #{shortId}
               </p>
             </div>
           </div>
 
-          {/* Dirección truncada + copiar */}
+          {/* Cuenta + copiar */}
           <div className="flex-1 min-w-0">
             <p className="text-xs text-foreground/60 mb-1">
               {t.fanWallet.addressLabel}
@@ -120,7 +116,6 @@ export default function FanWalletCard({ address }: FanWalletCardProps) {
         {/* Advertencia */}
         <div className="mt-6 p-4 rounded-lg border border-amber-500/30 bg-amber-500/5">
           <p className="text-sm font-medium text-foreground flex items-center gap-2">
-            <span aria-hidden>⚠️</span>
             {t.fanWallet.warningTitle}
           </p>
           <p className="text-sm text-foreground/80 mt-1">
@@ -146,7 +141,7 @@ export default function FanWalletCard({ address }: FanWalletCardProps) {
               </p>
               <p>
                 <span className="text-foreground/50">{t.fanWallet.advancedChainId}:</span>{" "}
-                {AVALANCHE_FUJI_CHAIN_ID}
+                {String(appChain.id)}
               </p>
               <p>
                 <span className="text-foreground/50">{t.fanWallet.advancedWalletType}</span>
@@ -179,11 +174,13 @@ export default function FanWalletCard({ address }: FanWalletCardProps) {
                 {t.fanWallet.buyUsdcStep1Title}
               </p>
               <p className="text-sm text-foreground/80 mt-1 flex items-center gap-2">
-                <span className="text-accent">✔️</span>
+                <span className="text-accent" aria-hidden>
+                  ✓
+                </span>
                 {t.fanWallet.buyUsdcStep1Done}
               </p>
               <p className="text-xs text-foreground/50 mt-0.5">
-                🔒 {t.fanWallet.buyUsdcStep1Locked}
+                {t.fanWallet.buyUsdcStep1Locked}
               </p>
             </div>
 
@@ -194,7 +191,7 @@ export default function FanWalletCard({ address }: FanWalletCardProps) {
               </p>
               {step2Copied ? (
                 <p className="text-sm text-accent mt-1 flex items-center gap-2">
-                  ✅ {t.fanWallet.buyUsdcStep2Copied}
+                  {t.fanWallet.buyUsdcStep2Copied}
                 </p>
               ) : (
                 <button
@@ -251,7 +248,7 @@ export default function FanWalletCard({ address }: FanWalletCardProps) {
             </div>
 
             <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/5 text-xs text-foreground/80 mb-4">
-              ⚠️ {t.fanWallet.warningText}
+              {t.fanWallet.warningText}
             </div>
 
             <button

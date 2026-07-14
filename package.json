@@ -2,20 +2,34 @@
   "name": "music-on-chain-mvp",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
     "postinstall": "prisma generate",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@moc/adapters": "*",
+    "@moc/application": "*",
+    "@moc/domain": "*",
+    "@moc/ports": "*",
+    "@moc/shared": "*",
     "@prisma/adapter-better-sqlite3": "^7.4.0",
     "@prisma/client": "^7.4.0",
     "@privy-io/react-auth": "^3.13.1",
     "@privy-io/wagmi": "^4.0.1",
     "@tanstack/react-query": "^5.90.16",
     "@wagmi/connectors": "^7.0.6",
+    "framer-motion": "^12.42.2",
     "next": "^16.1.6",
     "prisma": "^7.4.0",
     "react": "^18.3.1",
@@ -31,6 +45,7 @@
     "eslint-config-next": "14.2.35",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

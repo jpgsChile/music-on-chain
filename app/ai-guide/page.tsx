@@ -16,6 +16,14 @@ export default function AIGuidePage() {
   return (
     <div className="min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+        <div className="mb-6">
+          <Link
+            href="/"
+            className="text-sm text-foreground/60 hover:text-foreground"
+          >
+            {t.howItWorks.backHome}
+          </Link>
+        </div>
         <h1 className="text-3xl font-bold text-foreground mb-2">
           {t.guide.title}
         </h1>
@@ -122,12 +130,15 @@ export default function AIGuidePage() {
                 </div>
                 <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
                   <p className="text-sm text-foreground/90">
-                    <strong>Ejemplo:</strong> {t.guide.exampleArtist}
+                    <strong>{t.guide.exampleLabel}:</strong> {t.guide.exampleArtist}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <Link href="/" className="px-5 py-2.5 bg-accent text-background font-medium rounded-lg hover:bg-accent-hover transition-colors">
-                    {t.guide.seeArtists}
+                  <Link href="/dashboard" className="px-5 py-2.5 bg-accent text-background font-medium rounded-lg hover:bg-accent-hover transition-colors">
+                    {t.nav.artistPortal}
+                  </Link>
+                  <Link href="/dashboard/upload" className="px-5 py-2.5 border border-border rounded-lg hover:bg-border/30 transition-colors">
+                    {t.dashboard.primaryPublish}
                   </Link>
                   <Link href="/how-it-works" className="px-5 py-2.5 border border-border rounded-lg hover:bg-border/30 transition-colors">
                     {t.guide.footerHow}
@@ -191,12 +202,15 @@ export default function AIGuidePage() {
                 </div>
                 <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
                   <p className="text-sm text-foreground/90">
-                    <strong>Ejemplo:</strong> {t.guide.exampleFan}
+                    <strong>{t.guide.exampleLabel}:</strong> {t.guide.exampleFan}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <Link href="/" className="px-5 py-2.5 bg-accent text-background font-medium rounded-lg hover:bg-accent-hover transition-colors">
+                  <Link href="/#marketplace" className="px-5 py-2.5 bg-accent text-background font-medium rounded-lg hover:bg-accent-hover transition-colors">
                     {t.guide.exploreArtists}
+                  </Link>
+                  <Link href="/fan-dashboard" className="px-5 py-2.5 border border-border rounded-lg hover:bg-border/30 transition-colors">
+                    {t.nav.fanPortal}
                   </Link>
                   <Link href="/how-it-works" className="px-5 py-2.5 border border-border rounded-lg hover:bg-border/30 transition-colors">
                     {t.guide.footerHow}

@@ -90,7 +90,7 @@ export default function ConnectArtist({
           <div className="bg-background border border-border rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
             <div className="p-6 pb-4">
               <h2 id="connect-title" className="text-xl font-bold text-foreground">
-                {t.auth.connectAsArtist}
+                {t.auth.connectTitle}
               </h2>
               <p className="text-sm text-foreground/70 mt-1">
                 {t.auth.connectOptions}

@@ -1,7 +1,7 @@
 import { createPublicClient, http } from "viem";
-import { avalancheFuji } from "viem/chains";
+import { appChain } from "@/lib/wagmi";
 
 export const publicClient = createPublicClient({
-  chain: avalancheFuji,
+  chain: appChain,
   transport: http(),
 });

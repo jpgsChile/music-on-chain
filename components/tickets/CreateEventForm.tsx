@@ -108,34 +108,8 @@ export default function CreateEventForm({
           type="text"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          placeholder={locationType === "virtual" ? "https://..." : "Dirección o lugar"}
           className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
         />
-      </div>
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <label className="text-sm font-medium text-foreground">{t.accessRules}</label>
-          <button type="button" onClick={addRule} className="text-sm text-accent hover:underline">
-            {t.addRule}
-          </button>
-        </div>
-        {accessRules.map((rule, i) => (
-          <div key={i} className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={rule.type}
-              onChange={(e) => updateRule(i, "type", e.target.value)}
-              placeholder={t.accessRuleType}
-              className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm"
-            />
-            <input
-              type="text"
-              value={rule.description ?? ""}
-              onChange={(e) => updateRule(i, "description", e.target.value)}
-              className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm"
-            />
-          </div>
-        ))}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -160,6 +134,36 @@ export default function CreateEventForm({
           />
         </div>
       </div>
+      <details className="rounded-lg border border-border p-3">
+        <summary className="cursor-pointer text-sm font-medium text-foreground/80">
+          {t.advancedAccess}
+        </summary>
+        <div className="mt-3">
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm font-medium text-foreground">{t.accessRules}</label>
+            <button type="button" onClick={addRule} className="text-sm text-accent hover:underline">
+              {t.addRule}
+            </button>
+          </div>
+          {accessRules.map((rule, i) => (
+            <div key={i} className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={rule.type}
+                onChange={(e) => updateRule(i, "type", e.target.value)}
+                placeholder={t.accessRuleType}
+                className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm"
+              />
+              <input
+                type="text"
+                value={rule.description ?? ""}
+                onChange={(e) => updateRule(i, "description", e.target.value)}
+                className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm"
+              />
+            </div>
+          ))}
+        </div>
+      </details>
       <button
         type="submit"
         className="w-full px-4 py-2 bg-accent text-background font-medium rounded-lg hover:bg-accent-hover"

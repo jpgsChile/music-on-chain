@@ -78,7 +78,7 @@ export default function ContributeModal({
         campaignId: campaign.id,
         amount: effectiveAmount,
         txHash,
-        chain: "avalanche-fuji",
+        chain: "base-sepolia",
         contributedAt: new Date().toISOString(),
       };
       addContribution(record);
@@ -108,38 +108,48 @@ export default function ContributeModal({
           <p className="text-sm text-foreground/70 mt-1">{campaign.title}</p>
         </div>
         <div className="p-6 space-y-4">
-          <p className="text-sm text-foreground/80">{t.contributeModal.amount}</p>
-          <div className="flex flex-wrap gap-2">
-            {PRESET_AMOUNTS.map((a) => (
-              <button
-                key={a}
-                type="button"
-                onClick={() => { setAmount(a); setCustomAmount(""); }}
-                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                  !customAmount && amount === a
-                    ? "border-accent bg-accent/20 text-accent"
-                    : "border-border hover:bg-border/30"
-                }`}
-              >
-                {a} AVAX
-              </button>
-            ))}
-          </div>
-          <div>
-            <label className="text-xs text-foreground/60 block mb-1">{t.contributeModal.customAmount}</label>
-            <input
-              type="number"
-              min={1}
-              step={1}
-              value={customAmount}
-              onChange={(e) => setCustomAmount(e.target.value)}
-              placeholder="e.g. 15"
-              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
-            />
-          </div>
-          <p className="text-xs text-foreground/50">
-            {t.contributeModal.fundsGoTo}
-          </p>
+          {!walletAddress ? (
+            <div className="rounded-lg border border-border p-4 text-center">
+              <p className="text-sm text-foreground/80 mb-3">{t.contributeModal.connectWallet}</p>
+              <p className="text-xs text-foreground/50">{t.auth.connectTitle}</p>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-foreground/80">{t.contributeModal.amount}</p>
+              <div className="flex flex-wrap gap-2">
+                {PRESET_AMOUNTS.map((a) => (
+                  <button
+                    key={a}
+                    type="button"
+                    onClick={() => {
+                      setAmount(a);
+                      setCustomAmount("");
+                    }}
+                    className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                      !customAmount && amount === a
+                        ? "border-accent bg-accent/20 text-accent"
+                        : "border-border hover:bg-border/30"
+                    }`}
+                  >
+                    {a} {t.general.usdc}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <label className="text-xs text-foreground/60 block mb-1">
+                  {t.contributeModal.customAmount}
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={customAmount}
+                  onChange={(e) => setCustomAmount(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                />
+              </div>
+            </>
+          )}
           {errorMessage && (
             <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-3">
               {errorMessage}
@@ -151,9 +161,6 @@ export default function ContributeModal({
             </div>
           )}
         </div>
-        {!walletAddress && (
-          <p className="text-sm text-amber-500/90">{t.contributeModal.connectWallet}</p>
-        )}
         <div className="p-6 pt-0 flex gap-3 justify-end">
           <button
             type="button"
@@ -169,7 +176,9 @@ export default function ContributeModal({
             disabled={isBusy || !validAmount || !walletAddress}
             className="px-4 py-2 bg-accent text-background font-medium rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isProcessing ? t.contributeModal.processing : `${t.contributeModal.contribute} ${formatUSDC(effectiveAmount)} AVAX`}
+            {isProcessing
+              ? t.contributeModal.processing
+              : `${t.contributeModal.contribute} ${formatUSDC(effectiveAmount)} ${t.general.usdc}`}
           </button>
         </div>
       </div>

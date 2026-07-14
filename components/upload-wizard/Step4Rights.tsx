@@ -40,7 +40,7 @@ export default function Step4Rights(props: Step4RightsProps) {
       </div>
       {useDefaultRights ? (
         <div className="rounded-lg border border-border bg-border/5 p-4 text-sm text-foreground/80">
-          {defaultSplits.length === 0 ? <p>No tienes reparto por defecto. Define uno en tu perfil.</p> : (
+          {defaultSplits.length === 0 ? <p>{t.noDefaultSplits}</p> : (
             <ul>{defaultSplits.map((s, i) => <li key={i}>{s.role}: {s.percentage}%</li>)}</ul>
           )}
         </div>
@@ -55,7 +55,7 @@ export default function Step4Rights(props: Step4RightsProps) {
             </div>
           ))}
           <button type="button" onClick={addSplit} className="text-sm text-accent hover:underline">{t.addRole}</button>
-          {!validSum && splits.length > 0 && <p className="text-sm text-amber-600">El total debe ser 100%.</p>}
+          {!validSum && splits.length > 0 && <p className="text-sm text-amber-600">{t.splitsMustSum100}</p>}
         </div>
       )}
       {error && <p className="text-sm text-red-500">{error}</p>}

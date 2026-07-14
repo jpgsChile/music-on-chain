@@ -87,10 +87,10 @@ export function useSongUploadWizard({
         update("mintTokenId", result.tokenId ?? null);
         onComplete?.();
       } else {
-        update("mintError", result.error ?? "Mint failed.");
+        update("mintError", result.error ?? "No se pudo publicar. Intenta de nuevo.");
       }
     } catch (e) {
-      update("mintError", e instanceof Error ? e.message : "Mint failed.");
+      update("mintError", e instanceof Error ? e.message : "No se pudo publicar. Intenta de nuevo.");
     } finally {
       update("isMinting", false);
     }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { artists, getArtistBySlug } from "@/data/artists";
 import ArtistHeader from "@/components/ArtistHeader";
@@ -32,7 +33,16 @@ export default async function ArtistPage({ params }: PageProps) {
   return (
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <Link
+          href="/#marketplace"
+          className="text-sm text-foreground/60 hover:text-foreground mb-6 inline-block"
+        >
+          {t.artistPage.backToMarketplace}
+        </Link>
         <ArtistHeader artist={artist} lang={locale} />
+        <p className="mt-2 text-sm text-foreground/50">
+          {t.artistPage.worksCount.replace("{{count}}", String(artist.tracks.length))}
+        </p>
         <div className="mt-8 space-y-10">
           <ArtistProfilePublicSection
             artistWallet={artistWalletOverride || artist.wallet}

@@ -18,7 +18,7 @@ export default function ArtistProfilePublicSection({
   if (loading || !profile) return null;
   return (
     <section>
-      <ArtistProfileView profile={profile} />
+      <ArtistProfileView profile={profile} compact />
     </section>
   );
 }

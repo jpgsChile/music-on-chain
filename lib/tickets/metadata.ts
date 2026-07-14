@@ -1,6 +1,5 @@
 import type { TicketEvent, TicketMetadata, AccessRule } from "@/types/ticketNft";
-
-const AVALANCHE_FUJI_CHAIN_ID = 43113;
+import { appChain } from "@/lib/wagmi";
 
 /**
  * Build NFT metadata JSON for a ticket (ERC-721/1155).
@@ -36,7 +35,7 @@ export function buildTicketMetadata(
       location: event.location,
       accessRules: event.accessRules,
       artistSlug: event.artistSlug,
-      chainId: AVALANCHE_FUJI_CHAIN_ID,
+      chainId: appChain.id,
     },
   };
 }

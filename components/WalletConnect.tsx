@@ -1,7 +1,7 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect, useChainId } from "wagmi";
-import { avalancheFuji } from "wagmi/chains";
+import { appChain } from "@/lib/wagmi";
 import { formatAddress } from "@/lib/utils";
 import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
@@ -14,7 +14,7 @@ export default function WalletConnect() {
   const locale = useLocale();
   const t = getTranslations(locale);
 
-  const isWrongNetwork = chainId !== avalancheFuji.id;
+  const isWrongNetwork = chainId !== appChain.id;
 
   const handleConnect = () => {
     const injectedConnector = connectors.find(

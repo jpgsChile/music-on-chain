@@ -1,5 +1,7 @@
+import { appChain } from "@/lib/wagmi";
+
 /**
- * Ticket NFT contract interface (Avalanche Fuji testnet).
+ * Ticket NFT contract interface (Base Sepolia / Base).
  * ERC-1155 style: one event = one token id, supply = number of tickets.
  * Transferable; ownership on-chain for traceability.
  */
@@ -20,10 +22,10 @@ export interface MintTicketResult {
   error?: string;
 }
 
-const AVALANCHE_FUJI_CHAIN_ID = 43113;
+
 
 /**
- * Mint ticket NFT batch (ERC-1155) on Avalanche Fuji.
+ * Mint ticket NFT batch (ERC-1155) on Base.
  * Stub: replace with writeContract when deployed.
  */
 export async function mintTicketNFT(
@@ -52,5 +54,5 @@ export async function mintTicketNFT(
 }
 
 export function getTicketNftChainId(): number {
-  return AVALANCHE_FUJI_CHAIN_ID;
+  return appChain.id;
 }

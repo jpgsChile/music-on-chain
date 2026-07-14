@@ -8,7 +8,7 @@ import { useLocale } from "@/lib/locale/LocaleContext";
 import { useEffect, useState } from "react";
 import { useNativePayment } from "@/lib/blockchain/useUsdcPayment";
 
-function CopyButton({ text }: { text: string }) {
+function CopyButton({ text, label, copiedLabel }: { text: string; label: string; copiedLabel: string }) {
   const [copied, setCopied] = useState(false);
   const copy = () => {
     navigator.clipboard.writeText(text);
@@ -20,9 +20,8 @@ function CopyButton({ text }: { text: string }) {
       type="button"
       onClick={copy}
       className="text-xs text-accent hover:underline"
-      title="Copiar dirección"
     >
-      {copied ? "Copiado" : "Copiar"}
+      {copied ? copiedLabel : label}
     </button>
   );
 }
@@ -47,6 +46,7 @@ export default function PurchaseModal({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   const isBusy = isProcessing || isSuccess;
   const artistWallet = track.artist.walletAddress;
   const amountToArtist = Number((track.price * 0.98).toFixed(6));
@@ -56,19 +56,15 @@ export default function PurchaseModal({
       setIsProcessing(false);
       setIsSuccess(false);
       setErrorMessage(null);
+      setShowDetails(false);
     }
   }, [isOpen]);
 
-  // Close on Escape key
   useEffect(() => {
     if (!isOpen) return;
-
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isBusy) {
-        onClose();
-      }
+      if (e.key === "Escape" && !isBusy) onClose();
     };
-
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, isBusy, onClose]);
@@ -99,155 +95,124 @@ export default function PurchaseModal({
 
   if (!isOpen) return null;
 
+  const status = isSuccess
+    ? t.purchase.statusSuccess
+    : isProcessing
+      ? t.purchase.statusProcessing
+      : t.purchase.statusReady;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => {
-        if (e.target === e.currentTarget && !isBusy) {
-          onClose();
-        }
+        if (e.target === e.currentTarget && !isBusy) onClose();
       }}
     >
-      <div className="bg-background border border-border rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-        {/* Header */}
+      <div className="bg-background border border-border rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="border-b border-border p-6">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-1">
+              <p className="text-xs uppercase tracking-wide text-foreground/50 mb-1">
+                {status}
+              </p>
+              <h2 className="text-xl font-bold text-foreground">
                 {t.purchase.confirm}
               </h2>
-              <p className="text-foreground/70">
-                {track.title} by {track.artist.name}
+              <p className="text-foreground/70 mt-1">
+                {t.purchase.buying} <span className="text-foreground">{track.title}</span>
               </p>
             </div>
             {!isBusy && (
               <button
                 onClick={onClose}
                 className="text-foreground/50 hover:text-foreground transition-colors"
-                aria-label="Close"
+                aria-label={t.purchase.cancel}
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             )}
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Price Summary */}
-          <div className="bg-border/30 rounded-lg p-4 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-foreground/70">{t.purchase.trackPrice}</span>
-              <span className="text-lg font-semibold text-foreground">
-                ${formatUSDC(breakdown.trackPrice)} {t.general.usdc}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-foreground/70">{t.purchase.platformFee}</span>
-              <span className="text-foreground">
-                -${formatUSDC(breakdown.platformFee)} {t.general.usdc}
-              </span>
-            </div>
-            <div className="border-t border-border pt-3 mt-3">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold text-foreground">
-                  {t.purchase.netAmount}
-                </span>
-                <span className="text-xl font-bold text-accent">
-                  ${formatUSDC(breakdown.netAmount)} {t.general.usdc}
-                </span>
-              </div>
-            </div>
+        <div className="p-6 space-y-5">
+          <div className="rounded-lg border border-border bg-border/20 p-4 flex items-center justify-between">
+            <span className="text-sm text-foreground/70">{t.general.usdc}</span>
+            <span className="text-2xl font-semibold text-foreground tabular-nums">
+              ${formatUSDC(breakdown.trackPrice)}
+            </span>
           </div>
 
-          {/* Destino del pago — dirección que recibe AVAX */}
-          <div className="bg-border/20 rounded-lg p-4 border border-border/50">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-sm font-medium text-foreground">
-                Destino del pago (recibe AVAX)
-              </span>
-              <CopyButton text={artistWallet} />
-            </div>
-            <p className="text-xs font-mono text-foreground/80 break-all">
-              {artistWallet || "— No configurada (wallet del artista en .env.local)"}
-            </p>
-            <p className="text-xs text-foreground/50 mt-1">
-              Red: Avalanche Fuji. Esta es la wallet del artista; el AVAX se envia aqui.
-            </p>
-          </div>
+          <p className="text-xs text-foreground/50">{t.purchase.testnetDesc}</p>
 
-          {/* Splits Breakdown */}
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-4">
-              {t.purchase.revenueSplit}
-            </h3>
-            <div className="space-y-3">
-              {breakdown.splits.map((split, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 bg-border/20 rounded-lg border border-border/50"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-foreground">
-                        {split.role || t.purchase.collaborator}
-                      </span>
-                      <span className="text-xs text-foreground/50">
-                        ({split.percentage}%)
-                      </span>
-                    </div>
-                    <div className="text-xs font-mono text-foreground/60 truncate">
-                      {formatAddress(split.walletAddress)}
-                    </div>
-                  </div>
-                  <div className="text-right ml-4">
-                    <div className="text-sm font-semibold text-foreground">
-                      ${formatUSDC(split.amount)} {t.general.usdc}
-                    </div>
-                  </div>
+          <button
+            type="button"
+            onClick={() => setShowDetails((v) => !v)}
+            className="text-sm text-accent hover:underline"
+          >
+            {showDetails ? t.purchase.hidePaymentDetails : t.purchase.showPaymentDetails}
+          </button>
+
+          {showDetails && (
+            <div className="space-y-4 pt-1">
+              <div className="bg-border/30 rounded-lg p-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">{t.purchase.trackPrice}</span>
+                  <span>${formatUSDC(breakdown.trackPrice)}</span>
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">{t.purchase.platformFee}</span>
+                  <span>-${formatUSDC(breakdown.platformFee)}</span>
+                </div>
+                <div className="flex justify-between font-medium pt-2 border-t border-border">
+                  <span>{t.purchase.netAmount}</span>
+                  <span>${formatUSDC(breakdown.netAmount)}</span>
+                </div>
+              </div>
 
-          {/* Info Note */}
-          <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <svg
-                className="w-5 h-5 text-accent flex-shrink-0 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div className="text-sm text-foreground/70">
-                <p className="font-medium text-foreground mb-1">
-                  {t.purchase.testnetTitle}
-                </p>
-                <p>
-                  {t.purchase.testnetDesc}
+              <div className="bg-border/20 rounded-lg p-4 border border-border/50">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-sm font-medium text-foreground">
+                    {t.purchase.destinationLabel}
+                  </span>
+                  <CopyButton
+                    text={artistWallet}
+                    label={t.fanWallet.copy}
+                    copiedLabel={t.fanWallet.copied}
+                  />
+                </div>
+                <p className="text-xs font-mono text-foreground/80 break-all">
+                  {artistWallet || t.purchase.destinationMissing}
                 </p>
               </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-foreground mb-2">
+                  {t.purchase.revenueSplit}
+                </h3>
+                <div className="space-y-2">
+                  {breakdown.splits.map((split, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-border/20 rounded-lg text-sm"
+                    >
+                      <div>
+                        <span className="font-medium">
+                          {split.role || t.purchase.collaborator}
+                        </span>
+                        <span className="text-foreground/50 ml-2">({split.percentage}%)</span>
+                        <div className="text-xs font-mono text-foreground/50">
+                          {formatAddress(split.walletAddress)}
+                        </div>
+                      </div>
+                      <span>${formatUSDC(split.amount)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           {errorMessage && (
             <div className="border border-red-500/30 bg-red-500/10 rounded-lg p-3 text-sm text-red-200">
@@ -262,31 +227,25 @@ export default function PurchaseModal({
           )}
         </div>
 
-        {/* Footer */}
         <div className="border-t border-border p-6 flex gap-3 justify-end">
           <button
             onClick={onClose}
             disabled={isBusy}
-            className="px-6 py-2 border border-border rounded-lg hover:bg-border/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2 border border-border rounded-lg hover:bg-border/50 transition-colors disabled:opacity-50"
           >
             {t.purchase.cancel}
           </button>
           <button
             onClick={handleConfirm}
             disabled={isBusy}
-            className="px-6 py-2 bg-accent text-background rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+            className="px-5 py-2 bg-accent text-background rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50 font-semibold"
           >
-            {isProcessing ? t.purchase.processing : t.purchase.confirmButton}
+            {isProcessing
+              ? t.purchase.processing
+              : `${t.purchase.confirmButton} · $${formatUSDC(breakdown.trackPrice)}`}
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-

@@ -1,0 +1,40 @@
+---
+description: i18n mandatory — Spanish default, no hardcoded UI strings
+alwaysApply: true
+---
+
+# Language & Localization
+
+Music On Chain is a global product. The app already supports i18n.
+
+## Rules
+
+- **Default locale: Spanish (`es`)** — never default to English
+- **Secondary locale: English (`en`)** — must keep working
+- **Never hardcode** user-facing / visible text in components
+- **All** UI strings live in `lib/i18n.ts` under both `es` and `en`
+- Every new feature/component must ship **complete** `es` + `en` keys
+
+## Usage
+
+```tsx
+// ❌ BAD
+<h1>Protocol</h1>
+
+// ✅ GOOD
+const t = getTranslations(locale);
+<h1>{t.protocol.title}</h1>
+```
+
+Client components: `const locale = useLocale(); const t = getTranslations(locale);`  
+Server components: `const locale = await getLocaleFromCookie(); const t = getTranslations(locale);`
+
+## Tone
+
+UI copy is investor-facing and premium (see `.cursor/rules/ux-copy.mdc`). Prefer concise product phrases over literal translations.
+
+## Proper nouns & terminology
+
+Follow `.cursor/rules/spanish-terminology.mdc` for Spanish UI vocabulary (Activo Musical, Regalía, Liquidación, Núcleo del Protocolo, etc.).
+
+Brand names and API identifiers (e.g. `connectWallet`, Music On Chain, SDK, Wallet, Marketplace) stay as specified — never translate SDK method names.

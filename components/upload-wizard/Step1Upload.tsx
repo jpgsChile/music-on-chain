@@ -48,7 +48,7 @@ export default function Step1Upload({ audioFile, onFileChange, error, t }: Step1
             <p className="font-medium text-foreground truncate">{audioFile.name}</p>
             <p className="text-xs text-foreground/50">{(audioFile.size / 1024 / 1024).toFixed(2)} MB</p>
             <button type="button" onClick={() => handleFile(null)} className="mt-2 text-sm text-accent hover:underline">
-              Cambiar archivo
+              {t.changeFile}
             </button>
           </div>
         ) : (

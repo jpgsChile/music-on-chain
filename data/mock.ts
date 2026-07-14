@@ -2,7 +2,7 @@
 
 import { Artist, Track, Split } from "@/types";
 
-// Mock wallet addresses (Avalanche Fuji format)
+// Mock wallet addresses (EVM Base address format)
 const WALLETS = {
   artist1: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
   artist2: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
