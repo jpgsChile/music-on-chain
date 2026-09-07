@@ -16,6 +16,15 @@ export default function Navigation({ locale }: NavigationProps) {
   const t = getTranslations(locale);
   const { authenticated, logout } = useAuth();
 
+  const links = [
+    { href: "/artists", label: t.nav.artists },
+    { href: "/#marketplace", label: t.nav.marketplace },
+    { href: "/fan-dashboard", label: t.nav.fan },
+    { href: "/dashboard", label: t.nav.artistStudio },
+    { href: "/about", label: t.nav.about },
+    { href: "/support", label: t.nav.support },
+  ] as const;
+
   return (
     <nav className="border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,37 +38,16 @@ export default function Navigation({ locale }: NavigationProps) {
               className="h-8 w-auto"
             />
           </Link>
-          <div className="flex gap-4 lg:gap-6 items-center flex-wrap justify-end">
-            <Link
-              href="/protocol"
-              className="text-sm text-foreground/70 hover:text-foreground transition-colors"
-            >
-              {t.nav.protocol}
-            </Link>
-            <Link
-              href="/"
-              className="text-sm text-foreground/70 hover:text-foreground transition-colors"
-            >
-              {t.nav.marketplace}
-            </Link>
-            <Link
-              href="/dashboard"
-              className="text-sm text-foreground/70 hover:text-foreground transition-colors"
-            >
-              {t.nav.artistPortal}
-            </Link>
-            <Link
-              href="/fan-dashboard"
-              className="text-sm text-foreground/70 hover:text-foreground transition-colors"
-            >
-              {t.nav.fanPortal}
-            </Link>
-            <Link
-              href="/protocol#console"
-              className="text-sm text-foreground/70 hover:text-foreground transition-colors"
-            >
-              {t.nav.developers}
-            </Link>
+          <div className="flex gap-3 lg:gap-5 items-center flex-wrap justify-end">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
             <LanguageSwitcher currentLocale={locale} />
             {!authenticated ? (
               <ConnectArtist

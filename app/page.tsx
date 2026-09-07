@@ -25,9 +25,6 @@ export default async function Home() {
             {t.marketplace.title}
           </h2>
           <p className="text-foreground/60 mb-2 max-w-2xl">{t.marketplace.subtitle}</p>
-          <p className="text-sm text-foreground/50 mb-2 max-w-2xl">
-            {t.vc.surfaces.marketplace.thesis}
-          </p>
           <p className="text-sm text-foreground/45 mb-6">
             {t.marketplace.countLabel.replace("{{count}}", String(artists.length))}
           </p>

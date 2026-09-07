@@ -1,23 +1,55 @@
-import type { ArtistSocials as ArtistSocialsType } from "@/data/artists";
+import type { ArtistChannelSocials, ChannelSocialKey } from "@/lib/artist-profile/types";
+import { CHANNEL_SOCIAL_KEYS } from "@/lib/artist-profile/types";
+
+/** Legacy catalog socials + channel socials */
+export type SocialLinksInput = ArtistChannelSocials & {
+  tiktok?: string;
+  instagram?: string;
+  facebook?: string;
+  youtube?: string;
+};
 
 interface ArtistSocialsProps {
-  socials: ArtistSocialsType;
+  socials: SocialLinksInput;
   className?: string;
+  /** Show labels next to icons */
+  showLabels?: boolean;
 }
 
-const PLATFORMS: (keyof ArtistSocialsType)[] = [
-  "tiktok",
-  "instagram",
-  "facebook",
-  "youtube",
-];
-
-const LABELS: Record<keyof ArtistSocialsType, string> = {
+const LABELS: Record<ChannelSocialKey, string> = {
+  spotify: "Spotify",
+  appleMusic: "Apple Music",
+  youtube: "YouTube",
   tiktok: "TikTok",
   instagram: "Instagram",
+  x: "X",
   facebook: "Facebook",
-  youtube: "YouTube",
+  website: "Web",
 };
+
+function IconSpotify({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+    </svg>
+  );
+}
+
+function IconAppleMusic({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M23.997 6.124c0-.738-.065-1.454-.172-2.142a3.257 3.257 0 0 0-2.466-2.53C19.895 1.248 18.25.99 15.99.99H8.009c-2.26 0-3.906.258-5.37.462A3.257 3.257 0 0 0 .174 3.982C.067 4.67.002 5.386.002 6.124v11.752c0 .738.065 1.454.172 2.142a3.257 3.257 0 0 0 2.466 2.53c1.464.204 3.11.462 5.37.462h7.981c2.26 0 3.905-.258 5.37-.462a3.257 3.257 0 0 0 2.466-2.53c.107-.688.172-1.404.172-2.142V6.124zm-6.72 6.846c0 1.647-1.304 2.982-2.91 2.982-1.607 0-2.91-1.335-2.91-2.982V7.32c.84.36 1.8.6 2.91.6v5.05c0 .54.42.96.96.96s.96-.42.96-.96V5.04c0-.18-.12-.36-.3-.42L11.2 3.48c-.24-.06-.48.12-.48.36v9.13c0 2.76 2.16 5.01 4.92 5.01 2.76 0 4.92-2.25 4.92-5.01v-1.98c-.66.36-1.38.6-2.28.6v1.38z" />
+    </svg>
+  );
+}
+
+function IconYouTube({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+  );
+}
 
 function IconTikTok({ className }: { className?: string }) {
   return (
@@ -35,6 +67,14 @@ function IconInstagram({ className }: { className?: string }) {
   );
 }
 
+function IconX({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.227-8.451L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
 function IconFacebook({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -43,28 +83,37 @@ function IconFacebook({ className }: { className?: string }) {
   );
 }
 
-function IconYouTube({ className }: { className?: string }) {
+function IconWebsite({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.5 2.8 3.8 5.8 3.8 9s-1.3 6.2-3.8 9c-2.5-2.8-3.8-5.8-3.8-9S9.5 5.8 12 3z" />
     </svg>
   );
 }
 
-const ICONS: Record<keyof ArtistSocialsType, React.ComponentType<{ className?: string }>> = {
+const ICONS: Record<ChannelSocialKey, React.ComponentType<{ className?: string }>> = {
+  spotify: IconSpotify,
+  appleMusic: IconAppleMusic,
+  youtube: IconYouTube,
   tiktok: IconTikTok,
   instagram: IconInstagram,
+  x: IconX,
   facebook: IconFacebook,
-  youtube: IconYouTube,
+  website: IconWebsite,
 };
 
-export default function ArtistSocials({ socials, className = "" }: ArtistSocialsProps) {
-  const entries = PLATFORMS.filter((key) => socials[key]?.trim());
+export default function ArtistSocials({
+  socials,
+  className = "",
+  showLabels = false,
+}: ArtistSocialsProps) {
+  const entries = CHANNEL_SOCIAL_KEYS.filter((key) => socials[key]?.trim());
 
   if (entries.length === 0) return null;
 
   return (
-    <div className={`flex flex-wrap items-center gap-4 ${className}`}>
+    <div className={`flex flex-wrap items-center gap-3 ${className}`}>
       {entries.map((key) => {
         const href = socials[key]!;
         const Icon = ICONS[key];
@@ -74,14 +123,19 @@ export default function ArtistSocials({ socials, className = "" }: ArtistSocials
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-foreground/10 text-foreground hover:bg-accent hover:text-background transition-colors"
+            className={`flex items-center gap-2 rounded-full bg-foreground/10 text-foreground hover:bg-accent hover:text-background transition-colors ${
+              showLabels ? "px-3 py-1.5 text-xs font-medium" : "w-10 h-10 justify-center"
+            }`}
             aria-label={LABELS[key]}
             title={LABELS[key]}
           >
-            <Icon className="w-5 h-5" />
+            <Icon className="w-4 h-4 shrink-0" />
+            {showLabels ? <span>{LABELS[key]}</span> : null}
           </a>
         );
       })}
     </div>
   );
 }
+
+export { LABELS as SOCIAL_LABELS, ICONS as SOCIAL_ICONS };

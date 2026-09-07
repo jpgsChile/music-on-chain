@@ -1,0 +1,13 @@
+// Canonical production schema — Music On Chain
+// Design artifact under docs/data-model (PostgreSQL).
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["identity", "catalog", "collaboration", "commerce", "licensing", "royalties", "settlement", "media", "ops"]
+}

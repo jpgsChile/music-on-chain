@@ -35,8 +35,8 @@ export default function TrackCard({ track, onPurchase, isOwned }: TrackCardProps
   };
 
   const handlePurchaseSuccess = (txHash: string) => {
-    const buyerAddress =
-      user?.wallet?.address || user?.id || "privy-user";
+    const buyerAddress = user?.wallet?.address;
+    if (!buyerAddress) return;
 
     // Create mock sale
     const sale: Sale = {

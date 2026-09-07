@@ -1,0 +1,26 @@
+{
+  "$id": "c-bind/1/binding-view",
+  "title": "BindingView (C-BIND/1 form)",
+  "description": "Vista mínima de Resolve cuando hay Binding. bindingStatus ausente no aplica: NOT_FOUND no es BindingView. profileVersion const C-BIND/1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["actorRef", "bindingStatus", "asOf", "profileVersion"],
+  "properties": {
+    "actorRef": {
+      "type": "string",
+      "minLength": 1
+    },
+    "bindingStatus": {
+      "type": "string",
+      "enum": ["VIGENTE", "REVOCADO"]
+    },
+    "asOf": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profileVersion": {
+      "type": "string",
+      "const": "C-BIND/1"
+    }
+  }
+}

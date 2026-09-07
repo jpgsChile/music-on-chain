@@ -1,43 +1,35 @@
 ---
-description: Premium investor-facing UX copy — concise, never literal
+description: Premium product UX copy — concise, artist-first, never blockchain jargon in product UI
 alwaysApply: true
 ---
 
 # UX Copy
 
-The interface is **investor-facing**. Spanish copy must feel premium.
+The interface is a **music distribution / direct-to-fan** product. Spanish copy must feel premium and clear to artists and fans.
 
 ## Principles
 
 - Prefer concise language over full sentences
-- Avoid literal / amateur translations
-- Use product terminology (see spanish-terminology.mdc)
+- Speak publish / sell / monetize — not protocol / SDK / chain
 - Prefer title case for short CTAs and section labels in Spanish when they match product phrases
 
 ## Prefer (es)
 
 - Publicar Obra
-- Conectar cuenta
+- Artist Studio
 - Comprar Licencia
-- Liquidación Verificada
-- Distribución de Regalías
-- Actividad del Protocolo
-- Explorador del SDK
-- Métricas del Protocolo
-- Arquitectura
-- Cuenta / Propiedad / Pago / Liquidación / Actividad / Historial
+- Abrir Marketplace
+- Quiénes somos (solo tecnología)
+- Soporte
 
-## Avoid (es)
+## Avoid (es) in product surfaces
 
+- Protocolo / SDK / Núcleo / Adaptador Blockchain
 - Subir Canción
-- Enviar
 - Comprar NFT
-- Data / Stuff
-- Processing... / Procesando...
 - Wallet Address / Transaction Hash / Gas / RPC / Signer / Nonce
-- Informal demo chatter in investor surfaces (“Haz clic…”, “stack”, “playground”)
-- Beginner blockchain language for end users
+- Informal demo chatter (“Haz clic…”, “playground”)
 
 ## Tone check
 
-If a string sounds like a DIY upload form or a loading spinner from a consumer app, rewrite it for a protocol / capital-markets product.
+If a string sounds like infrastructure marketing or a blockchain tutorial, move it to Who We Are — or rewrite for artists and fans.

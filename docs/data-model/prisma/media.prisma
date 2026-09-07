@@ -1,0 +1,53 @@
+// BC: Media
+
+enum UploadStatus {
+  PENDING
+  UPLOADED
+  FAILED
+  EXPIRED
+}
+
+enum AssetKind {
+  AUDIO_MASTER
+  AUDIO_PREVIEW
+  IMAGE_COVER
+  IMAGE_AVATAR
+  IMAGE_BANNER
+  METADATA_JSON
+}
+
+model UploadSession {
+  id           String       @id
+  artistId     String       @map("artist_id") // ID-ref
+  kind         AssetKind
+  status       UploadStatus @default(PENDING)
+  storageKey   String?      @map("storage_key")
+  mimeType     String?      @map("mime_type")
+  checksumSha256 String?    @map("checksum_sha256")
+  bytes        BigInt?
+  expiresAt    DateTime     @map("expires_at")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  assetId      String?      @unique @map("asset_id")
+
+  @@index([artistId, createdAt(sort: Desc)])
+  @@map("upload_sessions")
+  @@schema("media")
+}
+
+model MediaAsset {
+  id             String    @id
+  ownerArtistId  String    @map("owner_artist_id")
+  kind           AssetKind
+  storageKey     String    @unique @map("storage_key")
+  mimeType       String    @map("mime_type")
+  checksumSha256 String    @map("checksum_sha256")
+  bytes          BigInt
+  ipfsCid        String?   @map("ipfs_cid")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  @@index([ownerArtistId, kind])
+  @@map("media_assets")
+  @@schema("media")
+}

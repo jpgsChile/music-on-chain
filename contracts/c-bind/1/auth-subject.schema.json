@@ -1,0 +1,18 @@
+{
+  "$id": "c-bind/1/auth-subject",
+  "title": "AuthSubject (C-BIND/1 form)",
+  "description": "Forma de AuthSubject. No es Actor. additionalProperties=false excluye PII y campos de vertical. No prescribe sintaxis de issuer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["issuer", "subject"],
+  "properties": {
+    "issuer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

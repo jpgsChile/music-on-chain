@@ -1,0 +1,18 @@
+{
+  "artifact": "c-bind",
+  "profile": "C-BIND/1",
+  "release": "1.0.0",
+  "status": "ACCEPTED",
+  "cdr": "CDR-008",
+  "cdrPath": "standard/cdr/CDR-008-c-bind-v1.md",
+  "contractPath": "meta-specification/C-BIND-v1-FINAL-SPECIFICATION.md",
+  "schemas": [
+    "schemas/c-bind/1/release.schema.json",
+    "schemas/c-bind/1/auth-subject.schema.json",
+    "schemas/c-bind/1/binding-view.schema.json",
+    "schemas/c-bind/1/conformance-vector.schema.json"
+  ],
+  "conformance": "conformance/c-bind/1/",
+  "validator": "compiler/validate.py",
+  "notes": "Unidad de consumo del perfil. No es constitutionalVersion. No es runtime. No depende de MOC, Privy ni blockchain."
+}

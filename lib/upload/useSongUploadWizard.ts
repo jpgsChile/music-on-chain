@@ -1,117 +1,341 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import type { SongUploadState, WizardStep, UploadValidationErrors } from "@/types/upload";
-import { INITIAL_UPLOAD_STATE } from "@/types/upload";
-import type { RoyaltySplit } from "@/lib/artist-profile/types";
+import type {
+  ReleaseWizardState,
+  WizardStep,
+  ReleaseValidationErrors,
+  ReleaseTrack,
+  ReleaseCollaborator,
+  PricingModel,
+} from "@/types/upload";
+import {
+  INITIAL_RELEASE_STATE,
+  createEmptyTrack,
+  createEmptyCollaborator,
+} from "@/types/upload";
 import { getStepErrors } from "./validation";
 import { mintSongNFT } from "@/lib/contracts/songNft";
+import { addExtraTrack } from "@/lib/artistTracksStorage";
+import { getArtistByWallet } from "@/data/artists";
+import { savePublishedRelease } from "@/lib/release/storage";
 
-export interface UseSongUploadWizardOptions {
+export interface UseReleaseWizardOptions {
+  actorRef: string;
   artistWallet: string;
-  defaultRoyaltySplits: RoyaltySplit[];
-  onComplete?: () => void;
+  artistName?: string;
+  onComplete?: (releaseId: string) => void;
 }
 
-export function useSongUploadWizard({
+export function useReleaseWizard({
+  actorRef,
   artistWallet,
-  defaultRoyaltySplits,
+  artistName,
   onComplete,
-}: UseSongUploadWizardOptions) {
-  const [state, setState] = useState<SongUploadState>(INITIAL_UPLOAD_STATE);
-  const [errors, setErrors] = useState<UploadValidationErrors>({});
+}: UseReleaseWizardOptions) {
+  const [state, setState] = useState<ReleaseWizardState>(INITIAL_RELEASE_STATE);
+  const [errors, setErrors] = useState<ReleaseValidationErrors>({});
 
   const setStep = useCallback((step: WizardStep) => {
     setState((s) => ({ ...s, step }));
     setErrors({});
   }, []);
 
-  const update = useCallback(<K extends keyof SongUploadState>(key: K, value: SongUploadState[K]) => {
-    setState((s) => ({ ...s, [key]: value }));
-    setErrors((e) => {
-      const next = { ...e };
-      delete next[key as keyof UploadValidationErrors];
-      return next;
-    });
-  }, []);
-
-  const currentErrors = useMemo(
-    () => getStepErrors(state.step, state, defaultRoyaltySplits),
-    [state.step, state, defaultRoyaltySplits]
+  const update = useCallback(
+    <K extends keyof ReleaseWizardState>(key: K, value: ReleaseWizardState[K]) => {
+      setState((s) => ({ ...s, [key]: value }));
+      setErrors((e) => {
+        const next = { ...e };
+        delete next[key as keyof ReleaseValidationErrors];
+        return next;
+      });
+    },
+    []
   );
 
-  const canProceed = useMemo(() => {
-    const stepErrors = getStepErrors(state.step, state, defaultRoyaltySplits);
-    return Object.keys(stepErrors).length === 0;
-  }, [state, defaultRoyaltySplits]);
+  const patch = useCallback((partial: Partial<ReleaseWizardState>) => {
+    setState((s) => ({ ...s, ...partial }));
+  }, []);
 
-  const effectiveSplits = state.useDefaultRights ? defaultRoyaltySplits : state.royaltySplits;
+  const currentErrors = useMemo(() => getStepErrors(state.step, state), [state]);
+
+  const canProceed = useMemo(
+    () => Object.keys(getStepErrors(state.step, state)).length === 0,
+    [state]
+  );
+
+  const royaltyTotal = useMemo(() => {
+    if (state.soloCreator) return 100;
+    return state.collaborators.reduce((a, c) => a + (Number(c.percentage) || 0), 0);
+  }, [state.soloCreator, state.collaborators]);
 
   const goNext = useCallback(() => {
-    const stepErrors = getStepErrors(state.step, state, defaultRoyaltySplits);
+    const stepErrors = getStepErrors(state.step, state);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
     }
     if (state.step < 5) setStep((state.step + 1) as WizardStep);
-  }, [state, defaultRoyaltySplits]);
+  }, [state, setStep]);
 
   const goBack = useCallback(() => {
     if (state.step > 1) setStep((state.step - 1) as WizardStep);
   }, [state.step, setStep]);
 
-  const runMint = useCallback(async () => {
-    const stepErrors = getStepErrors(5, state, defaultRoyaltySplits);
+  const addTrack = useCallback(() => {
+    setState((s) => ({ ...s, tracks: [...s.tracks, createEmptyTrack()] }));
+  }, []);
+
+  const updateTrack = useCallback((id: string, partial: Partial<ReleaseTrack>) => {
+    setState((s) => ({
+      ...s,
+      tracks: s.tracks.map((t) => (t.id === id ? { ...t, ...partial } : t)),
+    }));
+    setErrors((e) => {
+      const next = { ...e };
+      delete next.tracks;
+      delete next.trackFile;
+      delete next.trackTitle;
+      return next;
+    });
+  }, []);
+
+  const removeTrack = useCallback((id: string) => {
+    setState((s) => ({
+      ...s,
+      tracks: s.tracks.length <= 1 ? s.tracks : s.tracks.filter((t) => t.id !== id),
+    }));
+  }, []);
+
+  const addCollaborator = useCallback(() => {
+    setState((s) => ({
+      ...s,
+      soloCreator: false,
+      collaborators:
+        s.collaborators.length === 0
+          ? [createEmptyCollaborator("composer", 100)]
+          : [...s.collaborators, createEmptyCollaborator("author", 0)],
+    }));
+  }, []);
+
+  const updateCollaborator = useCallback(
+    (id: string, partial: Partial<ReleaseCollaborator>) => {
+      setState((s) => ({
+        ...s,
+        collaborators: s.collaborators.map((c) =>
+          c.id === id ? { ...c, ...partial } : c
+        ),
+      }));
+      setErrors((e) => {
+        const next = { ...e };
+        delete next.collaborators;
+        return next;
+      });
+    },
+    []
+  );
+
+  const removeCollaborator = useCallback((id: string) => {
+    setState((s) => {
+      const next = s.collaborators.filter((c) => c.id !== id);
+      return {
+        ...s,
+        collaborators: next,
+        soloCreator: next.length === 0 ? true : s.soloCreator,
+      };
+    });
+  }, []);
+
+  const togglePricingModel = useCallback((model: PricingModel) => {
+    setState((s) => {
+      const has = s.pricingModels.includes(model);
+      const next = has
+        ? s.pricingModels.filter((m) => m !== model)
+        : [...s.pricingModels, model];
+      return { ...s, pricingModels: next };
+    });
+    setErrors((e) => {
+      const next = { ...e };
+      delete next.pricingModels;
+      return next;
+    });
+  }, []);
+
+  const publish = useCallback(async () => {
+    const stepErrors = {
+      ...getStepErrors(1, state),
+      ...getStepErrors(2, state),
+      ...getStepErrors(3, state),
+      ...getStepErrors(4, state),
+    };
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
     }
-    update("isMinting", true);
-    update("mintError", null);
+
+    update("isPublishing", true);
+    update("publishError", null);
+
     try {
+      const primary = state.tracks[0];
       const metadata = {
         name: state.title,
-        genre: state.genre,
+        releaseType: state.releaseType,
         language: state.language,
-        aiUsage: state.aiUsage,
-        aiUsageDescription: state.aiUsageDescription || undefined,
-        royaltySplits: effectiveSplits,
+        primaryGenre: state.primaryGenre,
+        secondaryGenre: state.secondaryGenre || undefined,
+        description: state.description || undefined,
+        tracks: state.tracks.map((t) => ({
+          title: t.title,
+          version: t.version || undefined,
+          durationSec: t.durationSec,
+          explicit: t.explicit,
+        })),
+        soloCreator: state.soloCreator,
+        collaborators: state.soloCreator
+          ? [{ name: artistName || "Artista", role: "composer", percentage: 100 }]
+          : state.collaborators,
+        pricingModels: state.pricingModels,
+        priceUsdc: state.priceUsdc,
+        network: "base",
+        currency: "USDC",
       };
-      const tokenURI = "data:application/json," + encodeURIComponent(JSON.stringify(metadata));
-      const result = await mintSongNFT({
-        artistAddress: artistWallet,
-        tokenURI,
-      });
-      if (result.success) {
-        update("mintTxHash", result.txHash ?? null);
-        update("mintTokenId", result.tokenId ?? null);
-        onComplete?.();
-      } else {
-        update("mintError", result.error ?? "No se pudo publicar. Intenta de nuevo.");
+
+      const tokenURI =
+        "data:application/json," + encodeURIComponent(JSON.stringify(metadata));
+      let tokenId: string | null = null;
+      if (artistWallet) {
+        const result = await mintSongNFT({
+          artistAddress: artistWallet,
+          tokenURI,
+        });
+        if (!result.success) {
+          update("publishError", result.error ?? "No se pudo publicar. Intenta de nuevo.");
+          return;
+        }
+        tokenId = result.tokenId ?? null;
       }
+
+      const artist = artistWallet ? getArtistByWallet(artistWallet) : undefined;
+      const slug =
+        artist?.slug ||
+        (artistWallet
+          ? `wallet-${artistWallet.replace(/^0x/i, "").slice(0, 8).toLowerCase()}`
+          : `actor-${actorRef.slice(-8)}`);
+
+      const audioUrl = primary?.previewUrl || "";
+      const storedTrack = addExtraTrack(slug, {
+        title: primary?.title || state.title,
+        audioUrl,
+        price: state.priceUsdc,
+      });
+
+      const persisted = await fetch("/api/releases", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-actor-ref": actorRef,
+        },
+        body: JSON.stringify({
+          title: state.title,
+          releaseType: state.releaseType,
+          language: state.language,
+          primaryGenre: state.primaryGenre,
+          secondaryGenre: state.secondaryGenre,
+          description: state.description,
+          coverUrl: state.coverUrl,
+          soloCreator: state.soloCreator,
+          primaryDisplayName: artistName,
+          collaborators: state.soloCreator ? [] : state.collaborators,
+          pricingModels: state.pricingModels,
+          priceUsdc: state.priceUsdc,
+          tokenId,
+          tracks: state.tracks.map((t) => ({
+            title: t.title,
+            version: t.version,
+            durationSec: t.durationSec,
+            explicit: t.explicit,
+            lyrics: t.lyrics,
+            previewUrl: t.previewUrl,
+          })),
+        }),
+      });
+      const persistedJson = await persisted.json().catch(() => ({}));
+      if (!persisted.ok || !persistedJson?.ok) {
+        update("publishError", persistedJson.error ?? "No se pudo guardar el lanzamiento.");
+        return;
+      }
+
+      const releaseId = savePublishedRelease({
+        id: persistedJson.value.id,
+        actorRef,
+        wallet: artistWallet ? artistWallet.toLowerCase() : "",
+        artistSlug: slug,
+        title: state.title,
+        releaseType: state.releaseType,
+        language: state.language,
+        primaryGenre: state.primaryGenre,
+        secondaryGenre: state.secondaryGenre,
+        description: state.description,
+        coverUrl: state.coverUrl,
+        trackIds: [storedTrack.id],
+        tracks: state.tracks.map((t) => ({
+          title: t.title,
+          version: t.version,
+          durationSec: t.durationSec,
+          explicit: t.explicit,
+          lyrics: t.lyrics,
+          previewUrl: t.previewUrl,
+        })),
+        soloCreator: state.soloCreator,
+        collaborators: state.soloCreator ? [] : state.collaborators,
+        pricingModels: state.pricingModels,
+        priceUsdc: state.priceUsdc,
+        network: "base",
+        currency: "USDC",
+        tokenId,
+        publishedAt: new Date().toISOString(),
+      });
+
+      update("publishedId", releaseId);
+      onComplete?.(releaseId);
     } catch (e) {
-      update("mintError", e instanceof Error ? e.message : "No se pudo publicar. Intenta de nuevo.");
+      update(
+        "publishError",
+        e instanceof Error ? e.message : "No se pudo publicar. Intenta de nuevo."
+      );
     } finally {
-      update("isMinting", false);
+      update("isPublishing", false);
     }
-  }, [state, defaultRoyaltySplits, effectiveSplits, artistWallet, update, onComplete]);
+  }, [state, actorRef, artistWallet, artistName, update, onComplete]);
 
   const reset = useCallback(() => {
-    setState(INITIAL_UPLOAD_STATE);
+    setState(INITIAL_RELEASE_STATE);
     setErrors({});
   }, []);
 
   return {
     state,
     update,
+    patch,
     errors: { ...currentErrors, ...errors },
     setErrors,
     canProceed,
-    effectiveSplits,
+    royaltyTotal,
     setStep,
     goNext,
     goBack,
-    runMint,
+    addTrack,
+    updateTrack,
+    removeTrack,
+    addCollaborator,
+    updateCollaborator,
+    removeCollaborator,
+    togglePricingModel,
+    publish,
     reset,
   };
 }
+
+/** @deprecated */
+export const useSongUploadWizard = useReleaseWizard;

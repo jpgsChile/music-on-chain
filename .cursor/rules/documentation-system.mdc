@@ -1,0 +1,30 @@
+---
+description: Living documentation system — no orphans, metadata required, search before write
+alwaysApply: true
+---
+
+# Documentation system (docs-as-code)
+
+Documentation under `docs/` is a **living system**, not isolated files.
+
+## Before creating any new document
+
+1. **Search** `docs/` (and package READMEs) for an existing home.
+2. **Reuse** Architecture / Data Model concepts — do not redefine bounded contexts, aggregates, or money rules.
+3. **Prefer updating** an existing doc; bump **Last Updated**.
+4. **Avoid duplication**. One canonical source; others link.
+5. **Never create orphans**. Register in [docs/README.md](docs/README.md) the same change.
+6. Follow [docs/_system/STANDARDS.md](docs/_system/STANDARDS.md).
+
+## Required metadata on every doc
+
+Purpose · Dependencies · Status · Owner · Last Updated · Related Documents
+
+## Canonical sources
+
+- Architecture: `docs/backend-architecture/`
+- Data model / Prisma: `docs/data-model/`
+- Sprints: `docs/sprints/`
+- Hub: `docs/README.md`
+
+When editing docs, keep **Related Documents** bidirectional where practical.

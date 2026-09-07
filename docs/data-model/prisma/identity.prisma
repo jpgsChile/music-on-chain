@@ -1,0 +1,109 @@
+// BC: Identity
+
+enum VerificationStatus {
+  NONE
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum SocialPlatform {
+  SPOTIFY
+  APPLE_MUSIC
+  YOUTUBE
+  TIKTOK
+  INSTAGRAM
+  X
+  FACEBOOK
+  WEBSITE
+}
+
+enum AuthProvider {
+  PRIVY
+  OTHER
+}
+
+model ArtistAccount {
+  id               String             @id
+  authSubject      String?            @unique @map("auth_subject")
+  verification     VerificationStatus @default(NONE)
+  version          Int                @default(1)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  deletedAt        DateTime?          @map("deleted_at")
+
+  channel          ChannelProfile?
+  socialLinks      SocialLink[]
+
+  @@map("artist_accounts")
+  @@schema("identity")
+}
+
+model ChannelProfile {
+  artistId    String   @id @map("artist_id")
+  displayName String   @map("display_name")
+  username    String   @unique
+  biography   String   @default("")
+  bannerAssetId String? @map("banner_asset_id")
+  avatarAssetId String? @map("avatar_asset_id")
+  locale      String   @default("es")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  artist ArtistAccount @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@map("channel_profiles")
+  @@schema("identity")
+}
+
+model SocialLink {
+  id        String         @id
+  artistId  String         @map("artist_id")
+  platform  SocialPlatform
+  url       String
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  artist ArtistAccount @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([artistId, platform])
+  @@map("social_links")
+  @@schema("identity")
+}
+
+model FanAccount {
+  id          String    @id
+  authSubject String?   @unique @map("auth_subject")
+  displayName String?   @map("display_name")
+  locale      String    @default("es")
+  version     Int       @default(1)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  preferences FanPreferences?
+
+  @@map("fan_accounts")
+  @@schema("identity")
+}
+
+model FanPreferences {
+  fanId            String  @id @map("fan_id")
+  marketingOptIn   Boolean @default(false) @map("marketing_opt_in")
+  fan FanAccount @relation(fields: [fanId], references: [id], onDelete: Cascade)
+
+  @@map("fan_preferences")
+  @@schema("identity")
+}
+
+model AuthBinding {
+  id          String       @id
+  provider    AuthProvider
+  subject     String
+  actorKind   String       @map("actor_kind") // ARTIST | FAN
+  actorId     String       @map("actor_id")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  @@unique([provider, subject])
+  @@index([actorKind, actorId])
+  @@map("auth_bindings")
+  @@schema("identity")
+}

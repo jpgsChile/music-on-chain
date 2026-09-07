@@ -1,0 +1,34 @@
+// BC: Licensing
+
+enum GrantStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum Entitlement {
+  STREAM
+  DOWNLOAD
+  LICENSE_SYNC
+}
+
+model LicenseGrant {
+  id           String      @id
+  fanId        String      @map("fan_id") // ID-ref
+  workKind     String      @map("work_kind")
+  workId       String      @map("work_id")
+  orderId      String      @map("order_id") // ID-ref
+  entitlement  Entitlement
+  status       GrantStatus @default(ACTIVE)
+  expiresAt    DateTime?   @map("expires_at")
+  version      Int         @default(1)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  revokedAt    DateTime?   @map("revoked_at")
+
+  @@unique([fanId, workId, entitlement, orderId])
+  @@index([fanId, status, createdAt(sort: Desc)])
+  @@index([workId, status])
+  @@map("license_grants")
+  @@schema("licensing")
+}

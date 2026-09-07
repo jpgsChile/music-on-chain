@@ -29,7 +29,7 @@ export default async function ArtistsPage() {
           <div className="border border-border rounded-xl p-8 text-center max-w-lg">
             <p className="font-semibold text-foreground">{t.artists.empty}</p>
             <Link
-              href="/protocol"
+              href="/about"
               className="inline-flex mt-4 px-5 py-2.5 rounded-lg bg-accent text-background font-medium hover:bg-accent-hover"
             >
               {t.artists.emptyCta}

@@ -1,5 +1,6 @@
-import ProtocolExperience from "@/components/protocol/ProtocolExperience";
+import { redirect } from "next/navigation";
 
-export default function ProtocolPage() {
-  return <ProtocolExperience />;
+/** Legacy URL — protocol narrative lives under Who We Are. */
+export default function ProtocolRedirectPage() {
+  redirect("/about");
 }

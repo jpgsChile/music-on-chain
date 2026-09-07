@@ -68,7 +68,7 @@ export default async function HowItWorksPage() {
             {t.howItWorks.ctaGuide}
           </Link>
           <Link
-            href="/protocol"
+            href="/about"
             className="px-5 py-2.5 border border-border rounded-lg hover:bg-border/30 transition-colors"
           >
             {t.howItWorks.ctaProtocol}

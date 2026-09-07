@@ -15,6 +15,11 @@ const nextConfig = {
     '@moc/shared',
   ],
 
+  serverExternalPackages: [
+    "better-sqlite3",
+    "@prisma/adapter-better-sqlite3",
+  ],
+
   experimental: {
     optimizePackageImports: ['wagmi', 'viem', '@tanstack/react-query'],
   },

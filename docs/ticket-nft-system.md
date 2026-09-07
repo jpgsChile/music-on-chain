@@ -1,5 +1,17 @@
 # Ticket NFT System — Music On Chain
 
+| Field | Value |
+|-------|-------|
+| **Purpose** | Tickets/events feature notes (PoC); future Licensing/Commerce extension. |
+| **Dependencies** | [Documentation Hub](./README.md) · [Standards](./_system/STANDARDS.md) |
+| **Status** | Active |
+| **Owner** | Product |
+| **Last Updated** | 2026-07-23 |
+| **Related Documents** | [Hub](./README.md) · [Architecture Commerce](./backend-architecture/02-bounded-contexts.md) · [Standards](./_system/STANDARDS.md) |
+
+<!-- doc-id: ticket-nft-system.md -->
+
+
 ## Resumen
 
 Sistema de entradas NFT para eventos creados por artistas. Los tickets son **transferibles** (el fan puede revender o regalar) y **rastreables** (cadena + txHash para verificación).

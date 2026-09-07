@@ -18,9 +18,9 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Music On Chain — Protocolo de derechos musicales",
+  title: "Music On Chain — Publica, vende y monetiza tu música",
   description:
-    "Infraestructura escalable de propiedad, licencias y liquidación. Protocolo primero. Apps encima. Liquidación en Base.",
+    "Plataforma de distribución musical directa al fan. Artist Studio, Marketplace y experiencia Fan.",
 };
 
 export default async function RootLayout({

@@ -1,0 +1,75 @@
+// BC: Catalog
+
+enum ReleaseType {
+  SINGLE
+  EP
+  ALBUM
+  DEMO
+  LIVE
+  RARE
+  REHEARSAL
+}
+
+enum PublishState {
+  DRAFT
+  PUBLISHED
+  UNPUBLISHED
+}
+
+model Release {
+  id             String       @id
+  artistId       String       @map("artist_id") // ID-ref → identity.artist_accounts
+  title          String
+  releaseType    ReleaseType  @map("release_type")
+  language       String
+  primaryGenre   String       @map("primary_genre")
+  secondaryGenre String?      @map("secondary_genre")
+  description    String       @default("")
+  publishState   PublishState @default(DRAFT) @map("publish_state")
+  publishedAt    DateTime?    @map("published_at")
+  splitAgreementId String?    @map("split_agreement_id") // ID-ref → collaboration
+  version        Int          @default(1)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  deletedAt      DateTime?    @map("deleted_at")
+
+  tracks Track[]
+  cover  ReleaseCover?
+
+  @@index([artistId, createdAt(sort: Desc)])
+  @@index([publishState, publishedAt(sort: Desc)])
+  @@map("releases")
+  @@schema("catalog")
+}
+
+model Track {
+  id             String   @id
+  releaseId      String   @map("release_id")
+  title          String
+  versionLabel   String   @default("") @map("version_label")
+  position       Int
+  durationMs     Int?     @map("duration_ms")
+  explicit       Boolean  @default(false)
+  lyrics         String   @default("")
+  audioAssetId   String?  @map("audio_asset_id") // ID-ref → media
+  previewAssetId String?  @map("preview_asset_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@unique([releaseId, position])
+  @@index([releaseId])
+  @@map("tracks")
+  @@schema("catalog")
+}
+
+model ReleaseCover {
+  releaseId   String @id @map("release_id")
+  imageAssetId String @map("image_asset_id") // ID-ref → media
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@map("release_covers")
+  @@schema("catalog")
+}

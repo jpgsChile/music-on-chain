@@ -1,5 +1,17 @@
 # VC Demo Map — Music On Chain
 
+| Field | Value |
+|-------|-------|
+| **Purpose** | Stakeholder/demo narrative for Music On Chain without exposing infrastructure as product. |
+| **Dependencies** | [Documentation Hub](./README.md) · [Standards](./_system/STANDARDS.md) |
+| **Status** | Active |
+| **Owner** | Product |
+| **Last Updated** | 2026-07-23 |
+| **Related Documents** | [Hub](./README.md) · [product-structure](./product-structure.md) · [Architecture](./backend-architecture/README.md) |
+
+<!-- doc-id: vc-demo.md -->
+
+
 Cada superficie responde **una** pregunta de inversor. Sin complejidad de producto innecesaria. Todo refuerza **escalabilidad**.
 
 | Superficie | Ruta | Pregunta | Tesis de inversión |

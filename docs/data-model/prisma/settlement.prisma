@@ -1,0 +1,49 @@
+// BC: Settlement
+
+enum PayoutStatus {
+  INITIATED
+  SUBMITTED
+  SUCCEEDED
+  FAILED
+  RECONCILED
+}
+
+model Payout {
+  id            String       @id
+  holdId        String       @unique @map("hold_id") // ID-ref royalties.balance_holds
+  accountId     String       @map("account_id")
+  amountMinor   BigInt       @map("amount_minor")
+  currency      String       @default("USDC") @db.Char(4)
+  rail          String       // CIRCLE | BASE_USDC
+  status        PayoutStatus @default(INITIATED)
+  externalRef   String?      @unique @map("external_ref")
+  /// Ops-only forensic fields — never product API
+  chainTxHash   String?      @map("chain_tx_hash")
+  version       Int          @default(1)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  succeededAt   DateTime?    @map("succeeded_at")
+  failedAt      DateTime?    @map("failed_at")
+
+  attempts PayoutAttempt[]
+
+  @@index([accountId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("payouts")
+  @@schema("settlement")
+}
+
+model PayoutAttempt {
+  id          String   @id
+  payoutId    String   @map("payout_id")
+  externalRef String?  @map("external_ref")
+  success     Boolean?
+  errorCode   String?  @map("error_code")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  payout Payout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+
+  @@index([payoutId])
+  @@map("payout_attempts")
+  @@schema("settlement")
+}

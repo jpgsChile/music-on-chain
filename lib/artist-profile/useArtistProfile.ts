@@ -5,13 +5,13 @@ import type { ArtistProfileRecord } from "./types";
 
 const API = "/api/artist/profile";
 
-export function useArtistProfile(wallet: string | undefined) {
+export function useArtistProfile(wallet: string | undefined, actorRef?: string) {
   const [profile, setProfile] = useState<ArtistProfileRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async () => {
-    if (!wallet?.trim()) {
+    if (!wallet?.trim() && !actorRef?.trim()) {
       setProfile(null);
       setLoading(false);
       return;
@@ -19,9 +19,10 @@ export function useArtistProfile(wallet: string | undefined) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(API, {
-        headers: { "x-artist-wallet": wallet },
-      });
+      const headers: Record<string, string> = {};
+      if (wallet?.trim()) headers["x-artist-wallet"] = wallet;
+      if (actorRef?.trim()) headers["x-actor-ref"] = actorRef;
+      const res = await fetch(API, { headers });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? "Failed to load profile");
@@ -34,7 +35,7 @@ export function useArtistProfile(wallet: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [wallet]);
+  }, [wallet, actorRef]);
 
   useEffect(() => {
     fetchProfile();
@@ -44,16 +45,23 @@ export function useArtistProfile(wallet: string | undefined) {
     async (payload: {
       artisticName?: string | null;
       country?: string | null;
+      username?: string | null;
+      biography?: string | null;
+      bannerUrl?: string | null;
+      avatarUrl?: string | null;
+      socials?: Record<string, string>;
       creativeRoles?: string[];
       defaultRoyaltySplits?: { role: string; percentage: number }[];
     }) => {
-      if (!wallet?.trim()) throw new Error("Wallet required");
+      if (!wallet?.trim() && !actorRef?.trim()) throw new Error("Actor required");
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (wallet?.trim()) headers["x-artist-wallet"] = wallet;
+      if (actorRef?.trim()) headers["x-actor-ref"] = actorRef;
       const res = await fetch(API, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "x-artist-wallet": wallet,
-        },
+        headers,
         body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
@@ -61,7 +69,7 @@ export function useArtistProfile(wallet: string | undefined) {
       setProfile(data);
       return data as ArtistProfileRecord;
     },
-    [wallet]
+    [wallet, actorRef]
   );
 
   return { profile, loading, error, refresh: fetchProfile, saveProfile };

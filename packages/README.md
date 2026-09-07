@@ -2,6 +2,8 @@
 
 Monorepo packages that evolve the PoC into an Enterprise protocol **without breaking** the Next.js app.
 
+**Related documentation:** [Documentation Hub](../docs/README.md) · [Architecture](../docs/backend-architecture/README.md) · [Data Model](../docs/data-model/README.md) · [Standards](../docs/_system/STANDARDS.md)
+
 | Package | Role |
 |---------|------|
 | `@moc/domain` | Domain (entities, VOs, policies) |

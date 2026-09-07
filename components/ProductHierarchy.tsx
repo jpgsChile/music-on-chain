@@ -4,22 +4,19 @@ import Link from "next/link";
 import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
 
-/** VC demo map — each surface answers one investor question. */
-const SURFACES = [
-  { id: "protocol", href: "/protocol" },
-  { id: "architecture", href: "/protocol#architecture" },
-  { id: "settlement", href: "/protocol#chains" },
-  { id: "sdk", href: "/protocol#console" },
-  { id: "marketplace", href: "/#marketplace" },
-  { id: "artistPortal", href: "/dashboard" },
-  { id: "fanPortal", href: "/fan-dashboard" },
+/** Product pillars — publish, sell, monetize. No protocol jargon. */
+const PILLARS = [
+  { id: "publish", href: "/dashboard/release" },
+  { id: "sell", href: "/#marketplace" },
+  { id: "monetize", href: "/dashboard" },
+  { id: "fans", href: "/fan-dashboard" },
 ] as const;
 
 export default function ProductHierarchy() {
   const locale = useLocale();
   const t = getTranslations(locale);
   const h = t.hierarchy;
-  const surfaces = t.vc.surfaces;
+  const pillars = t.product.pillars;
 
   return (
     <section className="border-b border-border bg-background">
@@ -32,9 +29,9 @@ export default function ProductHierarchy() {
         </h2>
         <p className="mt-2 text-sm text-foreground/60 max-w-xl">{h.subtitle}</p>
 
-        <ol className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {SURFACES.map((item, index) => {
-            const s = surfaces[item.id];
+        <ol className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {PILLARS.map((item, index) => {
+            const s = pillars[item.id];
             return (
               <li key={item.id}>
                 <Link
@@ -44,10 +41,9 @@ export default function ProductHierarchy() {
                   <span className="text-[11px] font-mono text-foreground/40">
                     {String(index + 1).padStart(2, "0")}
                   </span>
-                  <p className="mt-2 text-xs text-accent/90">{s.question}</p>
-                  <p className="mt-1 font-medium text-foreground">{s.answer}</p>
+                  <p className="mt-2 font-medium text-foreground">{s.title}</p>
                   <p className="mt-1 text-sm text-foreground/55 leading-snug">
-                    {s.thesis}
+                    {s.body}
                   </p>
                 </Link>
               </li>

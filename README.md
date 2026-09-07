@@ -6,6 +6,18 @@ El **Marketplace** es la **primera aplicación** construida sobre el protocolo. 
 
 ---
 
+## Documentación (sistema vivo)
+
+La documentación se trata como código. Entrada única:
+
+- **[Documentation Hub](./docs/README.md)** — catálogo  
+- **[Standards](./docs/_system/STANDARDS.md)** — metadatos, anti-duplicación, sin huérfanos  
+- **[Backend Architecture](./docs/backend-architecture/README.md)** · **[Data Model](./docs/data-model/README.md)** · **[Sprints](./docs/sprints/README.md)**
+
+Validación: `npm run docs:validate`
+
+---
+
 ## Jerarquía del producto
 
 1. Music On Chain Protocol  

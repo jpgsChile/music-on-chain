@@ -1,5 +1,17 @@
 # UX Audit — Music On Chain
 
+| Field | Value |
+|-------|-------|
+| **Purpose** | Record UX/copy audit findings for the experience layer; aligns with product language rules. |
+| **Dependencies** | [Documentation Hub](./README.md) · [Standards](./_system/STANDARDS.md) |
+| **Status** | Active |
+| **Owner** | Product / UX |
+| **Last Updated** | 2026-07-23 |
+| **Related Documents** | [Hub](./README.md) · [product-structure](./product-structure.md) · [Standards](./_system/STANDARDS.md) |
+
+<!-- doc-id: ux-audit.md -->
+
+
 **Fecha:** 14 julio 2026  
 **Alcance:** Todas las páginas bajo `app/**/page.tsx`  
 **Restricciones:** Sin rediseño visual. Componentes existentes. Solo experiencia (copy, estados, acciones, navegación, feedback).

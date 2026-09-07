@@ -8,13 +8,116 @@ datasource db {
 
 model ArtistProfile {
   id                    String   @id @default(cuid())
-  wallet                String   @unique
+  actorRef              String?  @unique
+  actor                 Actor?   @relation(fields: [actorRef], references: [actorRef])
+  /// Capability / public lookup. Not Actor identity.
+  wallet                String?  @unique
   artisticName          String
   country               String?
+  username              String?
+  biography             String?
+  bannerUrl             String?
+  avatarUrl             String?
+  socials               Json?
+  verified              Boolean  @default(false)
   creativeRoles         Json?
   defaultRoyaltySplits  Json?
   attestationHash       String?
   attestationChainId    Int?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+}
+
+/// MOC Actor (ADR-011 ActorId). Opaque ActorRef; not a wallet and not a Privy subject.
+model Actor {
+  actorRef      String             @id
+  createdAt     DateTime           @default(now())
+  bindings      IdentityBinding[]
+  wallets       ActorWallet[]
+  artistProfile ArtistProfile?
+  releases      MusicRelease[]
+}
+
+/// Wallet as a capability of an Actor. Not AuthSubject and not ActorRef.
+model ActorWallet {
+  id        String   @id @default(cuid())
+  actorRef  String
+  actor     Actor    @relation(fields: [actorRef], references: [actorRef])
+  address   String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([actorRef])
+}
+
+/// C-BIND/1 Binding persisted by MOC. AuthSubject = issuer + subject.
+model IdentityBinding {
+  id        String    @id @default(cuid())
+  issuer    String
+  subject   String
+  actorRef  String
+  actor     Actor     @relation(fields: [actorRef], references: [actorRef])
+  status    String
+  asOf      DateTime  @default(now())
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([issuer, subject])
+  @@index([actorRef, status])
+}
+
+/// Commercial publication. Not a legal Work; Work is future domain.
+model MusicRelease {
+  id             String          @id @default(cuid())
+  actorRef       String
+  actor          Actor           @relation(fields: [actorRef], references: [actorRef])
+  title          String
+  releaseType    String
+  language       String
+  primaryGenre   String
+  secondaryGenre String          @default("")
+  description    String          @default("")
+  coverUrl       String?
+  status         String          @default("PUBLISHED")
+  soloCreator    Boolean         @default(true)
+  pricingModels  String          @default("[]")
+  priceUsdc      Float           @default(0)
+  network        String          @default("base")
+  currency       String          @default("USDC")
+  tokenId        String?
+  publishedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  tracks         MusicTrack[]
+  participations Participation[]
+
+  @@index([actorRef])
+}
+
+/// Recording that belongs to a Release. Not a Work and not a Release.
+model MusicTrack {
+  id          String       @id @default(cuid())
+  releaseId   String
+  release     MusicRelease @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  title       String
+  version     String       @default("")
+  durationSec Int?
+  explicit    Boolean      @default(false)
+  lyrics      String       @default("")
+  previewUrl  String?
+  position    Int          @default(0)
+}
+
+/// Revenue share on a Release. Not ownership and not a payment.
+model Participation {
+  id                  String       @id @default(cuid())
+  releaseId           String
+  release             MusicRelease @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  displayName         String
+  email               String?
+  actorRef            String?
+  role                String
+  revenueSharePercent Float
+  createdAt           DateTime     @default(now())
+
+  @@index([releaseId])
+  @@index([actorRef])
 }

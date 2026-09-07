@@ -1,5 +1,17 @@
 # Song Upload Wizard – Design
 
+| Field | Value |
+|-------|-------|
+| **Purpose** | Upload / release wizard notes; product flow maps to Catalog + Collaboration commands. |
+| **Dependencies** | [Documentation Hub](./README.md) · [Standards](./_system/STANDARDS.md) |
+| **Status** | Active |
+| **Owner** | Product |
+| **Last Updated** | 2026-07-23 |
+| **Related Documents** | [Hub](./README.md) · [Data Model Commands](./data-model/05-commands.md) · [product-structure](./product-structure.md) |
+
+<!-- doc-id: UPLOAD_WIZARD.md -->
+
+
 Multi-step wizard for uploading a song and minting a Song NFT on Avalanche Fuji testnet.
 
 ## Component structure

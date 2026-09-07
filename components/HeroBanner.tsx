@@ -41,10 +41,10 @@ export default function HeroBanner({ lang = "es" }: HeroBannerProps) {
           </p>
           <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Link
-              href="/protocol"
+              href="/dashboard"
               className="inline-flex items-center justify-center px-6 py-3.5 text-base font-medium rounded-lg bg-accent text-background hover:bg-accent-hover transition-colors"
             >
-              {t.hero.ctaProtocol}
+              {t.hero.ctaArtist}
             </Link>
             <a
               href="#marketplace"

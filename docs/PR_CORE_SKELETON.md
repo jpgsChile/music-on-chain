@@ -1,5 +1,17 @@
 # PR: Core Protocol skeleton + first Domain migration + Protocol Demo
 
+| Field | Value |
+|-------|-------|
+| **Purpose** | PR notes for Core Protocol package skeleton; historical delivery record. |
+| **Dependencies** | [Documentation Hub](./README.md) · [Standards](./_system/STANDARDS.md) |
+| **Status** | Active |
+| **Owner** | Architecture |
+| **Last Updated** | 2026-07-23 |
+| **Related Documents** | [Hub](./README.md) · [packages/README](../packages/README.md) · [Architecture](./backend-architecture/README.md) |
+
+<!-- doc-id: PR_CORE_SKELETON.md -->
+
+
 ## Summary
 
 - Introduce monorepo packages: `@moc/domain`, `@moc/ports`, `@moc/application`, `@moc/adapters`, `@moc/shared`, `packages/contracts` (docs).

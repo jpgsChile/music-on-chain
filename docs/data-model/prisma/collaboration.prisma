@@ -1,0 +1,58 @@
+// BC: Collaboration
+
+enum CreativeRole {
+  ARTIST
+  AUTHOR
+  COMPOSER
+  PRODUCER
+  PERFORMER
+  OTHER
+}
+
+enum AgreementScope {
+  DEFAULT
+  RELEASE
+}
+
+enum ParticipantInviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+  NONE
+}
+
+model SplitAgreement {
+  id              String         @id
+  artistId        String         @map("artist_id") // ID-ref
+  scope           AgreementScope
+  releaseId       String?        @unique @map("release_id") // ID-ref; unique when RELEASE
+  version         Int            @default(1)
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  deletedAt       DateTime?      @map("deleted_at")
+
+  participants SplitParticipant[]
+
+  @@index([artistId, scope])
+  @@map("split_agreements")
+  @@schema("collaboration")
+}
+
+model SplitParticipant {
+  id                 String                 @id
+  agreementId        String                 @map("agreement_id")
+  displayName        String                 @map("display_name")
+  email              String
+  role               CreativeRole
+  shareBps           Int                    @map("share_bps")
+  beneficiaryActorId String?                @map("beneficiary_actor_id")
+  inviteStatus       ParticipantInviteStatus @default(NONE) @map("invite_status")
+  createdAt          DateTime               @default(now()) @map("created_at")
+
+  agreement SplitAgreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+
+  @@index([agreementId])
+  @@map("split_participants")
+  @@schema("collaboration")
+}

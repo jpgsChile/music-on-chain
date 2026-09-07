@@ -1,0 +1,136 @@
+// BC: Royalties (finance ledger)
+
+enum BeneficiaryKind {
+  ARTIST
+  FAN
+  COLLABORATOR
+}
+
+enum LedgerEntryType {
+  CREDIT_SALE
+  RELEASE_PENDING
+  HOLD
+  CAPTURE_WITHDRAW
+  RELEASE_HOLD
+  ADJUSTMENT
+}
+
+enum HoldStatus {
+  OPEN
+  CAPTURED
+  RELEASED
+}
+
+enum TimelinePaymentStatus {
+  PENDING
+  PROCESSING
+  SETTLED
+}
+
+model RoyaltyAccount {
+  id                 String          @id
+  beneficiaryKind    BeneficiaryKind @map("beneficiary_kind")
+  beneficiaryId      String          @map("beneficiary_id")
+  displayName        String          @map("display_name")
+  roleSnapshot       String?         @map("role_snapshot")
+  pendingMinor       BigInt          @default(0) @map("pending_minor")
+  availableMinor     BigInt          @default(0) @map("available_minor")
+  withdrawnLifetimeMinor BigInt       @default(0) @map("withdrawn_lifetime_minor")
+  currency           String          @default("USDC") @db.Char(4)
+  version            Int             @default(1)
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+
+  entries LedgerEntry[]
+  holds   BalanceHold[]
+  lines   AllocationLine[]
+
+  @@unique([beneficiaryKind, beneficiaryId])
+  @@map("royalty_accounts")
+  @@schema("royalties")
+}
+
+model LedgerEntry {
+  id          String          @id
+  accountId   String          @map("account_id")
+  entryType   LedgerEntryType @map("entry_type")
+  amountMinor BigInt          @map("amount_minor") // signed: credit +, debit -
+  currency    String          @default("USDC") @db.Char(4)
+  saleId      String?         @map("sale_id")
+  payoutId    String?         @map("payout_id")
+  holdId      String?         @map("hold_id")
+  description String          @default("")
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  account RoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([accountId, createdAt(sort: Desc)])
+  @@index([saleId])
+  @@map("ledger_entries")
+  @@schema("royalties")
+}
+
+model BalanceHold {
+  id          String     @id
+  accountId   String     @map("account_id")
+  amountMinor BigInt     @map("amount_minor")
+  currency    String     @default("USDC") @db.Char(4)
+  status      HoldStatus @default(OPEN)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  account RoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([accountId, status])
+  @@map("balance_holds")
+  @@schema("royalties")
+}
+
+model RoyaltyAllocation {
+  id              String   @id
+  saleId          String   @unique @map("sale_id") // ID-ref order
+  splitAgreementId String? @map("split_agreement_id")
+  grossMinor      BigInt   @map("gross_minor")
+  netMinor        BigInt   @map("net_minor")
+  currency        String   @default("USDC") @db.Char(4)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  lines AllocationLine[]
+
+  @@map("royalty_allocations")
+  @@schema("royalties")
+}
+
+model AllocationLine {
+  id               String @id
+  allocationId     String @map("allocation_id")
+  royaltyAccountId String @map("royalty_account_id")
+  shareBps         Int    @map("share_bps")
+  amountMinor      BigInt @map("amount_minor")
+  roleSnapshot     String @map("role_snapshot")
+
+  allocation RoyaltyAllocation @relation(fields: [allocationId], references: [id], onDelete: Restrict)
+  account    RoyaltyAccount    @relation(fields: [royaltyAccountId], references: [id], onDelete: Restrict)
+
+  @@index([allocationId])
+  @@map("allocation_lines")
+  @@schema("royalties")
+}
+
+/// Read model for Studio "Incoming payments" timeline
+model RoyaltyPaymentTimeline {
+  id          String                @id
+  sellerId    String                @map("seller_id")
+  saleId      String                @map("sale_id")
+  workTitle   String                @map("work_title")
+  grossMinor  BigInt                @map("gross_minor")
+  currency    String                @default("USDC") @db.Char(4)
+  status      TimelinePaymentStatus @default(PROCESSING)
+  occurredAt  DateTime              @map("occurred_at")
+  payloadJson String                @map("payload_json") // split breakdown JSON
+
+  @@index([sellerId, occurredAt(sort: Desc)])
+  @@unique([saleId])
+  @@map("royalty_payment_timeline")
+  @@schema("royalties")
+}

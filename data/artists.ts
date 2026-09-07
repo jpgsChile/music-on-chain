@@ -47,10 +47,14 @@ export interface ArtistNFT {
 }
 
 export interface ArtistSocials {
+  spotify?: string;
+  appleMusic?: string;
+  youtube?: string;
   tiktok?: string;
   instagram?: string;
+  x?: string;
   facebook?: string;
-  youtube?: string;
+  website?: string;
 }
 
 export interface Artist {

@@ -1,0 +1,125 @@
+// BC: Commerce
+
+enum PricingModel {
+  STREAMING
+  DOWNLOAD
+  LIMITED
+  LICENSE
+}
+
+enum ListingStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum OrderStatus {
+  CREATED
+  AWAITING_PAYMENT
+  PAID
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentAttemptStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+model Listing {
+  id             String        @id
+  sellerId       String        @map("seller_id") // ID-ref artist
+  workKind       String        @map("work_kind") // RELEASE | TRACK
+  workId         String        @map("work_id")
+  titleSnapshot  String        @map("title_snapshot")
+  priceMinor     BigInt        @map("price_minor")
+  currency       String        @default("USDC") @db.Char(4)
+  status         ListingStatus @default(ACTIVE)
+  version        Int           @default(1)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  deletedAt      DateTime?     @map("deleted_at")
+
+  pricingModels ListingPricingModel[]
+
+  @@index([sellerId, status])
+  @@index([workKind, workId])
+  @@map("listings")
+  @@schema("commerce")
+}
+
+model ListingPricingModel {
+  id        String       @id
+  listingId String       @map("listing_id")
+  model     PricingModel
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, model])
+  @@map("listing_pricing_models")
+  @@schema("commerce")
+}
+
+model Order {
+  id              String      @id
+  buyerId         String      @map("buyer_id") // ID-ref fan
+  sellerId        String      @map("seller_id") // ID-ref artist
+  status          OrderStatus @default(CREATED)
+  currency        String      @default("USDC") @db.Char(4)
+  grossMinor      BigInt      @map("gross_minor")
+  platformFeeMinor BigInt     @default(0) @map("platform_fee_minor")
+  netMinor        BigInt      @map("net_minor")
+  idempotencyKey  String      @map("idempotency_key")
+  splitAgreementId String?    @map("split_agreement_id")
+  version         Int         @default(1)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  paidAt          DateTime?   @map("paid_at")
+
+  lines    OrderLine[]
+  payments PaymentAttempt[]
+
+  @@unique([buyerId, idempotencyKey])
+  @@index([sellerId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("orders")
+  @@schema("commerce")
+}
+
+model OrderLine {
+  id              String       @id
+  orderId         String       @map("order_id")
+  listingId       String       @map("listing_id")
+  workKind        String       @map("work_kind")
+  workId          String       @map("work_id")
+  titleSnapshot   String       @map("title_snapshot")
+  pricingModel    PricingModel @map("pricing_model")
+  unitPriceMinor  BigInt       @map("unit_price_minor")
+  quantity        Int          @default(1)
+  currency        String       @default("USDC") @db.Char(4)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@map("order_lines")
+  @@schema("commerce")
+}
+
+model PaymentAttempt {
+  id          String               @id
+  orderId     String               @map("order_id")
+  rail        String               // CIRCLE | …
+  externalRef String?              @unique @map("external_ref")
+  status      PaymentAttemptStatus @default(PENDING)
+  amountMinor BigInt               @map("amount_minor")
+  currency    String               @default("USDC") @db.Char(4)
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([orderId, status])
+  @@map("payment_attempts")
+  @@schema("commerce")
+}

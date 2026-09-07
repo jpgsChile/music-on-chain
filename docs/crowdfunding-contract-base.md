@@ -1,5 +1,17 @@
 # Crowdfunding Smart Contract — Avalanche Fuji Testnet
 
+| Field | Value |
+|-------|-------|
+| **Purpose** | Crowdfunding / Base contract notes; infrastructure concern behind product fundraising UX. |
+| **Dependencies** | [Documentation Hub](./README.md) · [Standards](./_system/STANDARDS.md) |
+| **Status** | Active |
+| **Owner** | Architecture |
+| **Last Updated** | 2026-07-23 |
+| **Related Documents** | [Hub](./README.md) · [ADR-005 Base USDC](./backend-architecture/adr/ADR-005-base-usdc-settlement.md) · [Infrastructure](./backend-architecture/10-infrastructure.md) |
+
+<!-- doc-id: crowdfunding-contract-base.md -->
+
+
 ## Objetivo
 
 Campañas de crowdfunding on-chain en Avalanche Fuji (testnet): el artista define meta y deadline; los fans envían USDC al contrato; el artista retira cuando se cumple la meta o tras el deadline.
