@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Architecture / Domain |
 | **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Hub](./README.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [C-BIND/1](./C-BIND.md) |
+| **Related Documents** | [Hub](./README.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [C-BIND/1](./C-BIND.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) |
 
 <!-- doc-id: MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md -->
 
@@ -36,7 +36,7 @@ Derived from the intent. Includes `beneficiaryActorRef`, optional `destinationCa
 
 `SettlementExecutionAdapter.execute(request) → ExecutionResult`.
 
-Current implementation: `MockSettlementExecutionAdapter` (in-process, no RPC). A future Base adapter can implement the same interface.
+Current implementation: `MockSettlementExecutionAdapter` (in-process, no RPC) and `createBaseSettlementAdapter` (Base / MOCSettlement V1). Both implement `SettlementExecutionAdapter`.
 
 Outcomes: `ACCEPTED` | `SUBMITTED` | `CONFIRMED` | `FAILED` | `UNKNOWN`.
 
@@ -64,15 +64,17 @@ chainId, transactionHash, contractAddress, RPC, gas live only in adapter metadat
 
 ## Future smart contracts
 
+Implemented in [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md):
+
 ```text
-SettlementIntent → OnChainSettlementAdapter → Settlement contract → USDC transfer → Receipt
+SettlementIntent → BaseSettlementAdapter → MOCSettlement V1 → USDC transfer → Receipt
 ```
 
 without changing Actor / Rights / Revenue / Distribution / Entitlement.
 
 ## Limits
 
-No Solidity, Base RPC, wallet signing, ERC-4337, escrow, splits, tokenization, IPFS/Arweave, or indexing in this stage.
+No ERC-4337, escrow, splits, tokenization, IPFS/Arweave, or production Base deploy in the execution-boundary stage. The Base adapter and MOCSettlement V1 live in a later document.
 
 ## Tests
 

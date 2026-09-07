@@ -54,6 +54,13 @@ export type SettlementReceipt = {
   metadata?: Record<string, unknown>;
 };
 
+export type SettlementReconcileInput = {
+  request: ExecutionRequest;
+  previous: SettlementReceipt;
+};
+
 export type SettlementExecutionAdapter = {
-  execute(request: ExecutionRequest): ExecutionResult;
+  execute(request: ExecutionRequest): ExecutionResult | Promise<ExecutionResult>;
+  /** Optional. Used when a previous attempt is SUBMITTED or UNKNOWN. Mock adapters omit this. */
+  reconcile?(input: SettlementReconcileInput): ExecutionResult | Promise<ExecutionResult>;
 };

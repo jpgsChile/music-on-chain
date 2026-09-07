@@ -25,6 +25,7 @@ export function getExecutionStore(): ExecutionStore {
 
 export function getSettlementAdapter(): SettlementExecutionAdapter {
   if (!globalStore.mocSettlementAdapter) {
+    // Studio default: in-process mock. Base adapter is constructed explicitly by the execution host.
     globalStore.mocSettlementAdapter = createMockSettlementExecutionAdapter();
   }
   return globalStore.mocSettlementAdapter;

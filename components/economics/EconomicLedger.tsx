@@ -20,6 +20,8 @@ type LedgerCopy = {
   execConfirmed: string;
   execFailed: string;
   execUnknown: string;
+  execReference: string;
+  execIntent: string;
 };
 
 type EntitlementWire = {
@@ -39,6 +41,11 @@ type EntitlementWire = {
 function formatAmount(amount: { units: string; scale: number; asset: string }) {
   const value = Number(amount.units) / 10 ** amount.scale;
   return `${value.toFixed(2)} ${amount.asset}`;
+}
+
+function shortenRef(value: string): string {
+  if (value.length <= 18) return value;
+  return `${value.slice(0, 10)}…${value.slice(-6)}`;
 }
 
 function executionLabel(copy: LedgerCopy, row: EntitlementWire): string {
@@ -151,6 +158,16 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
             >
               <span>
                 {formatAmount(row.amount)} · {executionLabel(copy, row)}
+                {row.execution?.intentRef ? (
+                  <span className="mt-1 block text-xs text-foreground/45">
+                    {copy.execIntent} {shortenRef(row.execution.intentRef)}
+                  </span>
+                ) : null}
+                {row.execution?.receipt?.externalRef ? (
+                  <span className="block text-xs text-foreground/45">
+                    {copy.execReference} {shortenRef(row.execution.receipt.externalRef)}
+                  </span>
+                ) : null}
               </span>
               {row.status === "accrued" ? (
                 <button

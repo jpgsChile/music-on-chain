@@ -28,6 +28,14 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# Foundry / contract artifacts
+/contracts/out/
+/contracts/cache/
+/broadcast/
+/cache/
+
+# vercel
+
 # vercel
 .vercel
 

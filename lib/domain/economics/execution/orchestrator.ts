@@ -117,7 +117,7 @@ export function applyExecutionReceipt(input: {
   };
 }
 
-export function executeSettlementIntent(input: {
+export async function executeSettlementIntent(input: {
   economics: EconomicsStore;
   execution: ExecutionStore;
   adapter: SettlementExecutionAdapter;
@@ -129,7 +129,7 @@ export function executeSettlementIntent(input: {
   requestRef?: string;
   settlementId?: string;
   occurredAt?: string;
-}): ExecuteSettlementResult {
+}): Promise<ExecuteSettlementResult> {
   const intent = input.execution.getIntent(input.intentRef);
   if (!intent) throw new Error("INTENT_NOT_FOUND");
   if (intent.actorRef !== input.actorRef) throw new Error("NOT_BENEFICIARY");
@@ -151,7 +151,36 @@ export function executeSettlementIntent(input: {
     };
   }
 
-  if (lifecycle === "submitted" && latestReceipt && latestRequest) {
+  if ((lifecycle === "submitted" || lifecycle === "unknown") && latestReceipt && latestRequest) {
+    if (typeof input.adapter.reconcile === "function") {
+      const result = await Promise.resolve(
+        input.adapter.reconcile({ request: latestRequest, previous: latestReceipt })
+      );
+      if (result.intentRef !== intent.intentRef || result.requestRef !== latestRequest.requestRef) {
+        throw new Error("ADAPTER_RESULT_MISMATCH");
+      }
+      const receipt: SettlementReceipt = {
+        receiptRef: latestReceipt.receiptRef,
+        intentRef: intent.intentRef,
+        requestRef: latestRequest.requestRef,
+        executionMode: latestRequest.executionMode,
+        status: result.status,
+        externalRef: result.externalRef ?? latestReceipt.externalRef,
+        occurredAt: result.occurredAt,
+        metadata: { ...latestReceipt.metadata, ...result.metadata },
+      };
+      return applyExecutionReceipt({
+        economics: input.economics,
+        execution: input.execution,
+        intent,
+        request: latestRequest,
+        entitlement,
+        receipt,
+        previousLifecycle: lifecycle,
+        settlementId: input.settlementId,
+        occurredAt: input.occurredAt,
+      });
+    }
     return {
       intent,
       request: latestRequest,
@@ -170,7 +199,7 @@ export function executeSettlementIntent(input: {
   });
   input.execution.putRequest(request);
 
-  const result = input.adapter.execute(request);
+  const result = await Promise.resolve(input.adapter.execute(request));
   if (result.intentRef !== intent.intentRef || result.requestRef !== request.requestRef) {
     throw new Error("ADAPTER_RESULT_MISMATCH");
   }

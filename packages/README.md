@@ -11,7 +11,7 @@ Monorepo packages that evolve the PoC into an Enterprise protocol **without brea
 | `@moc/application` | Use cases |
 | `@moc/adapters` | Driven adapters (Base first) |
 | `@moc/shared` | Shared non-domain helpers |
-| `contracts/` | Future Solidity |
+| `contracts/` | MOCSettlement V1 (see [Base settlement](../docs/MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md)) |
 
 ## First migration
 

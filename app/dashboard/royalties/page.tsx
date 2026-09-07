@@ -31,6 +31,8 @@ export default function StudioRoyaltiesPage() {
           execConfirmed: t.execConfirmed,
           execFailed: t.execFailed,
           execUnknown: t.execUnknown,
+          execReference: t.execReference,
+          execIntent: t.execIntent,
         }}
       />
       <RoyaltyEngine />

@@ -6,8 +6,8 @@
 | **Dependencies** | [ADR Index](./README.md) · [Architecture README](../README.md) · [Standards](../../_system/STANDARDS.md) |
 | **Status** | Active |
 | **Owner** | Architecture |
-| **Last Updated** | 2026-07-23 |
-| **Related Documents** | [ADR Index](./README.md) · [Architecture](../README.md) · [Data Model](../../data-model/README.md) · [Sprint 0](../../sprints/sprint-0.md) |
+| **Last Updated** | 2026-09-07 |
+| **Related Documents** | [ADR Index](./README.md) · [Architecture](../README.md) · [Data Model](../../data-model/README.md) · [Sprint 0](../../sprints/sprint-0.md) · [Base settlement contract](../../MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) |
 
 <!-- doc-id: backend-architecture/adr/ADR-005-base-usdc-settlement.md -->
 

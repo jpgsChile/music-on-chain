@@ -1,18 +1,8 @@
-# Smart Contracts (skeleton)
+# Smart contracts
 
-Solidity interfaces / Foundry project will live here.
+Canonical Solidity for MOC settlement lives at the repo root:
 
-## Planned modules
+- [`contracts/src/MOCSettlement.sol`](../../contracts/src/MOCSettlement.sol)
+- [`docs/MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md`](../../docs/MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md)
 
-- `MoCRegistry`
-- `MusicMarketplace`
-- `RoyaltyEngine`
-- `PlatformTreasury`
-- `SongNFT` / `TicketNFT`
-- `CampaignFactory`
-
-No bytecode in this PR — documentation only.
-
-## Target first rail
-
-**Base** (Sepolia → mainnet), same Core Protocol via BAL adapters.
+This package folder remains a pointer so Core Protocol docs do not fork a second settlement contract.

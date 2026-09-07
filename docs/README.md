@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Documentation Steward |
 | **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
+| **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
 
 ---
 
@@ -48,6 +48,8 @@
 | [MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) | Domain reconstruction: Actor, Work, Participation, Rights semantics |
 | [MOC-ECONOMIC-RIGHTS-FOUNDATION.md](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) | Rights, Revenue, Distribution, Entitlement, Settlement, Fees |
 | [MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) | Domain vs execution: Intent, Adapter, Receipt, idempotency |
+| [MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) | MOCSettlement V1, Base adapter, USDC, replay, receipts |
+| [MOC-BASE-ONCHAIN-SETTLEMENT-THREAT-MODEL.md](./MOC-BASE-ONCHAIN-SETTLEMENT-THREAT-MODEL.md) | V1 settlement threats and mitigations |
 | [UPLOAD_WIZARD.md](./UPLOAD_WIZARD.md) | Upload / release wizard notes |
 
 ### Domain features (PoC / evolving)

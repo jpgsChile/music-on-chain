@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = executeSettlementIntent({
+    const result = await executeSettlementIntent({
       economics: getEconomicsStore(),
       execution: getExecutionStore(),
       adapter: getSettlementAdapter(),

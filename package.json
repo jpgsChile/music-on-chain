@@ -16,6 +16,7 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:contracts": "forge test",
     "docs:validate": "node scripts/docs-validate.mjs"
   },
   "dependencies": {
@@ -44,7 +45,9 @@
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
+    "ganache": "^7.9.2",
     "postcss": "^8",
+    "solc": "^0.8.24",
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vitest": "^3.2.4"

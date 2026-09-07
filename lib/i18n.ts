@@ -760,6 +760,8 @@ export const translations = {
         execConfirmed: "Confirmado",
         execFailed: "Fallido",
         execUnknown: "Desconocido",
+        execReference: "Referencia de ejecución",
+        execIntent: "Intención",
       },
       sales: {
         eyebrow: "Ventas",
@@ -2104,6 +2106,8 @@ export const translations = {
         execConfirmed: "Confirmed",
         execFailed: "Failed",
         execUnknown: "Unknown",
+        execReference: "Execution reference",
+        execIntent: "Intent",
       },
       sales: {
         eyebrow: "Sales",

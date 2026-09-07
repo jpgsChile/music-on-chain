@@ -7,6 +7,7 @@ export type {
   SettlementExecutionAdapter,
   SettlementIntent,
   SettlementReceipt,
+  SettlementReconcileInput,
 } from "./types";
 
 export { canTransition, assertTransition, outcomeToLifecycle } from "./transitions";
@@ -28,3 +29,7 @@ export {
   openSettlementIntent,
   rejectForeignReceipt,
 } from "./orchestrator";
+export { createBaseSettlementAdapter } from "./base/adapter";
+export type { BaseSettlementAdapter } from "./base/adapter";
+export { intentRefToBytes32 } from "./base/intentRef";
+export { MOC_SETTLEMENT_VERSION, MOC_SETTLEMENT_VERSION_NUMBER } from "./base/abi";

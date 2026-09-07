@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       actorRef,
       occurredAt: new Date().toISOString(),
     });
-    const result = executeSettlementIntent({
+    const result = await executeSettlementIntent({
       economics,
       execution,
       adapter: getSettlementAdapter(),
