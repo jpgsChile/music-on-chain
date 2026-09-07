@@ -4,3 +4,9 @@ export type { BaseSettlementAdapter } from "./adapter";
 export { intentRefToBytes32 } from "./intentRef";
 export { readBaseSettlementEnv, createBaseSettlementAdapterWithSigner } from "./env";
 export type { BaseSettlementConfig, BaseChainPort } from "./types";
+export {
+  BASE_SEPOLIA_CHAIN_ID,
+  BASE_MAINNET_CHAIN_ID,
+  assertBaseSepoliaChainId,
+} from "./sepoliaGuard";
+export { hasSepoliaLiveCredentials, readSepoliaLiveCredentials } from "./sepoliaEnv";

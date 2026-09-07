@@ -5,6 +5,8 @@ import { createBaseSettlementAdapter, type BaseSettlementAdapter } from "./adapt
 import { createViemBaseChainPort } from "./viemPort";
 import type { BaseSettlementConfig } from "./types";
 
+export type HostEnv = Record<string, string | undefined>;
+
 export type BaseRuntimeEnv = {
   chainId: number;
   rpcUrl: string;
@@ -21,25 +23,32 @@ export type BaseRuntimeEnv = {
  * Never reads or returns a private key.
  */
 export function readBaseSettlementEnv(
-  env: NodeJS.ProcessEnv = process.env
+  env: HostEnv = process.env
 ): BaseRuntimeEnv | null {
   if ((env.MOC_SETTLEMENT_ADAPTER ?? "mock").trim() !== "base") return null;
-  const chainId = Number(env.MOC_SETTLEMENT_CHAIN_ID ?? "");
-  const rpcUrl = env.MOC_SETTLEMENT_RPC_URL?.trim() ?? "";
-  const contractAddress = env.MOC_SETTLEMENT_CONTRACT_ADDRESS?.trim() ?? "";
-  const usdcAddress = env.MOC_SETTLEMENT_USDC_ADDRESS?.trim() ?? "";
+  const chainId = Number(env.MOC_SETTLEMENT_CHAIN_ID ?? "84532");
+  const rpcUrl = (env.BASE_SEPOLIA_RPC_URL ?? env.MOC_SETTLEMENT_RPC_URL)?.trim() ?? "";
+  const contractAddress =
+    (env.MOC_SETTLEMENT_ADDRESS ?? env.MOC_SETTLEMENT_CONTRACT_ADDRESS)?.trim() ?? "";
+  const assetField = env.MOC_SETTLEMENT_ASSET?.trim() ?? "";
+  const usdcAddress = isAddress(assetField)
+    ? assetField
+    : (env.MOC_SETTLEMENT_USDC_ADDRESS?.trim() ?? "");
   const executorAddress = env.MOC_SETTLEMENT_EXECUTOR_ADDRESS?.trim() ?? "";
   if (!Number.isInteger(chainId) || chainId <= 0) return null;
   if (!rpcUrl || !isAddress(contractAddress) || !isAddress(usdcAddress) || !isAddress(executorAddress)) {
     return null;
   }
+  const assetSymbol = isAddress(assetField)
+    ? env.MOC_SETTLEMENT_ASSET_SYMBOL?.trim() || "USDC"
+    : assetField || "USDC";
   return {
     chainId,
     rpcUrl,
     contractAddress,
     usdcAddress,
     executorAddress,
-    assetSymbol: env.MOC_SETTLEMENT_ASSET?.trim() || "USDC",
+    assetSymbol,
     tokenDecimals: Number(env.MOC_SETTLEMENT_TOKEN_DECIMALS ?? "6"),
     contractVersion: env.MOC_SETTLEMENT_CONTRACT_VERSION?.trim() || MOC_SETTLEMENT_VERSION,
   };
@@ -59,7 +68,7 @@ export function toBaseSettlementConfig(env: BaseRuntimeEnv): BaseSettlementConfi
   };
 }
 
-function envRpcTimeout(env: NodeJS.ProcessEnv): number {
+function envRpcTimeout(env: HostEnv): number {
   const n = Number(env.MOC_SETTLEMENT_RECEIPT_TIMEOUT_MS ?? "20000");
   return Number.isFinite(n) && n > 0 ? n : 20_000;
 }
@@ -91,7 +100,7 @@ export function createBaseSettlementAdapterWithSigner(input: {
       walletClient,
       contractAddress: input.env.contractAddress,
       usdcAddress: input.env.usdcAddress,
-      account: account.address,
+      account,
     }),
   });
 }

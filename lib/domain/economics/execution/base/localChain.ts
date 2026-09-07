@@ -157,7 +157,7 @@ export async function startLocalSettlementChain(options?: {
       walletClient,
       contractAddress,
       usdcAddress,
-      account: executor.address,
+      account: executor,
     }),
     executor,
     beneficiary: beneficiaryAccount.address,

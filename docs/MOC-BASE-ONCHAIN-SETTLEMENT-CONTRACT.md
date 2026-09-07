@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Architecture / Settlement |
 | **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Hub](./README.md) · [Execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Threat model](./MOC-BASE-ONCHAIN-SETTLEMENT-THREAT-MODEL.md) · [Economic foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [ADR-005](./backend-architecture/adr/ADR-005-base-usdc-settlement.md) · [C-BIND/1](./C-BIND.md) |
+| **Related Documents** | [Hub](./README.md) · [Execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Threat model](./MOC-BASE-ONCHAIN-SETTLEMENT-THREAT-MODEL.md) · [Economic foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [ADR-005](./backend-architecture/adr/ADR-005-base-usdc-settlement.md) · [C-BIND/1](./C-BIND.md) · [Sepolia deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md) · [Sepolia runbook](./MOC-BASE-SEPOLIA-RUNBOOK.md) |
 
 <!-- doc-id: MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md -->
 

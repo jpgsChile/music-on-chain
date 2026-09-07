@@ -1,5 +1,6 @@
 import {
   decodeEventLog,
+  type Account,
   type Address,
   type Hash,
   type Hex,
@@ -14,7 +15,7 @@ export function createViemBaseChainPort(input: {
   walletClient: WalletClient;
   contractAddress: Address;
   usdcAddress: Address;
-  account: Address;
+  account: Account | Address;
 }): BaseChainPort {
   const { publicClient, walletClient, contractAddress, usdcAddress, account } = input;
 
@@ -68,13 +69,16 @@ export function createViemBaseChainPort(input: {
       });
     },
     async sendSettle(args) {
+      const signer = walletClient.account ?? account;
+      // Explicit gas avoids under-estimated eth_estimateGas (Ganache and some RPCs).
       const hash = await walletClient.writeContract({
         address: contractAddress,
         abi: mocSettlementAbi,
         functionName: "settle",
         args: [args.intentRef, args.beneficiary, args.amount, args.token],
-        account,
+        account: signer,
         chain: walletClient.chain,
+        gas: 500_000n,
       });
       return { hash };
     },
@@ -158,12 +162,14 @@ function toOnchainReceipt(receipt: {
   status: "success" | "reverted";
   transactionHash: Hash;
   blockNumber: bigint;
+  to?: Address | null;
   logs: Array<{ address: Address; data: Hex; topics: Hex[]; logIndex: number | null }>;
 }): OnchainTxReceipt {
   return {
     status: receipt.status,
     transactionHash: receipt.transactionHash,
     blockNumber: receipt.blockNumber,
+    to: receipt.to ?? null,
     logs: receipt.logs.map((log) => ({
       address: log.address,
       data: log.data,

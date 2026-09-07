@@ -55,7 +55,7 @@ describe("MOCSettlement V1 contract (bytecode)", () => {
       token: local.usdcAddress,
     });
     const mined = await local.publicClient.waitForTransactionReceipt({ hash: sent.hash });
-    expect(mined.status, `settle revert executor=${await local.chain.getExecutor()}`).toBe("success");
+    expect(mined.status).toBe("success");
     expect(await local.chain.isExecuted(intent)).toBe(true);
     expect(await local.chain.getBalance(local.beneficiary)).toBe(before + AMOUNT);
     const event = await local.chain.findSettlementEvent(intent);

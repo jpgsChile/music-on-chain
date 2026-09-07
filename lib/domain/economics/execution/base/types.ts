@@ -34,6 +34,7 @@ export type OnchainTxReceipt = {
   status: "success" | "reverted";
   transactionHash: Hash;
   blockNumber: bigint;
+  to?: Address | null;
   logs: Array<{
     address: Address;
     data: Hex;
@@ -75,6 +76,7 @@ export type BaseChainPort = {
 
 export type SettlementLogEvent = {
   intentRef: string;
+  requestRef?: string;
   attempt?: number;
   chainId?: number;
   contractAddress?: string;

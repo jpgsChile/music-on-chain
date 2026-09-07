@@ -17,6 +17,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:contracts": "forge test",
+    "test:sepolia": "vitest run lib/domain/economics/execution/base/sepolia.live.test.ts",
     "docs:validate": "node scripts/docs-validate.mjs"
   },
   "dependencies": {

@@ -161,6 +161,13 @@ export function createBaseSettlementAdapter(input: {
       if (existing?.status === "CONFIRMED") return existing;
       return fail(prepared.request, "TRANSFER_FAILED", undefined, hash);
     }
+    if (receipt.to && receipt.to.toLowerCase() !== config.contractAddress.toLowerCase()) {
+      return fail(prepared.request, "WRONG_CONTRACT", "RECEIPT_TO_MISMATCH", hash);
+    }
+    const liveChain = await chain.getChainId();
+    if (liveChain !== config.chainId) {
+      return fail(prepared.request, "WRONG_CHAIN", undefined, hash);
+    }
     const event = chain.readSettlementEvent(receipt);
     if (!event) return fail(prepared.request, "MISSING_EVENT", undefined, hash);
     const mismatch = eventMismatch(prepared, event);
@@ -280,12 +287,13 @@ export function createBaseSettlementAdapter(input: {
   }
 
   function log(
-    request: Pick<ExecutionRequest, "intentRef">,
+    request: Pick<ExecutionRequest, "intentRef" | "requestRef">,
     extra: { status?: string; transactionHash?: string; errorCategory?: SettlementErrorCategory }
   ) {
     logSettlementExecution(
       {
         intentRef: request.intentRef,
+        requestRef: request.requestRef,
         chainId: config.chainId,
         contractAddress: config.contractAddress,
         ...extra,

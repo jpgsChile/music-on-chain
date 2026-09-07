@@ -91,7 +91,7 @@ function port(overrides: Partial<BaseChainPort> = {}): BaseChainPort {
       return { hash: TX };
     },
     async waitForReceipt() {
-      return { status: "success", transactionHash: TX, blockNumber: 1n, logs: [] };
+      return { status: "success" as const, transactionHash: TX, blockNumber: 1n, to: CONTRACT, logs: [] };
     },
     async findSettlementEvent() {
       return ev;
@@ -115,6 +115,64 @@ describe("Base settlement adapter", () => {
     expect(result.metadata?.transactionHash).toBe(TX);
     expect(result.intentRef).toBe("intent-1");
     expect(result.intentRef).not.toBe(TX);
+    expect(result.requestRef).toBe("req-1");
+  });
+
+  it("preserves requestRef independently of the transaction hash", async () => {
+    const adapter = createBaseSettlementAdapter({ config, chain: port(), logger: silent });
+    const req = request();
+    const result = await adapter.execute(req);
+    expect(result.requestRef).toBe(req.requestRef);
+    expect(result.requestRef).not.toBe(TX);
+    expect(result.requestRef).not.toBe(req.intentRef);
+  });
+
+  it("rejects a receipt whose `to` is not the settlement contract", async () => {
+    const adapter = createBaseSettlementAdapter({
+      config,
+      logger: silent,
+      chain: port({
+        async waitForReceipt() {
+          return {
+            status: "success",
+            transactionHash: TX,
+            blockNumber: 1n,
+            to: EXECUTOR,
+            logs: [],
+          };
+        },
+      }),
+    });
+    const result = await adapter.execute(request());
+    expect(result.status).toBe("FAILED");
+    expect(result.metadata?.errorCategory).toBe("WRONG_CONTRACT");
+  });
+
+  it("SUBMITTED then reconcile confirms without a new intentRef", async () => {
+    const adapter = createBaseSettlementAdapter({
+      config: { ...config, waitForConfirmation: false },
+      chain: port(),
+      logger: silent,
+    });
+    const req = request();
+    const submitted = await adapter.execute(req);
+    expect(submitted.status).toBe("SUBMITTED");
+    expect(submitted.requestRef).toBe(req.requestRef);
+    const confirmed = await adapter.reconcile({
+      request: req,
+      previous: {
+        receiptRef: "rcpt-1",
+        intentRef: req.intentRef,
+        requestRef: req.requestRef,
+        executionMode: "on-chain",
+        status: "SUBMITTED",
+        externalRef: submitted.externalRef,
+        occurredAt: TIME,
+      },
+    });
+    expect(confirmed.status).toBe("CONFIRMED");
+    expect(confirmed.intentRef).toBe(req.intentRef);
+    expect(confirmed.requestRef).toBe(req.requestRef);
   });
 
   it("retry of an already executed intent confirms without a second send", async () => {
