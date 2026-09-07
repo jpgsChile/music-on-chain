@@ -1,5 +1,5 @@
 /**
- * Helpers de ownership (localStorage).
+ * Mock fan-purchase cache (localStorage). Not domain rights, not Actor identity.
  * Key: music_on_chain_ownership
  */
 

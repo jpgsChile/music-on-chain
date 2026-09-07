@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Documentation Steward |
 | **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
+| **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
 
 ---
 
@@ -45,6 +45,7 @@
 | [vc-demo.md](./vc-demo.md) | Demo narrative for stakeholders |
 | [ARTIST_PROFILE.md](./ARTIST_PROFILE.md) | Artist profile / channel (PoC + evolution) |
 | [C-BIND.md](./C-BIND.md) | C-BIND/1 1.0.0 (CDR-008) consumption: Privy auth vs binding vs Actor |
+| [MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) | Domain reconstruction: Actor, Work, Participation, Rights semantics |
 | [UPLOAD_WIZARD.md](./UPLOAD_WIZARD.md) | Upload / release wizard notes |
 
 ### Domain features (PoC / evolving)

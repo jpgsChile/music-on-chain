@@ -53,7 +53,7 @@ export function useArtistProfile(wallet: string | undefined, actorRef?: string) 
       creativeRoles?: string[];
       defaultRoyaltySplits?: { role: string; percentage: number }[];
     }) => {
-      if (!wallet?.trim() && !actorRef?.trim()) throw new Error("Actor required");
+      if (!actorRef?.trim()) throw new Error("Actor required");
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };

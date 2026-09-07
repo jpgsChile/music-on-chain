@@ -1,3 +1,8 @@
+/**
+ * Mock UX cache (localStorage). Not domain authority.
+ * Published Work/Release/Participation truth is the Actor-centric API.
+ * `wallet` here is a Mock catalog label, not identity.
+ */
 import type {
   PricingModel,
   ReleaseCollaborator,
@@ -72,6 +77,12 @@ export function savePublishedRelease(
 export function getReleasesByWallet(wallet: string): PublishedRelease[] {
   const w = wallet.trim().toLowerCase();
   return loadAll().filter((r) => r.wallet === w);
+}
+
+export function getReleasesByActor(actorRef: string): PublishedRelease[] {
+  const ref = actorRef.trim();
+  if (!ref) return [];
+  return loadAll().filter((r) => r.actorRef === ref);
 }
 
 export function getReleaseById(id: string): PublishedRelease | null {

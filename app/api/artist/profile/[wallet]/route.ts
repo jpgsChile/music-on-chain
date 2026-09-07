@@ -3,8 +3,8 @@ import { getProfileByWallet } from "@/lib/artist-profile/repository";
 
 /**
  * GET /api/artist/profile/[wallet]
- * Public read: returns the artist profile for the given wallet.
- * Used by artist pages and fans to display profile (name, country, roles).
+ * Public lookup by wallet capability. Not Actor identity.
+ * Identity remains ActorRef; this route is a fan-facing index, not the domain key.
  */
 export async function GET(
   request: NextRequest,

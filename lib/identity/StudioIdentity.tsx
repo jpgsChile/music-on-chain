@@ -3,7 +3,9 @@
 import { createContext, useContext } from "react";
 
 export type StudioIdentity = {
+  /** Domain identity after C-BIND Bind. */
   actorRef: string;
+  /** Optional wallet capability. Not identity. */
   walletAddress: string | null;
 };
 

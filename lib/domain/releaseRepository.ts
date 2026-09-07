@@ -51,38 +51,48 @@ export async function persistMusicRelease(input: PersistReleaseInput) {
         revenueSharePercent: Number(c.percentage) || 0,
       }));
 
-  return prisma.musicRelease.create({
-    data: {
-      actorRef: input.actorRef,
-      title: input.title,
-      releaseType: input.releaseType,
-      language: input.language,
-      primaryGenre: input.primaryGenre,
-      secondaryGenre: input.secondaryGenre,
-      description: input.description,
-      coverUrl: input.coverUrl,
-      status: "PUBLISHED",
-      soloCreator: input.soloCreator,
-      pricingModels: JSON.stringify(input.pricingModels),
-      priceUsdc: input.priceUsdc,
-      tokenId: input.tokenId,
-      publishedAt: new Date(),
-      tracks: {
-        create: input.tracks.map((track, position) => ({
-          title: track.title,
-          version: track.version,
-          durationSec: track.durationSec,
-          explicit: track.explicit,
-          lyrics: track.lyrics,
-          previewUrl: track.previewUrl,
-          position,
-        })),
+  return prisma.$transaction(async (tx) => {
+    const work = await tx.musicalWork.create({
+      data: {
+        actorRef: input.actorRef,
+        title: input.title,
       },
-      participations: {
-        create: participations,
+    });
+
+    return tx.musicRelease.create({
+      data: {
+        workId: work.id,
+        actorRef: input.actorRef,
+        title: input.title,
+        releaseType: input.releaseType,
+        language: input.language,
+        primaryGenre: input.primaryGenre,
+        secondaryGenre: input.secondaryGenre,
+        description: input.description,
+        coverUrl: input.coverUrl,
+        status: "PUBLISHED",
+        soloCreator: input.soloCreator,
+        pricingModels: JSON.stringify(input.pricingModels),
+        priceUsdc: input.priceUsdc,
+        tokenId: input.tokenId,
+        publishedAt: new Date(),
+        tracks: {
+          create: input.tracks.map((track, position) => ({
+            title: track.title,
+            version: track.version,
+            durationSec: track.durationSec,
+            explicit: track.explicit,
+            lyrics: track.lyrics,
+            previewUrl: track.previewUrl,
+            position,
+          })),
+        },
+        participations: {
+          create: participations,
+        },
       },
-    },
-    include: { tracks: true, participations: true },
+      include: { tracks: true, participations: true, work: true },
+    });
   });
 }
 
@@ -90,7 +100,7 @@ export async function listReleasesByActor(actorRef: string) {
   return prisma.musicRelease.findMany({
     where: { actorRef },
     orderBy: { createdAt: "desc" },
-    include: { tracks: { orderBy: { position: "asc" } }, participations: true },
+    include: { tracks: { orderBy: { position: "asc" } }, participations: true, work: true },
   });
 }
 

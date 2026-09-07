@@ -1,3 +1,7 @@
+// Persistence mapping for the current SQLite runtime.
+// Domain specification lives in lib/domain — not in this file.
+// SQLite may be replaced by PostgreSQL without changing Actor / Work / Participation semantics.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -65,9 +69,22 @@ model IdentityBinding {
   @@index([actorRef, status])
 }
 
-/// Commercial publication. Not a legal Work; Work is future domain.
+/// Musical work. Distinct from Release (publication) and Track (recording).
+model MusicalWork {
+  id        String         @id @default(cuid())
+  actorRef  String
+  title     String
+  createdAt DateTime       @default(now())
+  releases  MusicRelease[]
+
+  @@index([actorRef])
+}
+
+/// Commercial publication that materializes a Work. Not the Work itself.
 model MusicRelease {
   id             String          @id @default(cuid())
+  workId         String
+  work           MusicalWork     @relation(fields: [workId], references: [id])
   actorRef       String
   actor          Actor           @relation(fields: [actorRef], references: [actorRef])
   title          String
@@ -90,9 +107,10 @@ model MusicRelease {
   participations Participation[]
 
   @@index([actorRef])
+  @@index([workId])
 }
 
-/// Recording that belongs to a Release. Not a Work and not a Release.
+/// Recording that belongs to a Release (and therefore to a Work).
 model MusicTrack {
   id          String       @id @default(cuid())
   releaseId   String
@@ -106,7 +124,7 @@ model MusicTrack {
   position    Int          @default(0)
 }
 
-/// Revenue share on a Release. Not ownership and not a payment.
+/// Participation in a Release/Work. Identity is actorRef (or pending invite). Not a wallet.
 model Participation {
   id                  String       @id @default(cuid())
   releaseId           String

@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Product / Data |
 | **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Data Model Identity](./data-model/01-aggregates.md) · [Architecture Identity](./backend-architecture/02-bounded-contexts.md) |
+| **Related Documents** | [Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Data Model Identity](./data-model/01-aggregates.md) · [Architecture Identity](./backend-architecture/02-bounded-contexts.md) |
 
 <!-- doc-id: ARTIST_PROFILE.md -->
 

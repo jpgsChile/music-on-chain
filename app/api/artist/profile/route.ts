@@ -49,9 +49,9 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const actorRef = request.headers.get(ACTOR_HEADER)?.trim() || null;
   const wallet = request.headers.get(WALLET_HEADER)?.trim() || null;
-  if (!actorRef && !wallet) {
+  if (!actorRef) {
     return NextResponse.json(
-      { error: "Missing actor or wallet" },
+      { error: "Missing actor" },
       { status: 400 }
     );
   }

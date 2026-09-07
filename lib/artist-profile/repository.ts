@@ -138,7 +138,7 @@ export async function upsertProfile(
 ): Promise<ArtistProfileRecord> {
   const w = wallet ? normalizeWallet(wallet) : "";
   const ref = actorRef?.trim() || null;
-  if (!w && !ref) throw new Error("Actor or wallet is required");
+  if (!ref) throw new Error("Actor is required");
 
   const existing =
     (ref ? await prisma.artistProfile.findUnique({ where: { actorRef: ref } }) : null) ??
