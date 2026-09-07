@@ -1,3 +1,9 @@
+/**
+ * Mock marketplace breakdown (local UI). Not the MOC economic domain.
+ * Domain fees live in lib/domain/economics (versioned ProtocolFeePolicy).
+ * Splits here still key off wallet for the Mock catalog only.
+ */
+
 import { Track } from "@/types";
 
 const PLATFORM_FEE_PERCENTAGE = 2; // 2%

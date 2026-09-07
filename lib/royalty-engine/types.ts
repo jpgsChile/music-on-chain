@@ -1,6 +1,7 @@
 /**
- * Royalty Engine – finance model (not blockchain UX).
- * Settlement settles in USDC on Base under the hood; UI speaks money.
+ * Royalty Engine – Mock / reference UI. Not domain authority.
+ * Economic truth: Actor → Rights → Revenue → Distribution → Entitlement → Settlement
+ * in lib/domain/economics.
  */
 
 export type RoyaltyRole =

@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Architecture / Domain |
 | **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Artist Profile](./ARTIST_PROFILE.md) · [Product structure](./product-structure.md) |
+| **Related Documents** | [Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Artist Profile](./ARTIST_PROFILE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Product structure](./product-structure.md) |
 
 <!-- doc-id: MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md -->
 
@@ -67,3 +67,4 @@ See `lib/domain/web3-native.test.ts` (tests 1–15), `lib/domain/core.test.ts`, 
 - MOC — Economic & Rights Foundation (entitlements, distribution, fees, settlement).
 - On-chain execution / evidence as infrastructure, not as a new identity system.
 - Optional later: Postgres persistence mapping without changing these semantics.
+- Economic & Rights Foundation: see [MOC-ECONOMIC-RIGHTS-FOUNDATION.md](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md).

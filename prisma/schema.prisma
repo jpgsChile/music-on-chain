@@ -139,3 +139,85 @@ model Participation {
   @@index([releaseId])
   @@index([actorRef])
 }
+
+/// Persistence mapping for economics. Domain specification: lib/domain/economics
+model EconomicRevenue {
+  id                  String                 @id
+  originKind          String
+  originId            String
+  saleId              String?
+  workId              String?
+  releaseId           String?
+  grossUnits          String
+  protocolFeeUnits    String
+  convenienceFeeUnits String
+  netUnits            String
+  scale               Int
+  asset               String
+  policyId            String
+  policyVersion       Int
+  ruleId              String
+  occurredAt          DateTime
+  createdAt           DateTime               @default(now())
+  entitlements        EconomicEntitlement[]
+}
+
+model EconomicEntitlement {
+  id             String              @id
+  revenueId      String
+  revenue        EconomicRevenue     @relation(fields: [revenueId], references: [id])
+  distributionId String
+  actorRef       String
+  units          String
+  scale          Int
+  asset          String
+  shareBps       Int
+  sourceKind     String
+  sourceId       String?
+  status         String
+  createdAt      DateTime
+  settledAt      DateTime?
+  settlement     EconomicSettlement?
+
+  @@index([actorRef])
+  @@index([revenueId])
+}
+
+model EconomicSettlement {
+  id                 String               @id
+  entitlementId      String               @unique
+  entitlement        EconomicEntitlement  @relation(fields: [entitlementId], references: [id])
+  actorRef           String
+  units              String
+  scale              Int
+  asset              String
+  executionLayer     String
+  destinationWallet  String?
+  status             String
+  createdAt          DateTime
+  payment            EconomicPayment?
+}
+
+model EconomicPayment {
+  id           String             @id
+  settlementId String             @unique
+  settlement   EconomicSettlement @relation(fields: [settlementId], references: [id])
+  units        String
+  scale        Int
+  asset        String
+  status       String
+  createdAt    DateTime
+}
+
+/// Domain right. Not a token and not a revenue share.
+model DomainRight {
+  id         String   @id
+  actorRef   String
+  objectKind String
+  objectId   String
+  kind       String
+  createdAt  DateTime @default(now())
+
+  @@index([actorRef])
+  @@index([objectKind, objectId])
+}

@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Architecture / Identity |
 | **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Hub](./README.md) · [ADR-011](./backend-architecture/adr/ADR-011-identity-tenancy.md) · [Artist Profile](./ARTIST_PROFILE.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Value Objects](./data-model/03-value-objects.md) |
+| **Related Documents** | [Hub](./README.md) · [ADR-011](./backend-architecture/adr/ADR-011-identity-tenancy.md) · [Artist Profile](./ARTIST_PROFILE.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Value Objects](./data-model/03-value-objects.md) |
 
 <!-- doc-id: C-BIND.md -->
 

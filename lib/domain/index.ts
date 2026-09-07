@@ -37,3 +37,5 @@ export {
 } from "./invariants";
 
 export { domainEvent, MOCK_ONLY_STORAGE_KEYS, UX_CACHE_KEYS } from "./provenance";
+
+export * from "./economics";
