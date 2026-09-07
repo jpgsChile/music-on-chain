@@ -755,6 +755,11 @@ export const translations = {
         net: "Neto distribuible",
         protocolFee: "Fee de protocolo",
         ledgerError: "No se pudo actualizar el ledger.",
+        execPending: "Pendiente",
+        execSubmitted: "Enviado",
+        execConfirmed: "Confirmado",
+        execFailed: "Fallido",
+        execUnknown: "Desconocido",
       },
       sales: {
         eyebrow: "Ventas",
@@ -2094,6 +2099,11 @@ export const translations = {
         net: "Net distributable",
         protocolFee: "Protocol fee",
         ledgerError: "Could not update the ledger.",
+        execPending: "Pending",
+        execSubmitted: "Submitted",
+        execConfirmed: "Confirmed",
+        execFailed: "Failed",
+        execUnknown: "Unknown",
       },
       sales: {
         eyebrow: "Sales",

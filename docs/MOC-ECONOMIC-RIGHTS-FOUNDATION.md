@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Architecture / Domain |
 | **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Hub](./README.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [C-BIND/1](./C-BIND.md) · [Artist Profile](./ARTIST_PROFILE.md) |
+| **Related Documents** | [Hub](./README.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [C-BIND/1](./C-BIND.md) · [Artist Profile](./ARTIST_PROFILE.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) |
 
 <!-- doc-id: MOC-ECONOMIC-RIGHTS-FOUNDATION.md -->
 
@@ -71,4 +71,5 @@ Wallet may appear on Settlement as `destinationWallet` (execution capability). I
 
 ## Next stage
 
-MOC — On-chain Execution & Settlement Foundation: map `EconomicEntitlement → SettlementIntent → OnChainSettlementAdapter` without changing these semantics.
+Execution boundary: [MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md).  
+Next product stage: Smart Contract & Base Settlement Implementation (not started).

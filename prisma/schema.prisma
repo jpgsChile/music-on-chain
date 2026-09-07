@@ -221,3 +221,46 @@ model DomainRight {
   @@index([actorRef])
   @@index([objectKind, objectId])
 }
+
+/// Persistence mapping for the execution boundary. Domain: lib/domain/economics/execution
+model SettlementIntent {
+  id            String   @id
+  entitlementId String
+  actorRef      String
+  units         String
+  scale         Int
+  asset         String
+  createdAt     DateTime
+
+  @@index([entitlementId])
+  @@index([actorRef])
+}
+
+model ExecutionRequestRecord {
+  id                     String   @id
+  intentRef              String
+  actorRef               String
+  destinationCapability  String?
+  units                  String
+  scale                  Int
+  asset                  String
+  executionMode          String
+  createdAt              DateTime
+
+  @@index([intentRef])
+}
+
+model SettlementReceiptRecord {
+  id            String   @id
+  intentRef     String
+  requestRef    String
+  executionMode String
+  status        String
+  /// External evidence only. Not domain identity.
+  externalRef   String?
+  occurredAt    DateTime
+  metadata      String?
+
+  @@unique([intentRef, requestRef])
+  @@index([intentRef])
+}

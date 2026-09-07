@@ -1,38 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { executeSettlementIntent, moneyToJson, openSettlementIntent } from "@/lib/domain/economics";
+import { executeSettlementIntent, moneyToJson } from "@/lib/domain/economics";
 import {
   getEconomicsStore,
   getExecutionStore,
   getSettlementAdapter,
 } from "@/lib/domain/economics/runtime";
 
-/**
- * Request settlement. The client cannot declare SETTLED.
- * Confirmation comes from the execution adapter.
- */
 export async function POST(request: NextRequest) {
   const actorRef = request.headers.get("x-actor-ref")?.trim() || "";
   if (!actorRef) {
     return NextResponse.json({ error: "Missing actor" }, { status: 400 });
   }
   const body = await request.json().catch(() => null);
-  if (!body || typeof body !== "object" || typeof body.entitlementId !== "string") {
+  if (!body || typeof body !== "object" || typeof body.intentRef !== "string") {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   try {
-    const economics = getEconomicsStore();
-    const execution = getExecutionStore();
-    const intent = openSettlementIntent(economics, execution, {
-      entitlementId: body.entitlementId,
-      actorRef,
-      occurredAt: new Date().toISOString(),
-    });
     const result = executeSettlementIntent({
-      economics,
-      execution,
+      economics: getEconomicsStore(),
+      execution: getExecutionStore(),
       adapter: getSettlementAdapter(),
-      intentRef: intent.intentRef,
+      intentRef: body.intentRef,
       actorRef,
       destinationCapability:
         typeof body.destinationCapability === "string" ? body.destinationCapability : null,
@@ -43,6 +32,8 @@ export async function POST(request: NextRequest) {
       ok: true,
       value: {
         intentRef: result.intent.intentRef,
+        requestRef: result.request.requestRef,
+        receipt: result.receipt,
         lifecycle: result.receipt.status,
         entitlement: {
           ...result.entitlement,
@@ -51,11 +42,10 @@ export async function POST(request: NextRequest) {
         settlement: result.settlement
           ? { ...result.settlement, amount: moneyToJson(result.settlement.amount) }
           : null,
-        receipt: result.receipt,
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "SETTLEMENT_FAILED";
+    const message = error instanceof Error ? error.message : "EXECUTE_FAILED";
     const status = message === "NOT_BENEFICIARY" ? 403 : 400;
     return NextResponse.json({ ok: false, error: message }, { status });
   }

@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Documentation Steward |
 | **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
+| **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
 
 ---
 
@@ -47,6 +47,7 @@
 | [C-BIND.md](./C-BIND.md) | C-BIND/1 1.0.0 (CDR-008) consumption: Privy auth vs binding vs Actor |
 | [MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) | Domain reconstruction: Actor, Work, Participation, Rights semantics |
 | [MOC-ECONOMIC-RIGHTS-FOUNDATION.md](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) | Rights, Revenue, Distribution, Entitlement, Settlement, Fees |
+| [MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) | Domain vs execution: Intent, Adapter, Receipt, idempotency |
 | [UPLOAD_WIZARD.md](./UPLOAD_WIZARD.md) | Upload / release wizard notes |
 
 ### Domain features (PoC / evolving)

@@ -15,6 +15,11 @@ type LedgerCopy = {
   net: string;
   protocolFee: string;
   error: string;
+  execPending: string;
+  execSubmitted: string;
+  execConfirmed: string;
+  execFailed: string;
+  execUnknown: string;
 };
 
 type EntitlementWire = {
@@ -24,11 +29,28 @@ type EntitlementWire = {
   status: string;
   shareBps: number;
   amount: { units: string; scale: number; asset: string };
+  execution?: {
+    intentRef: string;
+    lifecycle: string;
+    receipt?: { status?: string; externalRef?: string } | null;
+  } | null;
 };
 
 function formatAmount(amount: { units: string; scale: number; asset: string }) {
   const value = Number(amount.units) / 10 ** amount.scale;
   return `${value.toFixed(2)} ${amount.asset}`;
+}
+
+function executionLabel(copy: LedgerCopy, row: EntitlementWire): string {
+  const status = row.execution?.receipt?.status ?? row.execution?.lifecycle;
+  if (row.status === "settled" || status === "CONFIRMED" || status === "confirmed") {
+    return copy.execConfirmed;
+  }
+  if (status === "SUBMITTED" || status === "submitted") return copy.execSubmitted;
+  if (status === "FAILED" || status === "failed") return copy.execFailed;
+  if (status === "UNKNOWN" || status === "unknown") return copy.execUnknown;
+  if (status === "pending" || status === "ACCEPTED" || status === "accepted") return copy.execPending;
+  return copy.accrued;
 }
 
 export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
@@ -128,7 +150,7 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
               className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/40 px-3 py-2 text-sm"
             >
               <span>
-                {formatAmount(row.amount)} · {row.status === "settled" ? copy.settled : copy.accrued}
+                {formatAmount(row.amount)} · {executionLabel(copy, row)}
               </span>
               {row.status === "accrued" ? (
                 <button

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { moneyToJson } from "@/lib/domain/economics";
-import { getEconomicsStore } from "@/lib/domain/economics/runtime";
+import { getEconomicsStore, getExecutionStore } from "@/lib/domain/economics/runtime";
 
 export async function GET(request: NextRequest) {
   const actorRef =
@@ -14,8 +14,22 @@ export async function GET(request: NextRequest) {
   if (headerActor && headerActor !== actorRef) {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
+  const execution = getExecutionStore();
   const entitlements = getEconomicsStore()
     .listEntitlements(actorRef)
-    .map((row) => ({ ...row, amount: moneyToJson(row.amount) }));
+    .map((row) => {
+      const intent = execution.getIntentByEntitlement(row.entitlementId);
+      return {
+        ...row,
+        amount: moneyToJson(row.amount),
+        execution: intent
+          ? {
+              intentRef: intent.intentRef,
+              lifecycle: execution.lifecycle(intent.intentRef),
+              receipt: execution.latestReceipt(intent.intentRef),
+            }
+          : null,
+      };
+    });
   return NextResponse.json({ ok: true, value: entitlements });
 }

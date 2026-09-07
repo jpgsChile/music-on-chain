@@ -26,6 +26,11 @@ export default function StudioRoyaltiesPage() {
           net: t.net,
           protocolFee: t.protocolFee,
           error: t.ledgerError,
+          execPending: t.execPending,
+          execSubmitted: t.execSubmitted,
+          execConfirmed: t.execConfirmed,
+          execFailed: t.execFailed,
+          execUnknown: t.execUnknown,
         }}
       />
       <RoyaltyEngine />
