@@ -6,8 +6,8 @@
 | **Dependencies** | [Documentation Hub](./README.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [C-BIND/1](./C-BIND.md) · [Standards](./_system/STANDARDS.md) |
 | **Status** | Active |
 | **Owner** | Architecture / Domain |
-| **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Hub](./README.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [C-BIND/1](./C-BIND.md) · [Artist Profile](./ARTIST_PROFILE.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) |
+| **Last Updated** | 2026-09-13 |
+| **Related Documents** | [Hub](./README.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [C-BIND/1](./C-BIND.md) · [Artist Profile](./ARTIST_PROFILE.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Persistent economic ledger](./MOC-PERSISTENT-ECONOMIC-LEDGER-VERIFIED-ACTOR-SESSION.md) |
 
 <!-- doc-id: MOC-ECONOMIC-RIGHTS-FOUNDATION.md -->
 

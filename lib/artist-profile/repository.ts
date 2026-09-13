@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import type {
   ArtistChannelSocials,
@@ -91,7 +91,7 @@ export async function getProfileByWallet(
 ): Promise<ArtistProfileRecord | null> {
   const w = normalizeWallet(wallet);
   if (!w) return null;
-  const row = await prisma.artistProfile.findUnique({
+  const row = await getPrisma().artistProfile.findUnique({
     where: { wallet: w },
   });
   if (!row) return null;
@@ -103,7 +103,7 @@ export async function getProfileByActorRef(
 ): Promise<ArtistProfileRecord | null> {
   const ref = actorRef?.trim();
   if (!ref) return null;
-  const row = await prisma.artistProfile.findUnique({
+  const row = await getPrisma().artistProfile.findUnique({
     where: { actorRef: ref },
   });
   if (!row) return null;
@@ -117,14 +117,14 @@ export async function claimOrphanProfile(
   const w = wallet ? normalizeWallet(wallet) : "";
   if (!w) return getProfileByActorRef(actorRef);
 
-  const byActor = await prisma.artistProfile.findUnique({ where: { actorRef } });
+  const byActor = await getPrisma().artistProfile.findUnique({ where: { actorRef } });
   if (byActor) return toRecord(byActor);
 
-  const byWallet = await prisma.artistProfile.findUnique({ where: { wallet: w } });
+  const byWallet = await getPrisma().artistProfile.findUnique({ where: { wallet: w } });
   if (!byWallet) return null;
   if (byWallet.actorRef && byWallet.actorRef !== actorRef) return toRecord(byWallet);
 
-  const row = await prisma.artistProfile.update({
+  const row = await getPrisma().artistProfile.update({
     where: { id: byWallet.id },
     data: { actorRef },
   });
@@ -141,8 +141,8 @@ export async function upsertProfile(
   if (!ref) throw new Error("Actor is required");
 
   const existing =
-    (ref ? await prisma.artistProfile.findUnique({ where: { actorRef: ref } }) : null) ??
-    (w ? await prisma.artistProfile.findUnique({ where: { wallet: w } }) : null);
+    (ref ? await getPrisma().artistProfile.findUnique({ where: { actorRef: ref } }) : null) ??
+    (w ? await getPrisma().artistProfile.findUnique({ where: { wallet: w } }) : null);
 
   if (existing?.actorRef && ref && existing.actorRef !== ref) {
     throw new Error("PROFILE_OWNED");
@@ -210,11 +210,11 @@ export async function upsertProfile(
   };
 
   const row = existing
-    ? await prisma.artistProfile.update({
+    ? await getPrisma().artistProfile.update({
         where: { id: existing.id },
         data,
       })
-    : await prisma.artistProfile.create({ data });
+    : await getPrisma().artistProfile.create({ data });
 
   return toRecord(row);
 }

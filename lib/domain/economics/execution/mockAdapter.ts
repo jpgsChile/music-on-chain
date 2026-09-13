@@ -26,6 +26,7 @@ export function createMockSettlementExecutionAdapter(options?: {
         externalRef,
         metadata: {
           adapter: "mock",
+          simulated: true,
           ...(options?.metadata ?? {}),
         },
       };

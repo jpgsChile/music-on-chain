@@ -127,7 +127,7 @@ describe("Local EVM matrix (no faucet, no Base Sepolia)", () => {
 
     const economics = createMemoryEconomicsStore();
     const execution = createMemoryExecutionStore();
-    recordRevenueOnce(economics, {
+    await recordRevenueOnce(economics, {
       revenueId: "rev-evm-06",
       distributionId: "dist-evm-06",
       gross: money(AMOUNT, "USDC"),
@@ -138,8 +138,8 @@ describe("Local EVM matrix (no faucet, no Base Sepolia)", () => {
       },
       occurredAt: TIME,
     });
-    openSettlementIntent(economics, execution, {
-      entitlementId: economics.listEntitlements(ACTOR)[0].entitlementId,
+    await openSettlementIntent(economics, execution, {
+      entitlementId: (await economics.listEntitlements(ACTOR))[0].entitlementId,
       actorRef: ACTOR,
       intentRef,
       occurredAt: TIME,
@@ -200,7 +200,7 @@ describe("Local EVM matrix (no faucet, no Base Sepolia)", () => {
     );
     const economics = createMemoryEconomicsStore();
     const execution = createMemoryExecutionStore();
-    recordRevenueOnce(economics, {
+    await recordRevenueOnce(economics, {
       revenueId: "rev-evm-08",
       distributionId: "dist-evm-08",
       gross: money(AMOUNT, "USDC"),
@@ -211,8 +211,8 @@ describe("Local EVM matrix (no faucet, no Base Sepolia)", () => {
       },
       occurredAt: TIME,
     });
-    openSettlementIntent(economics, execution, {
-      entitlementId: economics.listEntitlements(ACTOR)[0].entitlementId,
+    await openSettlementIntent(economics, execution, {
+      entitlementId: (await economics.listEntitlements(ACTOR))[0].entitlementId,
       actorRef: ACTOR,
       intentRef,
       occurredAt: TIME,
@@ -259,7 +259,7 @@ describe("Local EVM matrix (no faucet, no Base Sepolia)", () => {
   it("EVM-12 domain retry does not pay twice", { timeout }, async () => {
     const economics = createMemoryEconomicsStore();
     const execution = createMemoryExecutionStore();
-    recordRevenueOnce(economics, {
+    await recordRevenueOnce(economics, {
       revenueId: "rev-evm-12",
       distributionId: "dist-evm-12",
       gross: money(AMOUNT, "USDC"),
@@ -270,8 +270,8 @@ describe("Local EVM matrix (no faucet, no Base Sepolia)", () => {
       },
       occurredAt: TIME,
     });
-    const intent = openSettlementIntent(economics, execution, {
-      entitlementId: economics.listEntitlements(ACTOR)[0].entitlementId,
+    const intent = await openSettlementIntent(economics, execution, {
+      entitlementId: (await economics.listEntitlements(ACTOR))[0].entitlementId,
       actorRef: ACTOR,
       intentRef: "intent:evm-12",
       occurredAt: TIME,
@@ -305,7 +305,7 @@ describe("Local EVM matrix (no faucet, no Base Sepolia)", () => {
     });
     expect(retry.receipt.status).toBe("CONFIRMED");
     expect(retry.intent.intentRef).toBe(intent.intentRef);
-    expect(economics.listEntitlements(ACTOR)).toHaveLength(1);
+    expect(await economics.listEntitlements(ACTOR)).toHaveLength(1);
     expect(await local.chain.getBalance(local.beneficiary)).toBe(paid);
     expect(first.receipt.requestRef).toBe(retry.receipt.requestRef);
   });

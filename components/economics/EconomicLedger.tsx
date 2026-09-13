@@ -18,6 +18,7 @@ type LedgerCopy = {
   execPending: string;
   execSubmitted: string;
   execConfirmed: string;
+  execSimulated: string;
   execFailed: string;
   execUnknown: string;
   execReference: string;
@@ -34,7 +35,7 @@ type EntitlementWire = {
   execution?: {
     intentRef: string;
     lifecycle: string;
-    receipt?: { status?: string; externalRef?: string } | null;
+    receipt?: { status?: string; externalRef?: string; metadata?: { adapter?: string; simulated?: boolean } } | null;
   } | null;
 };
 
@@ -48,10 +49,17 @@ function shortenRef(value: string): string {
   return `${value.slice(0, 10)}…${value.slice(-6)}`;
 }
 
+function isSimulatedReceipt(row: EntitlementWire): boolean {
+  const meta = row.execution?.receipt?.metadata;
+  if (meta?.adapter === "mock" || meta?.simulated === true) return true;
+  const ref = row.execution?.receipt?.externalRef ?? "";
+  return ref.startsWith("mock:");
+}
+
 function executionLabel(copy: LedgerCopy, row: EntitlementWire): string {
   const status = row.execution?.receipt?.status ?? row.execution?.lifecycle;
   if (row.status === "settled" || status === "CONFIRMED" || status === "confirmed") {
-    return copy.execConfirmed;
+    return isSimulatedReceipt(row) ? copy.execSimulated : copy.execConfirmed;
   }
   if (status === "SUBMITTED" || status === "submitted") return copy.execSubmitted;
   if (status === "FAILED" || status === "failed") return copy.execFailed;
@@ -68,7 +76,7 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
 
   const refresh = useCallback(async () => {
     const res = await fetch("/api/economics/entitlements", {
-      headers: { "x-actor-ref": actorRef },
+      credentials: "include",
     });
     const data = await res.json().catch(() => ({}));
     setRows(Array.isArray(data.value) ? data.value : []);
@@ -84,9 +92,9 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
     try {
       const res = await fetch("/api/economics/revenue", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "x-actor-ref": actorRef,
         },
         body: JSON.stringify({
           grossUnits: "1000000",
@@ -114,9 +122,9 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
     try {
       const res = await fetch("/api/economics/settlements", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "x-actor-ref": actorRef,
         },
         body: JSON.stringify({ entitlementId }),
       });
@@ -163,7 +171,7 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
                     {copy.execIntent} {shortenRef(row.execution.intentRef)}
                   </span>
                 ) : null}
-                {row.execution?.receipt?.externalRef ? (
+                {row.execution?.receipt?.externalRef && !isSimulatedReceipt(row) ? (
                   <span className="block text-xs text-foreground/45">
                     {copy.execReference} {shortenRef(row.execution.receipt.externalRef)}
                   </span>

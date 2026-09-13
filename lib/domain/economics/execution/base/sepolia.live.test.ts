@@ -90,7 +90,7 @@ describe.skipIf(!live)("Base Sepolia controlled deployment (live)", () => {
       expect(replay.intent.intentRef).toBe(intentRef);
       expect(replay.receipt.status).toBe("CONFIRMED");
       expect(replay.request.requestRef).toBe(requestRef);
-      expect(first.economics.listEntitlements(SEPOLIA_TEST_ACTOR)).toHaveLength(1);
+      expect(await first.economics.listEntitlements(SEPOLIA_TEST_ACTOR)).toHaveLength(1);
       expect(
         await readBeneficiaryBalance(creds, deployment.asset.address, SEPOLIA_TEST_BENEFICIARY)
       ).toBe(after);

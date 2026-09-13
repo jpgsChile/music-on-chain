@@ -87,7 +87,7 @@ export async function runDomainSettlementOnSepolia(input: {
   const beneficiary = input.beneficiary ?? SEPOLIA_TEST_BENEFICIARY;
   const economics = createMemoryEconomicsStore();
   const execution = createMemoryExecutionStore();
-  recordRevenueOnce(economics, {
+  await recordRevenueOnce(economics, {
     revenueId: `rev:${input.intentRef}`,
     distributionId: `dist:${input.intentRef}`,
     gross: money(amount, input.creds.assetSymbol, input.creds.tokenDecimals),
@@ -98,8 +98,8 @@ export async function runDomainSettlementOnSepolia(input: {
     },
     occurredAt: new Date().toISOString(),
   });
-  const entitlement = economics.listEntitlements(SEPOLIA_TEST_ACTOR)[0];
-  const intent = openSettlementIntent(economics, execution, {
+  const entitlement = (await economics.listEntitlements(SEPOLIA_TEST_ACTOR))[0];
+  const intent = await openSettlementIntent(economics, execution, {
     entitlementId: entitlement.entitlementId,
     actorRef: SEPOLIA_TEST_ACTOR,
     intentRef: input.intentRef,

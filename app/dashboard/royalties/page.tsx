@@ -29,6 +29,7 @@ export default function StudioRoyaltiesPage() {
           execPending: t.execPending,
           execSubmitted: t.execSubmitted,
           execConfirmed: t.execConfirmed,
+          execSimulated: t.execSimulated,
           execFailed: t.execFailed,
           execUnknown: t.execUnknown,
           execReference: t.execReference,

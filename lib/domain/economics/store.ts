@@ -6,15 +6,15 @@ import type { DistributionRule, Sale } from "./types";
 import type { Money } from "./money";
 
 export type EconomicsStore = {
-  hasRevenue(revenueId: string): boolean;
-  putAssessed(assessed: AssessedRevenue): void;
-  getRevenue(revenueId: string): AssessedRevenue | null;
-  listEntitlements(actorRef: ActorRef): EconomicEntitlement[];
-  getEntitlement(entitlementId: string): EconomicEntitlement | null;
-  putEntitlement(entitlement: EconomicEntitlement): void;
-  hasSettlementFor(entitlementId: string): boolean;
-  putSettlement(settlement: SettlementRecord, payment: PaymentRecord): void;
-  listRevenues(): AssessedRevenue[];
+  hasRevenue(revenueId: string): Promise<boolean>;
+  putAssessed(assessed: AssessedRevenue): Promise<void>;
+  getRevenue(revenueId: string): Promise<AssessedRevenue | null>;
+  listEntitlements(actorRef: ActorRef): Promise<EconomicEntitlement[]>;
+  getEntitlement(entitlementId: string): Promise<EconomicEntitlement | null>;
+  putEntitlement(entitlement: EconomicEntitlement): Promise<void>;
+  hasSettlementFor(entitlementId: string): Promise<boolean>;
+  putSettlement(settlement: SettlementRecord, payment: PaymentRecord): Promise<void>;
+  listRevenues(): Promise<AssessedRevenue[]>;
 };
 
 export function createMemoryEconomicsStore(seed?: AssessedRevenue[]): EconomicsStore {
@@ -33,22 +33,22 @@ export function createMemoryEconomicsStore(seed?: AssessedRevenue[]): EconomicsS
   for (const item of seed ?? []) ingest(item);
 
   return {
-    hasRevenue(revenueId) {
+    async hasRevenue(revenueId) {
       return revenues.has(revenueId);
     },
-    putAssessed(assessed) {
+    async putAssessed(assessed) {
       ingest(assessed);
     },
-    getRevenue(revenueId) {
+    async getRevenue(revenueId) {
       return revenues.get(revenueId) ?? null;
     },
-    listEntitlements(actorRef) {
+    async listEntitlements(actorRef) {
       return [...entitlements.values()].filter((row) => row.actorRef === actorRef);
     },
-    getEntitlement(entitlementId) {
+    async getEntitlement(entitlementId) {
       return entitlements.get(entitlementId) ?? null;
     },
-    putEntitlement(entitlement) {
+    async putEntitlement(entitlement) {
       entitlements.set(entitlement.entitlementId, entitlement);
       const assessed = revenues.get(entitlement.revenueId);
       if (assessed) {
@@ -57,7 +57,7 @@ export function createMemoryEconomicsStore(seed?: AssessedRevenue[]): EconomicsS
         );
       }
     },
-    hasSettlementFor(entitlementId) {
+    async hasSettlementFor(entitlementId) {
       for (const settlement of settlements.values()) {
         if (settlement.entitlementId === entitlementId && settlement.status === "completed") {
           return true;
@@ -65,17 +65,17 @@ export function createMemoryEconomicsStore(seed?: AssessedRevenue[]): EconomicsS
       }
       return false;
     },
-    putSettlement(settlement, payment) {
+    async putSettlement(settlement, payment) {
       settlements.set(settlement.settlementId, settlement);
       payments.set(payment.paymentId, payment);
     },
-    listRevenues() {
+    async listRevenues() {
       return [...revenues.values()];
     },
   };
 }
 
-export function recordRevenueOnce(
+export async function recordRevenueOnce(
   store: EconomicsStore,
   input: {
     revenueId: string;
@@ -88,16 +88,16 @@ export function recordRevenueOnce(
     workId?: string;
     releaseId?: string;
   }
-): AssessedRevenue {
-  if (store.hasRevenue(input.revenueId)) {
+): Promise<AssessedRevenue> {
+  if (await store.hasRevenue(input.revenueId)) {
     throw new Error("DUPLICATE_REVENUE");
   }
   const assessed = recordRevenue(input);
-  store.putAssessed(assessed);
+  await store.putAssessed(assessed);
   return assessed;
 }
 
-export function settleOnce(
+export async function settleOnce(
   store: EconomicsStore,
   input: {
     entitlementId: string;
@@ -107,11 +107,11 @@ export function settleOnce(
     destinationWallet?: string | null;
     occurredAt?: string;
   }
-): { entitlement: EconomicEntitlement; settlement: SettlementRecord; payment: PaymentRecord } {
-  const entitlement = store.getEntitlement(input.entitlementId);
+): Promise<{ entitlement: EconomicEntitlement; settlement: SettlementRecord; payment: PaymentRecord }> {
+  const entitlement = await store.getEntitlement(input.entitlementId);
   if (!entitlement) throw new Error("ENTITLEMENT_NOT_FOUND");
   if (entitlement.actorRef !== input.actorRef) throw new Error("NOT_BENEFICIARY");
-  if (store.hasSettlementFor(entitlement.entitlementId)) {
+  if (await store.hasSettlementFor(entitlement.entitlementId)) {
     throw new Error("ENTITLEMENT_ALREADY_SETTLED");
   }
   const result = settleEntitlementOnce(
@@ -121,7 +121,7 @@ export function settleOnce(
     input.destinationWallet,
     input.occurredAt
   );
-  store.putEntitlement(result.entitlement);
-  store.putSettlement(result.settlement, result.payment);
+  await store.putEntitlement(result.entitlement);
+  await store.putSettlement(result.settlement, result.payment);
   return result;
 }

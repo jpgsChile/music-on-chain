@@ -6,6 +6,13 @@ import { provisionThenBind } from "@/lib/c-bind/session";
 import { parseAuthSubject } from "@/lib/c-bind/authSubject";
 import { attachWalletToActor } from "@/lib/domain/actorWallet";
 import { claimOrphanProfile } from "@/lib/artist-profile/repository";
+import {
+  actorSessionCookie,
+  issueActorSession,
+  isActorSession,
+  requireActorSession,
+} from "@/lib/auth/actorSession";
+import { logDomainEvent } from "@/lib/observability/domainLog";
 
 /**
  * MOC session: authenticate with Privy on the client, then provision Actor if needed and Bind.
@@ -49,14 +56,38 @@ export async function POST(request: NextRequest) {
   await attachWalletToActor(result.value.actorRef, walletAddress);
   await claimOrphanProfile(result.value.actorRef, walletAddress);
 
-  return NextResponse.json(
+  const issued = await issueActorSession({
+    actorRef: result.value.actorRef,
+    issuer: subject.value.issuer,
+    subject: subject.value.subject,
+  });
+  const cookie = actorSessionCookie(issued.token);
+  const response = NextResponse.json(
     {
       ok: true,
       value: {
         ...result.value,
         walletAddress: walletAddress?.trim().toLowerCase() || null,
+        actorRef: issued.session.actorRef,
       },
     },
     { status: 200 }
   );
+  response.cookies.set(cookie);
+  logDomainEvent("actor.session.issued", { actorRef: issued.session.actorRef });
+  return response;
+}
+
+export async function GET(request: NextRequest) {
+  const session = await requireActorSession(request);
+  if (!isActorSession(session)) return session;
+  return NextResponse.json({
+    ok: true,
+    value: {
+      actorRef: session.actorRef,
+      issuer: session.issuer,
+      subject: session.subject,
+      expiresAt: session.expiresAt,
+    },
+  });
 }

@@ -40,6 +40,7 @@ export function useCBindSession(user: PrivyLikeUser | null, authenticated: boole
 
     fetch("/api/identity/session", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         authSubject,

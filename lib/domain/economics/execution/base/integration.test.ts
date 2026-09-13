@@ -25,7 +25,7 @@ describe("Base settlement integration", () => {
     try {
       const economics = createMemoryEconomicsStore();
       const execution = createMemoryExecutionStore();
-      recordRevenueOnce(economics, {
+      await recordRevenueOnce(economics, {
         revenueId: "rev-base-1",
         distributionId: "dist-base-1",
         gross: money(1_000_000n, "USDC"),
@@ -36,12 +36,12 @@ describe("Base settlement integration", () => {
         },
         occurredAt: TIME,
       });
-      const entitlement = economics.listEntitlements(ACTOR)[0];
+      const entitlement = (await economics.listEntitlements(ACTOR))[0];
       const actor = createActor(ACTOR);
       expect(entitlement.actorRef).toBe(actor.actorRef);
       expect(entitlement).not.toHaveProperty("chainId");
 
-      const intent = openSettlementIntent(economics, execution, {
+      const intent = await openSettlementIntent(economics, execution, {
         entitlementId: entitlement.entitlementId,
         actorRef: ACTOR,
         intentRef: "intent:base-e2e",
@@ -84,7 +84,7 @@ describe("Base settlement integration", () => {
         occurredAt: TIME,
       });
       expect(retry.receipt.status).toBe("CONFIRMED");
-      expect(economics.listEntitlements(ACTOR)).toHaveLength(1);
+      expect(await economics.listEntitlements(ACTOR)).toHaveLength(1);
       expect(await local.chain.getBalance(local.beneficiary)).toBe(1_000_000n);
     } finally {
       await local.close();

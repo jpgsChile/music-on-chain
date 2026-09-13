@@ -94,13 +94,13 @@ describe("MOC Economic & Rights Foundation (tests 1–25)", () => {
     expect(assessed.entitlements[0].actorRef).toBe(before);
   });
 
-  it("TEST 5: an Actor can receive multiple Entitlements", () => {
+  it("TEST 5: an Actor can receive multiple Entitlements", async () => {
     const store = createMemoryEconomicsStore();
     const rule: DistributionRule = {
       ruleId: "solo",
       shares: [{ actorRef: ACTOR_A, bps: 10_000, source: { kind: "rule" } }],
     };
-    recordRevenueOnce(store, {
+    await recordRevenueOnce(store, {
       revenueId: "rev-5a",
       distributionId: "d-5a",
       gross: money(100n, "USDC"),
@@ -108,7 +108,7 @@ describe("MOC Economic & Rights Foundation (tests 1–25)", () => {
       rule,
       occurredAt: FIXED_TIME,
     });
-    recordRevenueOnce(store, {
+    await recordRevenueOnce(store, {
       revenueId: "rev-5b",
       distributionId: "d-5b",
       gross: money(50n, "USDC"),
@@ -116,7 +116,7 @@ describe("MOC Economic & Rights Foundation (tests 1–25)", () => {
       rule,
       occurredAt: FIXED_TIME,
     });
-    expect(store.listEntitlements(ACTOR_A)).toHaveLength(2);
+    expect(await store.listEntitlements(ACTOR_A)).toHaveLength(2);
   });
 
   it("TEST 6: Revenue can be distributed among multiple Actors", () => {
@@ -228,9 +228,9 @@ describe("MOC Economic & Rights Foundation (tests 1–25)", () => {
     expect(settlement.actorRef).toBe(ACTOR_A);
   });
 
-  it("TEST 14: an Entitlement cannot be settled twice", () => {
+  it("TEST 14: an Entitlement cannot be settled twice", async () => {
     const store = createMemoryEconomicsStore();
-    recordRevenueOnce(store, {
+    await recordRevenueOnce(store, {
       revenueId: "rev-14",
       distributionId: "dist-14",
       gross: money(100n, "USDC"),
@@ -241,21 +241,21 @@ describe("MOC Economic & Rights Foundation (tests 1–25)", () => {
       },
       occurredAt: FIXED_TIME,
     });
-    const entitlementId = store.listEntitlements(ACTOR_A)[0].entitlementId;
-    settleOnce(store, {
+    const entitlementId = (await store.listEntitlements(ACTOR_A))[0].entitlementId;
+    await settleOnce(store, {
       entitlementId,
       settlementId: "set-14a",
       actorRef: ACTOR_A,
       occurredAt: FIXED_TIME,
     });
-    expect(() =>
+    await expect(
       settleOnce(store, {
         entitlementId,
         settlementId: "set-14b",
         actorRef: ACTOR_A,
         occurredAt: FIXED_TIME,
       })
-    ).toThrow("ENTITLEMENT_ALREADY_SETTLED");
+    ).rejects.toThrow("ENTITLEMENT_ALREADY_SETTLED");
   });
 
   it("TEST 15: rounding is deterministic (exact, remainder, many parties, fees, tiny amounts)", () => {
@@ -424,7 +424,7 @@ describe("MOC Economic & Rights Foundation (tests 1–25)", () => {
     expect(assessed.events.every((event) => event.origin === "engine")).toBe(true);
   });
 
-  it("rejects duplicate distribution of the same Revenue", () => {
+  it("rejects duplicate distribution of the same Revenue", async () => {
     const store = createMemoryEconomicsStore();
     const input = {
       revenueId: "rev-dup",
@@ -437,7 +437,7 @@ describe("MOC Economic & Rights Foundation (tests 1–25)", () => {
       },
       occurredAt: FIXED_TIME,
     };
-    recordRevenueOnce(store, input);
-    expect(() => recordRevenueOnce(store, input)).toThrow("DUPLICATE_REVENUE");
+    await recordRevenueOnce(store, input);
+    await expect(recordRevenueOnce(store, input)).rejects.toThrow("DUPLICATE_REVENUE");
   });
 });

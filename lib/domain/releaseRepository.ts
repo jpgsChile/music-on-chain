@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import type { ReleaseCollaborator, ReleaseType, PricingModel } from "@/types/upload";
 
 export type PersistReleaseInput = {
@@ -51,7 +51,7 @@ export async function persistMusicRelease(input: PersistReleaseInput) {
         revenueSharePercent: Number(c.percentage) || 0,
       }));
 
-  return prisma.$transaction(async (tx) => {
+  return getPrisma().$transaction(async (tx) => {
     const work = await tx.musicalWork.create({
       data: {
         actorRef: input.actorRef,
@@ -97,7 +97,7 @@ export async function persistMusicRelease(input: PersistReleaseInput) {
 }
 
 export async function listReleasesByActor(actorRef: string) {
-  return prisma.musicRelease.findMany({
+  return getPrisma().musicRelease.findMany({
     where: { actorRef },
     orderBy: { createdAt: "desc" },
     include: { tracks: { orderBy: { position: "asc" } }, participations: true, work: true },
@@ -105,7 +105,7 @@ export async function listReleasesByActor(actorRef: string) {
 }
 
 export async function listParticipationsByActor(actorRef: string) {
-  return prisma.participation.findMany({
+  return getPrisma().participation.findMany({
     where: {
       OR: [{ actorRef }, { release: { actorRef } }],
     },

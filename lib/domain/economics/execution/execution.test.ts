@@ -21,10 +21,10 @@ const ACTOR = "moc:actor:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 const WALLET = "0x1111111111111111111111111111111111111111";
 const TIME = "2026-09-07T15:00:00.000Z";
 
-function seedEntitlement() {
+async function seedEntitlement() {
   const economics = createMemoryEconomicsStore();
   const execution = createMemoryExecutionStore();
-  recordRevenueOnce(economics, {
+  await recordRevenueOnce(economics, {
     revenueId: "rev-exec-1",
     distributionId: "dist-exec-1",
     gross: money(100n, "USDC"),
@@ -35,32 +35,32 @@ function seedEntitlement() {
     },
     occurredAt: TIME,
   });
-  const entitlement = economics.listEntitlements(ACTOR)[0];
+  const entitlement = (await economics.listEntitlements(ACTOR))[0];
   return { economics, execution, entitlement };
 }
 
 describe("On-chain execution settlement boundary (tests 1–24)", () => {
-  it("TEST 1: Entitlement can exist without wallet", () => {
-    const { entitlement } = seedEntitlement();
+  it("TEST 1: Entitlement can exist without wallet", async () => {
+    const { entitlement } = await seedEntitlement();
     expect(entitlement).not.toHaveProperty("wallet");
     expect(entitlement.actorRef).toBe(ACTOR);
   });
 
-  it("TEST 2: SettlementIntent references Entitlement", () => {
-    const { entitlement } = seedEntitlement();
+  it("TEST 2: SettlementIntent references Entitlement", async () => {
+    const { entitlement } = await seedEntitlement();
     const intent = createSettlementIntent({ intentRef: "intent-1", entitlement, occurredAt: TIME });
     expect(intent.entitlementId).toBe(entitlement.entitlementId);
   });
 
-  it("TEST 3: SettlementIntent has Actor beneficiary", () => {
-    const { entitlement } = seedEntitlement();
+  it("TEST 3: SettlementIntent has Actor beneficiary", async () => {
+    const { entitlement } = await seedEntitlement();
     const intent = createSettlementIntent({ intentRef: "intent-1", entitlement, occurredAt: TIME });
     expect(intent.actorRef).toBe(ACTOR);
     expect(intent.actorRef).not.toBe(WALLET);
   });
 
-  it("TEST 4: Wallet is capability, not beneficiary identity", () => {
-    const { entitlement } = seedEntitlement();
+  it("TEST 4: Wallet is capability, not beneficiary identity", async () => {
+    const { entitlement } = await seedEntitlement();
     const intent = createSettlementIntent({ intentRef: "intent-1", entitlement, occurredAt: TIME });
     const request = createExecutionRequest({
       requestRef: "req-1",
@@ -74,8 +74,8 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
     expect(destinationIsNotBeneficiary(request)).toBe(true);
   });
 
-  it("TEST 5: ExecutionRequest can be generated without blockchain", () => {
-    const { entitlement } = seedEntitlement();
+  it("TEST 5: ExecutionRequest can be generated without blockchain", async () => {
+    const { entitlement } = await seedEntitlement();
     const intent = createSettlementIntent({ intentRef: "intent-1", entitlement, occurredAt: TIME });
     const request = createExecutionRequest({
       requestRef: "req-1",
@@ -88,8 +88,8 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
   });
 
   it("TEST 6: Mock adapter can execute a settlement", async () => {
-    const { economics, execution, entitlement } = seedEntitlement();
-    const intent = openSettlementIntent(economics, execution, {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    const intent = await openSettlementIntent(economics, execution, {
       entitlementId: entitlement.entitlementId,
       actorRef: ACTOR,
       occurredAt: TIME,
@@ -108,7 +108,7 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
   });
 
   it("TEST 7: Execution result distinguishes submitted / confirmed / failed", async () => {
-    const { entitlement } = seedEntitlement();
+    const { entitlement } = await seedEntitlement();
     const request = createExecutionRequest({
       requestRef: "r",
       intent: createSettlementIntent({
@@ -131,8 +131,8 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
   });
 
   it("TEST 8: Transaction hash is not settlement identity", async () => {
-    const { economics, execution, entitlement } = seedEntitlement();
-    const intent = openSettlementIntent(economics, execution, {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    const intent = await openSettlementIntent(economics, execution, {
       entitlementId: entitlement.entitlementId,
       actorRef: ACTOR,
       occurredAt: TIME,
@@ -153,8 +153,8 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
   });
 
   it("TEST 9: Retry does not create a new Entitlement", async () => {
-    const { economics, execution, entitlement } = seedEntitlement();
-    const intent = openSettlementIntent(economics, execution, {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    const intent = await openSettlementIntent(economics, execution, {
       entitlementId: entitlement.entitlementId,
       actorRef: ACTOR,
       occurredAt: TIME,
@@ -177,12 +177,12 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
       requestRef: "req-retry",
       occurredAt: TIME,
     });
-    expect(economics.listEntitlements(ACTOR)).toHaveLength(1);
+    expect(await economics.listEntitlements(ACTOR)).toHaveLength(1);
   });
 
   it("TEST 10: Idempotent retry does not duplicate settlement", async () => {
-    const { economics, execution, entitlement } = seedEntitlement();
-    const intent = openSettlementIntent(economics, execution, {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    const intent = await openSettlementIntent(economics, execution, {
       entitlementId: entitlement.entitlementId,
       actorRef: ACTOR,
       occurredAt: TIME,
@@ -204,13 +204,13 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
       occurredAt: TIME,
     });
     expect(second.receipt.receiptRef).toBe(first.receipt.receiptRef);
-    expect(economics.hasSettlementFor(entitlement.entitlementId)).toBe(true);
-    expect(execution.listReceipts(intent.intentRef)).toHaveLength(1);
+    expect(await economics.hasSettlementFor(entitlement.entitlementId)).toBe(true);
+    expect(await execution.listReceipts(intent.intentRef)).toHaveLength(1);
   });
 
   it("TEST 11: Failed execution does not delete Entitlement", async () => {
-    const { economics, execution, entitlement } = seedEntitlement();
-    const intent = openSettlementIntent(economics, execution, {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    const intent = await openSettlementIntent(economics, execution, {
       entitlementId: entitlement.entitlementId,
       actorRef: ACTOR,
       occurredAt: TIME,
@@ -224,12 +224,12 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
       occurredAt: TIME,
     });
     expect(result.entitlement.status).toBe("accrued");
-    expect(economics.getEntitlement(entitlement.entitlementId)?.status).toBe("accrued");
+    expect((await economics.getEntitlement(entitlement.entitlementId))?.status).toBe("accrued");
   });
 
   it("TEST 12: Unknown execution is not treated as failed", async () => {
-    const { economics, execution, entitlement } = seedEntitlement();
-    const intent = openSettlementIntent(economics, execution, {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    const intent = await openSettlementIntent(economics, execution, {
       entitlementId: entitlement.entitlementId,
       actorRef: ACTOR,
       occurredAt: TIME,
@@ -248,8 +248,8 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
   });
 
   it("TEST 13: Confirmed execution completes Settlement when conditions are valid", async () => {
-    const { economics, execution, entitlement } = seedEntitlement();
-    const intent = openSettlementIntent(economics, execution, {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    const intent = await openSettlementIntent(economics, execution, {
       entitlementId: entitlement.entitlementId,
       actorRef: ACTOR,
       occurredAt: TIME,
@@ -274,8 +274,8 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
       kind: "performance",
     });
     const snapshot = { ...right };
-    const { economics, execution, entitlement } = seedEntitlement();
-    const intent = openSettlementIntent(economics, execution, {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    const intent = await openSettlementIntent(economics, execution, {
       entitlementId: entitlement.entitlementId,
       actorRef: ACTOR,
       occurredAt: TIME,
@@ -291,9 +291,9 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
     expect(right).toEqual(snapshot);
   });
 
-  it("TEST 15: Changing wallet does not change Entitlement", () => {
+  it("TEST 15: Changing wallet does not change Entitlement", async () => {
     const actor = createActor(ACTOR);
-    const { entitlement } = seedEntitlement();
+    const { entitlement } = await seedEntitlement();
     expect(entitlement.actorRef).toBe(actor.actorRef);
     const intent = createSettlementIntent({ intentRef: "i", entitlement, occurredAt: TIME });
     const withWallet = createExecutionRequest({
@@ -314,8 +314,8 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
     expect(entitlement.actorRef).toBe(ACTOR);
   });
 
-  it("TEST 16–17: Changing network or adapter does not change Entitlement", () => {
-    const { entitlement } = seedEntitlement();
+  it("TEST 16–17: Changing network or adapter does not change Entitlement", async () => {
+    const { entitlement } = await seedEntitlement();
     const before = { ...entitlement };
     createMockSettlementExecutionAdapter({ metadata: { network: "base" } });
     createMockSettlementExecutionAdapter({ metadata: { network: "ethereum" } });
@@ -324,8 +324,8 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
   });
 
   it("TEST 18–20: domain works without RPC, Privy, or frontend", async () => {
-    const { economics, execution, entitlement } = seedEntitlement();
-    const intent = openSettlementIntent(economics, execution, {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    const intent = await openSettlementIntent(economics, execution, {
       entitlementId: entitlement.entitlementId,
       actorRef: ACTOR,
       occurredAt: TIME,
@@ -341,15 +341,15 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
     expect(result.receipt.metadata?.adapter).toBe("mock");
   });
 
-  it("TEST 21: Amount and asset remain separated", () => {
-    const { entitlement } = seedEntitlement();
+  it("TEST 21: Amount and asset remain separated", async () => {
+    const { entitlement } = await seedEntitlement();
     expect(entitlement.amount.units).toBe(100n);
     expect(entitlement.amount.asset).toBe("USDC");
   });
 
   it("TEST 22: Execution receipt keeps provenance", async () => {
-    const { economics, execution, entitlement } = seedEntitlement();
-    const intent = openSettlementIntent(economics, execution, {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    const intent = await openSettlementIntent(economics, execution, {
       entitlementId: entitlement.entitlementId,
       actorRef: ACTOR,
       occurredAt: TIME,
@@ -366,9 +366,9 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
     expect(result.receipt.requestRef).toBe(result.request.requestRef);
   });
 
-  it("TEST 23: A receipt cannot complete a different Entitlement", () => {
-    const first = seedEntitlement();
-    recordRevenueOnce(first.economics, {
+  it("TEST 23: A receipt cannot complete a different Entitlement", async () => {
+    const first = await seedEntitlement();
+    await recordRevenueOnce(first.economics, {
       revenueId: "rev-exec-2",
       distributionId: "dist-exec-2",
       gross: money(50n, "USDC"),
@@ -379,7 +379,7 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
       },
       occurredAt: TIME,
     });
-    const second = first.economics.listEntitlements(ACTOR)[1];
+    const second = (await first.economics.listEntitlements(ACTOR))[1];
     const intent = createSettlementIntent({
       intentRef: "intent-a",
       entitlement: first.entitlement,
@@ -391,7 +391,7 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
       executionMode: "off-chain",
       occurredAt: TIME,
     });
-    expect(() =>
+    await expect(
       applyExecutionReceipt({
         economics: first.economics,
         execution: first.execution,
@@ -408,10 +408,10 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
         },
         previousLifecycle: "pending",
       })
-    ).toThrow("INTENT_ENTITLEMENT_MISMATCH");
+    ).rejects.toThrow("INTENT_ENTITLEMENT_MISMATCH");
   });
 
-  it("TEST 24: Settlement state transitions are valid", () => {
+  it("TEST 24: Settlement state transitions are valid", async () => {
     expect(canTransition("pending", "submitted")).toBe(true);
     expect(canTransition("submitted", "confirmed")).toBe(true);
     expect(canTransition("submitted", "unknown")).toBe(true);
@@ -421,7 +421,7 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
     const { intent } = {
       intent: createSettlementIntent({
         intentRef: "i",
-        entitlement: seedEntitlement().entitlement,
+        entitlement: (await seedEntitlement()).entitlement,
         occurredAt: TIME,
       }),
     };

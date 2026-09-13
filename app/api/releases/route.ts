@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listReleasesByActor, persistMusicRelease } from "@/lib/domain/releaseRepository";
 import type { PricingModel, ReleaseCollaborator, ReleaseType } from "@/types/upload";
-
-const ACTOR_HEADER = "x-actor-ref";
+import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
 
 export async function GET(request: NextRequest) {
-  const actorRef =
-    request.headers.get(ACTOR_HEADER)?.trim() ||
-    request.nextUrl.searchParams.get("actorRef")?.trim() ||
-    "";
-  if (!actorRef) {
-    return NextResponse.json({ error: "Missing actor" }, { status: 400 });
+  const session = await requireActorSession(request);
+  if (!isActorSession(session)) return session;
+  const requested = request.nextUrl.searchParams.get("actorRef")?.trim();
+  if (requested && requested !== session.actorRef) {
+    return NextResponse.json({ ok: false, error: "FORBIDDEN" }, { status: 403 });
   }
   try {
-    const releases = await listReleasesByActor(actorRef);
+    const releases = await listReleasesByActor(session.actorRef);
     return NextResponse.json({ ok: true, value: releases });
   } catch (e) {
     console.error("[GET /api/releases]", e);
@@ -22,10 +20,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const actorRef = request.headers.get(ACTOR_HEADER)?.trim() || "";
-  if (!actorRef) {
-    return NextResponse.json({ error: "Missing actor" }, { status: 400 });
-  }
+  const session = await requireActorSession(request);
+  if (!isActorSession(session)) return session;
+  const actorRef = session.actorRef;
 
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {

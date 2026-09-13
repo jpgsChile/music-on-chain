@@ -156,6 +156,8 @@ model EconomicRevenue {
   asset               String
   policyId            String
   policyVersion       Int
+  protocolFeeBps      Int      @default(0)
+  convenienceFeeBps   Int      @default(0)
   ruleId              String
   occurredAt          DateTime
   createdAt           DateTime               @default(now())
@@ -225,15 +227,29 @@ model DomainRight {
 /// Persistence mapping for the execution boundary. Domain: lib/domain/economics/execution
 model SettlementIntent {
   id            String   @id
-  entitlementId String
+  entitlementId String   @unique
   actorRef      String
   units         String
   scale         Int
   asset         String
   createdAt     DateTime
 
-  @@index([entitlementId])
   @@index([actorRef])
+}
+
+/// Opaque verified Actor session. Not Privy ID, not Actor identity, not a wallet.
+model ActorSession {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  actorRef  String
+  issuer    String
+  subject   String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([actorRef])
+  @@index([issuer, subject])
 }
 
 model ExecutionRequestRecord {

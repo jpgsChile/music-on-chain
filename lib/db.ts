@@ -3,8 +3,7 @@ import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
 
-function createPrisma() {
-  const url = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
+export function createPrismaClient(url = process.env.DATABASE_URL ?? "file:./prisma/dev.db") {
   const adapter = new PrismaBetterSqlite3({ url });
   return new PrismaClient({
     adapter,
@@ -12,7 +11,14 @@ function createPrisma() {
   });
 }
 
-export const prisma =
-  globalForPrisma.prisma ?? createPrisma();
+export function getPrisma(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
+  return globalForPrisma.prisma;
+}
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+/** Test-only: point the process singleton at an isolated SQLite file. */
+export function installPrismaClient(client: PrismaClient) {
+  globalForPrisma.prisma = client;
+}

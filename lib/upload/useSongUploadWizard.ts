@@ -232,9 +232,9 @@ export function useReleaseWizard({
 
       const persisted = await fetch("/api/releases", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "x-actor-ref": actorRef,
         },
         body: JSON.stringify({
           title: state.title,

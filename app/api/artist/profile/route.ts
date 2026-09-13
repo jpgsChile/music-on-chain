@@ -9,29 +9,19 @@ import {
   type ArtistProfilePayload,
 } from "@/lib/artist-profile/types";
 import { attachWalletToActor } from "@/lib/domain/actorWallet";
+import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
 
 const WALLET_HEADER = "x-artist-wallet";
-const ACTOR_HEADER = "x-actor-ref";
 
-/**
- * GET /api/artist/profile
- * Owner read: Actor first (x-actor-ref), wallet lookup as capability fallback.
- */
 export async function GET(request: NextRequest) {
-  const actorRef = request.headers.get(ACTOR_HEADER)?.trim();
+  const session = await requireActorSession(request);
+  if (!isActorSession(session)) return session;
   const wallet = request.headers.get(WALLET_HEADER)?.trim();
-  if (!actorRef && !wallet) {
-    return NextResponse.json(
-      { error: "Missing actor or wallet" },
-      { status: 400 }
-    );
-  }
 
   try {
-    const profile = actorRef
-      ? (await getProfileByActorRef(actorRef)) ??
-        (wallet ? await getProfileByWallet(wallet) : null)
-      : await getProfileByWallet(wallet!);
+    const profile =
+      (await getProfileByActorRef(session.actorRef)) ??
+      (wallet ? await getProfileByWallet(wallet) : null);
     return NextResponse.json(profile ?? null);
   } catch (e) {
     console.error("[GET /api/artist/profile]", e);
@@ -42,19 +32,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * PUT /api/artist/profile
- * Upserts the public channel of an Actor. Wallet is optional capability.
- */
 export async function PUT(request: NextRequest) {
-  const actorRef = request.headers.get(ACTOR_HEADER)?.trim() || null;
+  const session = await requireActorSession(request);
+  if (!isActorSession(session)) return session;
+  const actorRef = session.actorRef;
   const wallet = request.headers.get(WALLET_HEADER)?.trim() || null;
-  if (!actorRef) {
-    return NextResponse.json(
-      { error: "Missing actor" },
-      { status: 400 }
-    );
-  }
 
   let body: ArtistProfilePayload;
   try {
@@ -84,7 +66,7 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    if (actorRef && wallet) {
+    if (wallet) {
       await attachWalletToActor(actorRef, wallet);
     }
     const profile = await upsertProfile(wallet, body, actorRef);

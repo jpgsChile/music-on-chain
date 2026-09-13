@@ -7,18 +7,13 @@ import {
   type DistributionRule,
 } from "@/lib/domain/economics";
 import { getEconomicsStore } from "@/lib/domain/economics/runtime";
-
-const ACTOR_HEADER = "x-actor-ref";
-
-function actorFrom(request: NextRequest): string {
-  return request.headers.get(ACTOR_HEADER)?.trim() || "";
-}
+import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
+import { logDomainEvent } from "@/lib/observability/domainLog";
 
 export async function POST(request: NextRequest) {
-  const actorRef = actorFrom(request);
-  if (!actorRef) {
-    return NextResponse.json({ error: "Missing actor" }, { status: 400 });
-  }
+  const session = await requireActorSession(request);
+  if (!isActorSession(session)) return session;
+  const actorRef = session.actorRef;
 
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {
@@ -48,7 +43,7 @@ export async function POST(request: NextRequest) {
       };
 
   try {
-    const assessed = recordRevenueOnce(getEconomicsStore(), {
+    const assessed = await recordRevenueOnce(getEconomicsStore(), {
       revenueId: typeof body.revenueId === "string" ? body.revenueId : `rev:${crypto.randomUUID()}`,
       distributionId:
         typeof body.distributionId === "string" ? body.distributionId : `dist:${crypto.randomUUID()}`,
@@ -62,6 +57,11 @@ export async function POST(request: NextRequest) {
           : undefined,
       workId: typeof body.workId === "string" ? body.workId : undefined,
       releaseId: typeof body.releaseId === "string" ? body.releaseId : undefined,
+    });
+    logDomainEvent("economics.revenue", {
+      actorRef,
+      revenueId: assessed.revenue.revenueId,
+      entitlements: assessed.entitlements.length,
     });
     return NextResponse.json({
       ok: true,

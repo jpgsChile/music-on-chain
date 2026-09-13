@@ -29,7 +29,7 @@ export type ExecuteSettlementResult = {
   payment?: PaymentRecord;
 };
 
-export function openSettlementIntent(
+export async function openSettlementIntent(
   economics: EconomicsStore,
   execution: ExecutionStore,
   input: {
@@ -38,12 +38,12 @@ export function openSettlementIntent(
     intentRef?: string;
     occurredAt?: string;
   }
-): SettlementIntent {
-  const entitlement = economics.getEntitlement(input.entitlementId);
+): Promise<SettlementIntent> {
+  const entitlement = await economics.getEntitlement(input.entitlementId);
   if (!entitlement) throw new Error("ENTITLEMENT_NOT_FOUND");
   if (entitlement.actorRef !== input.actorRef) throw new Error("NOT_BENEFICIARY");
 
-  const existing = execution.getIntentByEntitlement(entitlement.entitlementId);
+  const existing = await execution.getIntentByEntitlement(entitlement.entitlementId);
   if (existing) return existing;
 
   const intent = createSettlementIntent({
@@ -51,11 +51,11 @@ export function openSettlementIntent(
     entitlement,
     occurredAt: input.occurredAt,
   });
-  execution.putIntent(intent);
+  await execution.putIntent(intent);
   return intent;
 }
 
-export function applyExecutionReceipt(input: {
+export async function applyExecutionReceipt(input: {
   economics: EconomicsStore;
   execution: ExecutionStore;
   intent: SettlementIntent;
@@ -65,7 +65,7 @@ export function applyExecutionReceipt(input: {
   previousLifecycle?: ExecutionLifecycle;
   settlementId?: string;
   occurredAt?: string;
-}): ExecuteSettlementResult {
+}): Promise<ExecuteSettlementResult> {
   const receipt = input.receipt;
   if (receipt.intentRef !== input.intent.intentRef) {
     throw new Error("RECEIPT_INTENT_MISMATCH");
@@ -80,10 +80,10 @@ export function applyExecutionReceipt(input: {
     throw new Error("REQUEST_INTENT_MISMATCH");
   }
 
-  const from = input.previousLifecycle ?? input.execution.lifecycle(input.intent.intentRef);
+  const from = input.previousLifecycle ?? (await input.execution.lifecycle(input.intent.intentRef));
   const to = outcomeToLifecycle(receipt.status);
   assertTransition(from, to);
-  input.execution.putReceipt(receipt);
+  await input.execution.putReceipt(receipt);
 
   if (receipt.status !== "CONFIRMED") {
     return {
@@ -94,7 +94,7 @@ export function applyExecutionReceipt(input: {
     };
   }
 
-  if (input.economics.hasSettlementFor(input.entitlement.entitlementId)) {
+  if (await input.economics.hasSettlementFor(input.entitlement.entitlementId)) {
     throw new Error("ENTITLEMENT_ALREADY_SETTLED");
   }
 
@@ -105,8 +105,8 @@ export function applyExecutionReceipt(input: {
     input.request.destinationCapability,
     input.occurredAt ?? receipt.occurredAt
   );
-  input.economics.putEntitlement(completed.entitlement);
-  input.economics.putSettlement(completed.settlement, completed.payment);
+  await input.economics.putEntitlement(completed.entitlement);
+  await input.economics.putSettlement(completed.settlement, completed.payment);
   return {
     intent: input.intent,
     request: input.request,
@@ -130,16 +130,16 @@ export async function executeSettlementIntent(input: {
   settlementId?: string;
   occurredAt?: string;
 }): Promise<ExecuteSettlementResult> {
-  const intent = input.execution.getIntent(input.intentRef);
+  const intent = await input.execution.getIntent(input.intentRef);
   if (!intent) throw new Error("INTENT_NOT_FOUND");
   if (intent.actorRef !== input.actorRef) throw new Error("NOT_BENEFICIARY");
 
-  const entitlement = input.economics.getEntitlement(intent.entitlementId);
+  const entitlement = await input.economics.getEntitlement(intent.entitlementId);
   if (!entitlement) throw new Error("ENTITLEMENT_NOT_FOUND");
 
-  const lifecycle = input.execution.lifecycle(intent.intentRef);
-  const latestReceipt = input.execution.latestReceipt(intent.intentRef);
-  const latestRequestList = input.execution.listRequests(intent.intentRef);
+  const lifecycle = await input.execution.lifecycle(intent.intentRef);
+  const latestReceipt = await input.execution.latestReceipt(intent.intentRef);
+  const latestRequestList = await input.execution.listRequests(intent.intentRef);
   const latestRequest = latestRequestList[latestRequestList.length - 1];
 
   if (lifecycle === "confirmed" && latestReceipt && latestRequest) {
@@ -169,7 +169,7 @@ export async function executeSettlementIntent(input: {
         occurredAt: result.occurredAt,
         metadata: { ...latestReceipt.metadata, ...result.metadata },
       };
-      return applyExecutionReceipt({
+      return await applyExecutionReceipt({
         economics: input.economics,
         execution: input.execution,
         intent,
@@ -189,15 +189,16 @@ export async function executeSettlementIntent(input: {
     };
   }
 
+  const priorRequests = await input.execution.listRequests(intent.intentRef);
   const request = createExecutionRequest({
-    requestRef: input.requestRef ?? `req:${intent.intentRef}:${input.execution.listRequests(intent.intentRef).length}`,
+    requestRef: input.requestRef ?? `req:${intent.intentRef}:${priorRequests.length}`,
     intent,
     destinationCapability: input.destinationCapability,
     executionMode: input.executionMode ?? "off-chain",
     amount: input.amount,
     occurredAt: input.occurredAt,
   });
-  input.execution.putRequest(request);
+  await input.execution.putRequest(request);
 
   const result = await Promise.resolve(input.adapter.execute(request));
   if (result.intentRef !== intent.intentRef || result.requestRef !== request.requestRef) {
@@ -215,7 +216,7 @@ export async function executeSettlementIntent(input: {
     metadata: result.metadata,
   };
 
-  return applyExecutionReceipt({
+  return await applyExecutionReceipt({
     economics: input.economics,
     execution: input.execution,
     intent,

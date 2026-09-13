@@ -22,6 +22,7 @@ export {
 
 export { createMockSettlementExecutionAdapter } from "./mockAdapter";
 export { createMemoryExecutionStore } from "./store";
+export { createPrismaExecutionStore } from "./prismaStore";
 export type { ExecutionStore } from "./store";
 export {
   applyExecutionReceipt,

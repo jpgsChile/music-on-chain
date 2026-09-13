@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { canAttachWallet, normalizeWalletAddress } from "./coherence";
 
 export async function attachWalletToActor(
@@ -10,7 +10,7 @@ export async function attachWalletToActor(
     return { address: null, result: "invalid" };
   }
 
-  const existing = await prisma.actorWallet.findUnique({
+  const existing = await getPrisma().actorWallet.findUnique({
     where: { address: normalized },
   });
   const result = canAttachWallet(existing?.actorRef, actorRef);
@@ -18,7 +18,7 @@ export async function attachWalletToActor(
     return { address: existing?.address ?? normalized, result };
   }
   if (result === "ok") {
-    await prisma.actorWallet.create({
+    await getPrisma().actorWallet.create({
       data: { actorRef, address: normalized },
     });
   }
@@ -32,12 +32,12 @@ export async function revokeWalletFromActor(
 ): Promise<"ok" | "conflict" | "invalid"> {
   const normalized = normalizeWalletAddress(address);
   if (!normalized) return "invalid";
-  const existing = await prisma.actorWallet.findUnique({
+  const existing = await getPrisma().actorWallet.findUnique({
     where: { address: normalized },
   });
   if (!existing) return "ok";
   if (existing.actorRef !== actorRef) return "conflict";
-  await prisma.actorWallet.delete({ where: { id: existing.id } });
+  await getPrisma().actorWallet.delete({ where: { id: existing.id } });
   return "ok";
 }
 
@@ -58,7 +58,7 @@ export async function replaceActorWallet(
 }
 
 export async function getWalletAddressForActor(actorRef: string): Promise<string | null> {
-  const row = await prisma.actorWallet.findFirst({
+  const row = await getPrisma().actorWallet.findFirst({
     where: { actorRef },
     orderBy: { createdAt: "asc" },
   });
@@ -68,6 +68,6 @@ export async function getWalletAddressForActor(actorRef: string): Promise<string
 export async function getActorRefForWallet(address: string): Promise<string | null> {
   const normalized = normalizeWalletAddress(address);
   if (!normalized) return null;
-  const row = await prisma.actorWallet.findUnique({ where: { address: normalized } });
+  const row = await getPrisma().actorWallet.findUnique({ where: { address: normalized } });
   return row?.actorRef ?? null;
 }

@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { moneyToJson, openSettlementIntent } from "@/lib/domain/economics";
 import { getEconomicsStore, getExecutionStore } from "@/lib/domain/economics/runtime";
+import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
+import { logDomainEvent } from "@/lib/observability/domainLog";
 
 export async function POST(request: NextRequest) {
-  const actorRef = request.headers.get("x-actor-ref")?.trim() || "";
-  if (!actorRef) {
-    return NextResponse.json({ error: "Missing actor" }, { status: 400 });
-  }
+  const session = await requireActorSession(request);
+  if (!isActorSession(session)) return session;
+  const actorRef = session.actorRef;
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object" || typeof body.entitlementId !== "string") {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
   try {
-    const intent = openSettlementIntent(getEconomicsStore(), getExecutionStore(), {
+    const intent = await openSettlementIntent(getEconomicsStore(), getExecutionStore(), {
       entitlementId: body.entitlementId,
       actorRef,
       intentRef: typeof body.intentRef === "string" ? body.intentRef : undefined,
       occurredAt: new Date().toISOString(),
+    });
+    logDomainEvent("economics.intent", {
+      actorRef,
+      intentRef: intent.intentRef,
+      entitlementId: intent.entitlementId,
     });
     return NextResponse.json({
       ok: true,
@@ -33,20 +39,21 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const actorRef = request.headers.get("x-actor-ref")?.trim() || "";
-  if (!actorRef) {
-    return NextResponse.json({ error: "Missing actor" }, { status: 400 });
-  }
+  const session = await requireActorSession(request);
+  if (!isActorSession(session)) return session;
+  const actorRef = session.actorRef;
   const execution = getExecutionStore();
   const economics = getEconomicsStore();
-  const intents = economics.listEntitlements(actorRef).flatMap((row) => {
-    const intent = execution.getIntentByEntitlement(row.entitlementId);
-    if (!intent) return [];
-    return [{
+  const entitlements = await economics.listEntitlements(actorRef);
+  const intents = [];
+  for (const row of entitlements) {
+    const intent = await execution.getIntentByEntitlement(row.entitlementId);
+    if (!intent) continue;
+    intents.push({
       ...intent,
       amount: moneyToJson(intent.amount),
-      lifecycle: execution.lifecycle(intent.intentRef),
-    }];
-  });
+      lifecycle: await execution.lifecycle(intent.intentRef),
+    });
+  }
   return NextResponse.json({ ok: true, value: intents });
 }

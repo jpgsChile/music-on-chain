@@ -27,6 +27,9 @@ export {
   settleOnce,
 } from "./store";
 export type { EconomicsStore } from "./store";
+export { createPrismaEconomicsStore } from "./prismaStore";
+export { createPrismaRightsStore } from "./rightsStore";
+export type { RightsStore } from "./rightsStore";
 
 export type {
   AssessedRevenue,
