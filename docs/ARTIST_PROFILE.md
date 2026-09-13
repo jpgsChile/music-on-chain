@@ -6,8 +6,8 @@
 | **Dependencies** | [Documentation Hub](./README.md) · [Standards](./_system/STANDARDS.md) |
 | **Status** | Active |
 | **Owner** | Product / Data |
-| **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Data Model Identity](./data-model/01-aggregates.md) · [Architecture Identity](./backend-architecture/02-bounded-contexts.md) |
+| **Last Updated** | 2026-09-13 |
+| **Related Documents** | [Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Verified Privy session](./MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Data Model Identity](./data-model/01-aggregates.md) · [Architecture Identity](./backend-architecture/02-bounded-contexts.md) |
 
 <!-- doc-id: ARTIST_PROFILE.md -->
 
@@ -30,7 +30,7 @@ Identity binding is [C-BIND/1](./C-BIND.md). **FUTURE WORK:** legal Work entity,
 | Artist | `/dashboard`         | Edit own profile (PUT), view own  |
 | Fan    | `/fan-dashboard`, `/artist/[slug]` | Read-only view of artist profiles |
 
-- **Artist**: Signs in with Privy. Studio session binds AuthSubject → Actor. Channel edit uses `x-actor-ref` (wallet header remains as capability fallback).
+- **Artist**: Signs in with Privy. The server verifies the access token, C-BIND binds AuthSubject → Actor, and Studio uses `moc_actor_session`. Wallet header remains a capability, not identity.
 - **Fan**: No profile edit. Public read `GET /api/artist/profile/[wallet]` still works for catalog lookup.
 
 ## Database schema (Prisma)
@@ -41,10 +41,10 @@ Identity binding is [C-BIND/1](./C-BIND.md). **FUTURE WORK:** legal Work entity,
 
 ## API
 
-- `GET/PUT /api/artist/profile` — Owner channel. Headers: `x-actor-ref` (preferred), `x-artist-wallet` (capability / legacy).
+- `GET/PUT /api/artist/profile` — Owner channel via `moc_actor_session`. `x-artist-wallet` is capability / lookup only.
 - `GET /api/artist/profile/[wallet]` — Public read by wallet lookup.
-- `GET/POST /api/releases` — Releases owned by Actor (`x-actor-ref`).
-- `GET /api/participations` — Revenue shares for an Actor.
+- `GET/POST /api/releases` — Releases owned by the session Actor.
+- `GET /api/participations` — Revenue shares for the session Actor.
 
 ## Setup
 

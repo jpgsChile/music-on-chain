@@ -9,7 +9,7 @@
 | **Status** | Active |
 | **Owner** | Architecture / Product |
 | **Last Updated** | 2026-09-13 |
-| **Related Documents** | [Documentation Hub](./README.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [C-BIND](./C-BIND.md) · [Data Model](./data-model/README.md) |
+| **Related Documents** | [Documentation Hub](./README.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [C-BIND](./C-BIND.md) · [Verified Privy session](./MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md) · [Data Model](./data-model/README.md) |
 
 ---
 
@@ -122,7 +122,7 @@ Unit economics and execution tests still use **in-memory** stores. App runtime u
 
 ## Known limitations
 
-- Privy JWT is not verified server-side (`FUTURE WORK` on `/api/identity/session`).
+- Privy access-token verification: [Verified Privy session](./MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md).
 - Mock execution is the Studio default; Sepolia live settle remains funding-gated.
 - Convenience/protocol fee bps are persisted on `EconomicRevenue` to reconstruct policy; events are not re-hydrated.
 - Tickets/crowdfunding wallet-first surfaces are out of scope for this stage.

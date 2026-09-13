@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { C_BIND_PROFILE } from "@/lib/c-bind/contract";
-import { PRIVY_ISSUER } from "@/lib/c-bind/fromPrivy";
 import { createPrismaCBindStore } from "@/lib/c-bind/prismaStore";
 import { provisionThenBind } from "@/lib/c-bind/session";
-import { parseAuthSubject } from "@/lib/c-bind/authSubject";
 import { attachWalletToActor } from "@/lib/domain/actorWallet";
 import { claimOrphanProfile } from "@/lib/artist-profile/repository";
 import {
@@ -12,38 +10,50 @@ import {
   isActorSession,
   requireActorSession,
 } from "@/lib/auth/actorSession";
+import {
+  PrivyVerificationError,
+  authSubjectFromVerifiedClaim,
+  readPrivyAccessToken,
+} from "@/lib/auth/privyVerifier";
+import { getPrivyVerifier } from "@/lib/auth/privyVerifierRuntime";
 import { logDomainEvent } from "@/lib/observability/domainLog";
 
 /**
- * MOC session: authenticate with Privy on the client, then provision Actor if needed and Bind.
- * Proof `{ sufficient: true }` is a local stand-in after Privy authentication (C-BIND D02).
- * FUTURE WORK: verify Privy tokens server-side.
+ * MOC session: verify Privy access token server-side, then provision Actor if needed and Bind.
+ * C-BIND proof sufficiency is applied only after cryptographic verification of the Privy token.
  */
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => null);
-  if (!body || typeof body !== "object") {
-    return NextResponse.json({ ok: false, error: "INVALID_SUBJECT" }, { status: 400 });
+  const accessToken = readPrivyAccessToken(request.headers.get("authorization"));
+  if (!accessToken) {
+    return NextResponse.json({ ok: false, error: "UNAUTHENTICATED" }, { status: 401 });
   }
 
-  const subject = parseAuthSubject(body.authSubject);
-  if (!subject.ok) {
-    return NextResponse.json(subject, { status: 400 });
+  let verifier;
+  try {
+    verifier = getPrivyVerifier();
+  } catch {
+    return NextResponse.json({ ok: false, error: "PRIVY_VERIFIER_UNAVAILABLE" }, { status: 503 });
   }
 
-  if (subject.value.issuer !== PRIVY_ISSUER) {
-    return NextResponse.json({ ok: false, error: "INVALID_ISSUER" }, { status: 400 });
+  let authSubject;
+  try {
+    const claim = await verifier.verifyAccessToken(accessToken);
+    authSubject = authSubjectFromVerifiedClaim(claim);
+  } catch (error) {
+    const code = error instanceof PrivyVerificationError ? error.code : "INVALID_TOKEN";
+    logDomainEvent("privy.verify.failed", { code });
+    return NextResponse.json({ ok: false, error: code }, { status: 401 });
   }
 
-  const proof = body.proof;
-  if (!proof || typeof proof !== "object" || (proof as { sufficient?: unknown }).sufficient !== true) {
-    return NextResponse.json({ ok: false, error: "INVALID_PROOF" }, { status: 400 });
-  }
-
+  const body = await request.json().catch(() => ({}));
   const store = createPrismaCBindStore();
   const result = await provisionThenBind(store, {
-    authSubject: subject.value,
+    authSubject,
     proof: { sufficient: true },
-    profileVersion: typeof body.profileVersion === "string" ? body.profileVersion : C_BIND_PROFILE,
+    profileVersion:
+      body && typeof body === "object" && typeof body.profileVersion === "string"
+        ? body.profileVersion
+        : C_BIND_PROFILE,
   });
 
   if (!result.ok) {
@@ -52,14 +62,16 @@ export async function POST(request: NextRequest) {
   }
 
   const walletAddress =
-    typeof body.walletAddress === "string" ? body.walletAddress : null;
+    body && typeof body === "object" && typeof body.walletAddress === "string"
+      ? body.walletAddress
+      : null;
   await attachWalletToActor(result.value.actorRef, walletAddress);
   await claimOrphanProfile(result.value.actorRef, walletAddress);
 
   const issued = await issueActorSession({
     actorRef: result.value.actorRef,
-    issuer: subject.value.issuer,
-    subject: subject.value.subject,
+    issuer: authSubject.issuer,
+    subject: authSubject.subject,
   });
   const cookie = actorSessionCookie(issued.token);
   const response = NextResponse.json(

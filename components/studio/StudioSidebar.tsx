@@ -76,7 +76,7 @@ export function StudioAuthGate({ children }: { children: React.ReactNode }) {
   const locale = useLocale();
   const t = getTranslations(locale);
   const { authenticated, ready, user } = useAuth();
-  const session = useCBindSession(authenticated ? user : null, authenticated);
+  const session = useCBindSession(authenticated);
 
   if (!ready || (authenticated && session.loading)) {
     return (

@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { authSubjectFromPrivy } from "@/lib/c-bind/fromPrivy";
+import { usePrivy } from "@privy-io/react-auth";
 import { C_BIND_PROFILE } from "@/lib/c-bind/contract";
 import type { BindingView } from "@/lib/c-bind/types";
-
-type PrivyLikeUser = {
-  id?: string | null;
-  wallet?: { address?: string | null } | null;
-};
 
 type SessionState = {
   loading: boolean;
@@ -16,7 +11,8 @@ type SessionState = {
   error: string | null;
 };
 
-export function useCBindSession(user: PrivyLikeUser | null, authenticated: boolean) {
+export function useCBindSession(authenticated: boolean) {
+  const { getAccessToken, user } = usePrivy();
   const [state, setState] = useState<SessionState>({
     loading: true,
     binding: null,
@@ -29,49 +25,52 @@ export function useCBindSession(user: PrivyLikeUser | null, authenticated: boole
       return;
     }
 
-    const authSubject = authSubjectFromPrivy(user);
-    if (!authSubject) {
-      setState({ loading: false, binding: null, error: "INVALID_SUBJECT" });
-      return;
-    }
-
     let cancelled = false;
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
-    fetch("/api/identity/session", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        authSubject,
-        proof: { sufficient: true },
-        profileVersion: C_BIND_PROFILE,
-        walletAddress: user?.wallet?.address ?? null,
-      }),
-    })
-      .then(async (res) => {
+    void (async () => {
+      try {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+          if (!cancelled) {
+            setState({ loading: false, binding: null, error: "UNAUTHENTICATED" });
+          }
+          return;
+        }
+        const res = await fetch("/api/identity/session", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            profileVersion: C_BIND_PROFILE,
+            walletAddress: user?.wallet?.address ?? null,
+          }),
+        });
         const data = await res.json().catch(() => ({}));
         if (cancelled) return;
         if (!data?.ok) {
           setState({
             loading: false,
             binding: null,
-            error: typeof data.error === "string" ? data.error : "INVALID_PROOF",
+            error: typeof data.error === "string" ? data.error : "UNAUTHENTICATED",
           });
           return;
         }
         setState({ loading: false, binding: data.value as BindingView, error: null });
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) {
-          setState({ loading: false, binding: null, error: "INVALID_PROOF" });
+          setState({ loading: false, binding: null, error: "UNAUTHENTICATED" });
         }
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;
     };
-  }, [authenticated, user?.id]);
+  }, [authenticated, getAccessToken, user?.id, user?.wallet?.address]);
 
   return state;
 }

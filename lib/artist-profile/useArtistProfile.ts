@@ -21,7 +21,6 @@ export function useArtistProfile(wallet: string | undefined, actorRef?: string) 
     try {
       const headers: Record<string, string> = {};
       if (wallet?.trim()) headers["x-artist-wallet"] = wallet;
-      if (actorRef?.trim()) headers["x-actor-ref"] = actorRef;
       const res = await fetch(API, { headers, credentials: "include" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -58,7 +57,6 @@ export function useArtistProfile(wallet: string | undefined, actorRef?: string) 
         "Content-Type": "application/json",
       };
       if (wallet?.trim()) headers["x-artist-wallet"] = wallet;
-      if (actorRef?.trim()) headers["x-actor-ref"] = actorRef;
       const res = await fetch(API, {
         method: "PUT",
         credentials: "include",

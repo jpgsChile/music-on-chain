@@ -31,6 +31,7 @@
     "@moc/shared": "*",
     "@prisma/adapter-better-sqlite3": "^7.4.0",
     "@prisma/client": "^7.4.0",
+    "@privy-io/node": "^0.34.0",
     "@privy-io/react-auth": "^3.13.1",
     "@privy-io/wagmi": "^4.0.1",
     "@tanstack/react-query": "^5.90.16",

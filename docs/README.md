@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Documentation Steward |
 | **Last Updated** | 2026-09-13 |
-| **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Base Sepolia deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md) · [Dev/test environments](./MOC-DEVELOPMENT-TEST-ENVIRONMENT-ARCHITECTURE.md) · [Final Trust-Native validation](./MOC-FINAL-END-TO-END-WEB3-TRUST-NATIVE-ARCHITECTURE-VALIDATION.md) · [Persistent economic ledger](./MOC-PERSISTENT-ECONOMIC-LEDGER-VERIFIED-ACTOR-SESSION.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
+| **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Base Sepolia deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md) · [Dev/test environments](./MOC-DEVELOPMENT-TEST-ENVIRONMENT-ARCHITECTURE.md) · [Final Trust-Native validation](./MOC-FINAL-END-TO-END-WEB3-TRUST-NATIVE-ARCHITECTURE-VALIDATION.md) · [Persistent economic ledger](./MOC-PERSISTENT-ECONOMIC-LEDGER-VERIFIED-ACTOR-SESSION.md) · [Verified Privy session](./MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
 
 ---
 
@@ -55,6 +55,7 @@
 | [MOC-DEVELOPMENT-TEST-ENVIRONMENT-ARCHITECTURE.md](./MOC-DEVELOPMENT-TEST-ENVIRONMENT-ARCHITECTURE.md) | Unit vs local EVM vs fork vs Sepolia; no faucet for daily work |
 | [MOC-FINAL-END-TO-END-WEB3-TRUST-NATIVE-ARCHITECTURE-VALIDATION.md](./MOC-FINAL-END-TO-END-WEB3-TRUST-NATIVE-ARCHITECTURE-VALIDATION.md) | Final E2E Trust-Native architecture verdict |
 | [MOC-PERSISTENT-ECONOMIC-LEDGER-VERIFIED-ACTOR-SESSION.md](./MOC-PERSISTENT-ECONOMIC-LEDGER-VERIFIED-ACTOR-SESSION.md) | Prisma economic ledger, verified Actor session, pilot MVP |
+| [MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md](./MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md) | Privy access token, server verifyAuth, AuthSubject, moc_actor_session |
 | [UPLOAD_WIZARD.md](./UPLOAD_WIZARD.md) | Upload / release wizard notes |
 
 ### Domain features (PoC / evolving)
