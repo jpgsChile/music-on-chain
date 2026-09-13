@@ -117,7 +117,7 @@ None found that prevent publishing a real solo work from Studio or binding a Pri
 2. **Music library UI does not list the persisted release title.** `/dashboard/music` counts API tracks but still renders `ArtistTrackConfig` from `getArtistByWallet` mock data, so **Mirrors** is easy to miss after “Obra publicada”.
 3. **Work title and Release title are the same wizard field.** Aggregates are distinct in Prisma; the UX does not name them separately.
 4. **Upload still carries `tokenId`.** Residual NFT-era field. Must not be treated as Actor or Work identity.
-5. **Collaborators GET-only after publish.** Pending invite without wallet is possible at publish time (`actorRef` nullable on Participation); there is no later “invite collaborator” API.
+5. **Post-publish invite UX is minimal.** Owner can issue a hashed invite; the collaborator must log in and accept at `/dashboard/join`. Authority/UX beyond that (revocation, email delivery) is not built.
 6. **Agent vs artist browser.** The band’s Chrome session published the work; the Cursor automation tab was logged out (401). Operator tooling must not scrape cookies.
 
 Historical Studio simulation `rev:491d03b4-6c6f-4c13-8268-3c76f46cde7d` remains unlinked (`workId`/`releaseId` null). It was **not** rewritten. Later Studio simulations require an owned Work, and Release when one is selected. Mock receipts still use adapter outcome `CONFIRMED` and always stamp `adapter: mock`, `simulated: true`, `onChain: false`.
@@ -146,7 +146,7 @@ ERC-4337 · AA · NFT · tokenization · marketplace · crowdfunding · fan toke
 
 ## Next operator step (same band, no new architecture)
 
-While logged in as Cleaver: **Artist Studio → Regalías → Simular ingreso → Liquidar**. Confirm the row says liquidación simulada, not on-chain. Then optionally `npm run test:sepolia` as infrastructure, not as this Work’s settlement.
+While logged in as Cleaver: **Artist Studio → Colaboradores** to invite Carlos Concha and Pablo Guzman. Each collaborator signs in with their own Privy identity and accepts. Then **Regalías → Vengeance → Simular ingreso → Liquidar**. Confirm liquidación simulada. Do not reuse historical `rev:491d03b4-…`.
 
 ---
 

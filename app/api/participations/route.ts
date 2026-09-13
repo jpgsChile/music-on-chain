@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listParticipationsByActor } from "@/lib/domain/releaseRepository";
+import { participationBindingStatus } from "@/lib/domain/participation/invite";
 import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
 
 export async function GET(request: NextRequest) {
@@ -11,7 +12,22 @@ export async function GET(request: NextRequest) {
   }
   try {
     const participations = await listParticipationsByActor(session.actorRef);
-    return NextResponse.json({ ok: true, value: participations });
+    return NextResponse.json({
+      ok: true,
+      value: participations.map((row) => ({
+        id: row.id,
+        displayName: row.displayName,
+        role: row.role,
+        revenueSharePercent: row.revenueSharePercent,
+        actorRef: row.actorRef,
+        release: row.release,
+        bindingStatus: participationBindingStatus({
+          actorRef: row.actorRef,
+          invited: Boolean(row.invite && !row.invite.acceptedAt),
+        }),
+        canInvite: row.release.actorRef === session.actorRef && !row.actorRef,
+      })),
+    });
   } catch (e) {
     console.error("[GET /api/participations]", e);
     return NextResponse.json({ error: "Failed to list participations" }, { status: 500 });

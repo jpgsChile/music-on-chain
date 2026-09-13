@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   MOC_PRODUCT_FEE_POLICY_V1,
+  distributionRuleFromRelease,
   money,
   moneyToJson,
   recordRevenueOnce,
@@ -10,6 +11,7 @@ import { getEconomicsStore } from "@/lib/domain/economics/runtime";
 import { resolveOwnedMusicalContext } from "@/lib/domain/releaseRepository";
 import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
 import { logDomainEvent } from "@/lib/observability/domainLog";
+import { getPrisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   const session = await requireActorSession(request);
@@ -34,8 +36,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: context.error }, { status: 400 });
   }
 
-  const rule: DistributionRule = shares
-    ? {
+  let rule: DistributionRule;
+  try {
+    if (context.releaseId) {
+      rule = await distributionRuleFromRelease(context.releaseId, getPrisma());
+    } else if (shares) {
+      rule = {
         ruleId: typeof body.ruleId === "string" ? body.ruleId : "posted-rule",
         shares: shares.map((share: { actorRef?: string; bps?: number; sourceKind?: string; sourceId?: string }) => ({
           actorRef: String(share.actorRef ?? ""),
@@ -45,11 +51,17 @@ export async function POST(request: NextRequest) {
             id: share.sourceId,
           },
         })),
-      }
-    : {
+      };
+    } else {
+      rule = {
         ruleId: "solo-recorder",
         shares: [{ actorRef, bps: 10_000, source: { kind: "rule" } }],
       };
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "DISTRIBUTION_FAILED";
+    return NextResponse.json({ ok: false, error: message }, { status: 400 });
+  }
 
   try {
     const assessed = await recordRevenueOnce(getEconomicsStore(), {

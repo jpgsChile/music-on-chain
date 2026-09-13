@@ -135,9 +135,23 @@ model Participation {
   role                String
   revenueSharePercent Float
   createdAt           DateTime     @default(now())
+  invite              ParticipationInvite?
 
   @@index([releaseId])
   @@index([actorRef])
+}
+
+/// Opaque invite for a pending Participation. Token stored hashed. Not Actor identity.
+model ParticipationInvite {
+  id                 String        @id @default(cuid())
+  participationId    String        @unique
+  participation      Participation @relation(fields: [participationId], references: [id], onDelete: Cascade)
+  tokenHash          String        @unique
+  createdByActorRef  String
+  acceptedAt         DateTime?
+  createdAt          DateTime      @default(now())
+
+  @@index([tokenHash])
 }
 
 /// Persistence mapping for economics. Domain specification: lib/domain/economics

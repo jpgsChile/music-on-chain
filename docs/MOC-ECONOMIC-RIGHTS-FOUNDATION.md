@@ -62,6 +62,14 @@ Engine events: `RevenueRecorded`, `FeesAssessed`, `RevenueDistributed`, `Entitle
 
 Wallet may appear on Settlement as `destinationWallet` (execution capability). It is never the beneficiary.
 
+## Participation-sourced distribution
+
+When Studio records revenue against a **Release**, the server derives `Distribution` from persisted `Participation.revenueSharePercent` (`source.kind = participation`). Basis points are `percent × 100`. The sum must be `10000`; the engine rejects otherwise and does not normalize.
+
+`beneficiary` is `ActorRef` after the collaborator authenticates (Privy → AuthSubject → C-BIND/1) and accepts an invite. Email, wallet, and Privy `user.id` are not beneficiaries. Binding does **not** create `DomainRight`. Participation ≠ Rights.
+
+Unbound rows (`actorRef` null) reject the revenue with `PARTICIPANTS_UNBOUND`.
+
 ## Limits
 
 - No blockchain, smart contracts, tokenization, IPFS/Arweave, escrow, or payment rails.

@@ -142,7 +142,10 @@ export async function listParticipationsByActor(actorRef: string) {
     where: {
       OR: [{ actorRef }, { release: { actorRef } }],
     },
-    include: { release: { select: { id: true, title: true, actorRef: true } } },
+    include: {
+      release: { select: { id: true, title: true, actorRef: true } },
+      invite: { select: { acceptedAt: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 }

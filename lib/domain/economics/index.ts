@@ -10,6 +10,12 @@ export {
 export type { FeeKind, ProtocolFeePolicy } from "./policy";
 
 export { allocateByBps } from "./rounding";
+export {
+  distributionRuleFromParticipations,
+  distributionRuleFromRelease,
+  percentToBps,
+} from "./fromParticipation";
+export type { ParticipationShareRow } from "./fromParticipation";
 
 export {
   applyDistributionRule,
