@@ -10,14 +10,10 @@ const privyConfig = {
   loginMethods: ["wallet", "google", "email", "passkey"],
   appearance: {
     theme: "dark",
-    walletList: [
-      "core",
-      "coinbase_wallet",
-      "base_account",
-      "metamask",
-      "wallet_connect_qr",
-      "detected_ethereum_wallets",
-    ],
+    // Privy 3.13 wraps each listed wallet in PrivyProxyProvider.setWalletProvider()
+    // and always calls provider.on(). `base_account` (@base-org/account getProvider)
+    // and `detected_ethereum_wallets` / `core` can supply a non-EventEmitter object.
+    walletList: ["metamask", "coinbase_wallet"],
   },
   embeddedWallets: {
     ethereum: {
