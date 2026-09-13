@@ -173,7 +173,12 @@ describe("Real economic Studio surface", { timeout: 20_000 }, () => {
         headers: { cookie: carlosCookie },
       })
     );
-    expect(asCarlosRelease.status).toBe(400);
+    const carlosReleaseJson = await asCarlosRelease.json();
+    expect(asCarlosRelease.status).toBe(200);
+    expect(carlosReleaseJson.access).toBe("participant");
+    expect(carlosReleaseJson.value).toHaveLength(1);
+    expect(carlosReleaseJson.value[0].actorRef).toBe(carlos);
+    expect(carlosReleaseJson.value[0].shareBps).toBe(8000);
 
     const asCarlosOwn = await getEntitlements(
       new NextRequest("http://localhost/api/economics/entitlements", { headers: { cookie: carlosCookie } })

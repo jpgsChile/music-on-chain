@@ -50,6 +50,11 @@ export default function StudioRoyaltiesPage() {
           assetLabel: t.assetLabel,
           withdrawSoon: t.withdrawSoon,
           beneficiaryLabel: t.beneficiaryLabel,
+          roleOwner: t.roleOwner,
+          roleParticipant: t.roleParticipant,
+          roleBeneficiary: t.roleBeneficiary,
+          ownerCaption: t.ownerCaption,
+          participantCatalogHint: t.participantCatalogHint,
         }}
       />
     </div>

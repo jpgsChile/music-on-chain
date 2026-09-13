@@ -143,9 +143,45 @@ export async function listParticipationsByActor(actorRef: string) {
       OR: [{ actorRef }, { release: { actorRef } }],
     },
     include: {
-      release: { select: { id: true, title: true, actorRef: true } },
+      release: {
+        select: {
+          id: true,
+          title: true,
+          actorRef: true,
+          workId: true,
+          work: { select: { title: true } },
+        },
+      },
       invite: { select: { acceptedAt: true } },
     },
     orderBy: { createdAt: "desc" },
   });
+}
+
+export type EconomicReleaseAccess =
+  | { access: "owner"; workId: string; releaseId: string }
+  | { access: "participant"; workId: string; releaseId: string }
+  | { error: "FORBIDDEN" };
+
+/** Owner of the Release, or bound participant. Does not grant ownership. */
+export async function resolveEconomicReleaseAccess(
+  actorRef: string,
+  releaseId: string
+): Promise<EconomicReleaseAccess> {
+  const id = releaseId.trim();
+  if (!id) return { error: "FORBIDDEN" };
+  const release = await getPrisma().musicRelease.findUnique({
+    where: { id },
+    select: { id: true, workId: true, actorRef: true },
+  });
+  if (!release) return { error: "FORBIDDEN" };
+  if (release.actorRef === actorRef) {
+    return { access: "owner", workId: release.workId, releaseId: release.id };
+  }
+  const participation = await getPrisma().participation.findFirst({
+    where: { releaseId: release.id, actorRef },
+    select: { id: true },
+  });
+  if (!participation) return { error: "FORBIDDEN" };
+  return { access: "participant", workId: release.workId, releaseId: release.id };
 }

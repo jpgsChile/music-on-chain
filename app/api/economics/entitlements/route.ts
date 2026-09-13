@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { moneyToJson, type AssessedRevenue, type EconomicEntitlement } from "@/lib/domain/economics";
 import { getEconomicsStore, getExecutionStore } from "@/lib/domain/economics/runtime";
-import { resolveOwnedMusicalContext } from "@/lib/domain/releaseRepository";
+import { resolveEconomicReleaseAccess } from "@/lib/domain/releaseRepository";
 import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
 
 async function wireEntitlement(row: EconomicEntitlement, origin: AssessedRevenue | null) {
@@ -53,23 +53,33 @@ export async function GET(request: NextRequest) {
   const releaseId = request.nextUrl.searchParams.get("releaseId")?.trim() || "";
 
   if (releaseId) {
-    const owned = await resolveOwnedMusicalContext(actorRef, { releaseId });
-    if ("error" in owned) {
-      return NextResponse.json({ ok: false, error: owned.error }, { status: 400 });
+    const access = await resolveEconomicReleaseAccess(actorRef, releaseId);
+    if ("error" in access) {
+      return NextResponse.json({ ok: false, error: access.error }, { status: 403 });
     }
     const assessed = (await economics.listRevenues())
       .filter((row) => row.revenue.releaseId === releaseId)
       .sort((a, b) => a.revenue.occurredAt.localeCompare(b.revenue.occurredAt));
+    const scoped =
+      access.access === "owner"
+        ? assessed
+        : assessed
+            .map((item) => ({
+              ...item,
+              entitlements: item.entitlements.filter((row) => row.actorRef === actorRef),
+            }))
+            .filter((item) => item.entitlements.length > 0);
     const value = [];
-    for (const item of assessed) {
+    for (const item of scoped) {
       for (const row of item.entitlements) {
         value.push(await wireEntitlement(row, item));
       }
     }
     return NextResponse.json({
       ok: true,
+      access: access.access,
       value,
-      revenues: assessed.map(wireRevenue),
+      revenues: scoped.map(wireRevenue),
     });
   }
 

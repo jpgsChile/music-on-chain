@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listParticipationsByActor } from "@/lib/domain/releaseRepository";
 import { participationBindingStatus } from "@/lib/domain/participation/invite";
+import { getProfileByActorRef } from "@/lib/artist-profile/repository";
 import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
 
 export async function GET(request: NextRequest) {
@@ -12,6 +13,14 @@ export async function GET(request: NextRequest) {
   }
   try {
     const participations = await listParticipationsByActor(session.actorRef);
+    const ownerNames = new Map<string, string | null>();
+    for (const row of participations) {
+      const ownerRef = row.release.actorRef;
+      if (!ownerNames.has(ownerRef)) {
+        const profile = await getProfileByActorRef(ownerRef);
+        ownerNames.set(ownerRef, profile?.artisticName?.trim() || null);
+      }
+    }
     return NextResponse.json({
       ok: true,
       value: participations.map((row) => ({
@@ -20,7 +29,14 @@ export async function GET(request: NextRequest) {
         role: row.role,
         revenueSharePercent: row.revenueSharePercent,
         actorRef: row.actorRef,
-        release: row.release,
+        release: {
+          id: row.release.id,
+          title: row.release.title,
+          actorRef: row.release.actorRef,
+          workId: row.release.workId,
+          work: row.release.work,
+          ownerDisplayName: ownerNames.get(row.release.actorRef) ?? null,
+        },
         bindingStatus: participationBindingStatus({
           actorRef: row.actorRef,
           invited: Boolean(row.invite && !row.invite.acceptedAt),
