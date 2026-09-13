@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useStudioIdentity } from "@/lib/identity/StudioIdentity";
 import { isOnChainReceipt, isSimulatedMockReceipt } from "@/lib/domain/economics/execution/semantics";
 
@@ -8,6 +8,8 @@ type LedgerCopy = {
   ledgerTitle: string;
   ledgerHint: string;
   emptyLedger: string;
+  emptyMovements: string;
+  emptySplit: string;
   simulateRevenue: string;
   settle: string;
   accrued: string;
@@ -30,6 +32,15 @@ type LedgerCopy = {
   selectReleaseHint: string;
   noCatalog: string;
   originLabel: string;
+  splitTitle: string;
+  revenueTitle: string;
+  entitlementsTitle: string;
+  balanceAccrued: string;
+  balanceSettled: string;
+  noBalance: string;
+  assetLabel: string;
+  withdrawSoon: string;
+  beneficiaryLabel: string;
 };
 
 type CatalogRelease = {
@@ -37,7 +48,16 @@ type CatalogRelease = {
   title: string;
   workId: string;
   work?: { title?: string } | null;
+  participations?: {
+    id: string;
+    displayName: string;
+    role: string;
+    revenueSharePercent: number;
+    actorRef: string | null;
+  }[];
 };
+
+type MoneyWire = { units: string; scale: number; asset: string };
 
 type EntitlementWire = {
   entitlementId: string;
@@ -47,7 +67,8 @@ type EntitlementWire = {
   releaseId?: string | null;
   status: string;
   shareBps: number;
-  amount: { units: string; scale: number; asset: string };
+  source?: { kind?: string; id?: string };
+  amount: MoneyWire;
   execution?: {
     intentRef: string;
     lifecycle: string;
@@ -60,7 +81,17 @@ type EntitlementWire = {
   } | null;
 };
 
-function formatAmount(amount: { units: string; scale: number; asset: string }) {
+type RevenueWire = {
+  revenueId: string;
+  workId: string | null;
+  releaseId: string | null;
+  ruleId: string;
+  gross: MoneyWire;
+  net: MoneyWire;
+  fees: { kind: string; bps: number; amount: MoneyWire }[];
+};
+
+function formatAmount(amount: MoneyWire) {
   const value = Number(amount.units) / 10 ** amount.scale;
   return `${value.toFixed(2)} ${amount.asset}`;
 }
@@ -90,35 +121,77 @@ function executionLabel(copy: LedgerCopy, row: EntitlementWire): string {
 export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
   const { actorRef } = useStudioIdentity();
   const [rows, setRows] = useState<EntitlementWire[]>([]);
+  const [revenues, setRevenues] = useState<RevenueWire[]>([]);
   const [catalog, setCatalog] = useState<CatalogRelease[]>([]);
   const [selectedReleaseId, setSelectedReleaseId] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const selected = catalog.find((row) => row.id === selectedReleaseId) ?? null;
+
   const refresh = useCallback(async () => {
-    const [entitlementsRes, releasesRes] = await Promise.all([
-      fetch("/api/economics/entitlements", { credentials: "include" }),
-      fetch("/api/releases", { credentials: "include" }),
-    ]);
-    const entitlementsData = await entitlementsRes.json().catch(() => ({}));
+    const releasesRes = await fetch("/api/releases", { credentials: "include" });
     const releasesData = await releasesRes.json().catch(() => ({}));
-    setRows(Array.isArray(entitlementsData.value) ? entitlementsData.value : []);
     const releases: CatalogRelease[] = Array.isArray(releasesData.value) ? releasesData.value : [];
     setCatalog(releases);
     setSelectedReleaseId((current) => {
       if (current && releases.some((row) => row.id === current)) return current;
-      return releases.length === 1 ? releases[0].id : "";
+      return "";
     });
-  }, [actorRef]);
+  }, []);
+
+  const refreshLedger = useCallback(async (releaseId: string) => {
+    if (!releaseId) {
+      setRows([]);
+      setRevenues([]);
+      return;
+    }
+    const entitlementsRes = await fetch(
+      `/api/economics/entitlements?releaseId=${encodeURIComponent(releaseId)}`,
+      { credentials: "include" }
+    );
+    const entitlementsData = await entitlementsRes.json().catch(() => ({}));
+    setRows(Array.isArray(entitlementsData.value) ? entitlementsData.value : []);
+    setRevenues(Array.isArray(entitlementsData.revenues) ? entitlementsData.revenues : []);
+  }, []);
 
   useEffect(() => {
     refresh().catch(() => {
-      setRows([]);
       setCatalog([]);
     });
   }, [refresh]);
 
-  const selected = catalog.find((row) => row.id === selectedReleaseId) ?? null;
+  useEffect(() => {
+    refreshLedger(selectedReleaseId).catch(() => {
+      setRows([]);
+      setRevenues([]);
+    });
+  }, [selectedReleaseId, refreshLedger]);
+
+  const nameByActor = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const row of selected?.participations ?? []) {
+      if (row.actorRef) map.set(row.actorRef, row.displayName);
+    }
+    return map;
+  }, [selected]);
+
+  const balances = useMemo(() => {
+    const byActor = new Map<string, { accrued: number; settled: number; asset: string; scale: number }>();
+    for (const row of rows) {
+      const current = byActor.get(row.actorRef) ?? {
+        accrued: 0,
+        settled: 0,
+        asset: row.amount.asset,
+        scale: row.amount.scale,
+      };
+      const units = Number(row.amount.units);
+      if (row.status === "settled") current.settled += units;
+      else current.accrued += units;
+      byActor.set(row.actorRef, current);
+    }
+    return byActor;
+  }, [rows]);
 
   async function simulate() {
     if (!selected) {
@@ -131,9 +204,7 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
       const res = await fetch("/api/economics/revenue", {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           grossUnits: "1000000",
           asset: "USDC",
@@ -148,7 +219,7 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
       setNotice(
         `${copy.gross} ${formatAmount(data.value.gross)} · ${copy.protocolFee} ${formatAmount(data.value.fees[0].amount)} · ${copy.net} ${formatAmount(data.value.net)}`
       );
-      await refresh();
+      await refreshLedger(selected.id);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : copy.error);
     } finally {
@@ -163,14 +234,12 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
       const res = await fetch("/api/economics/settlements", {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ entitlementId }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? copy.error);
-      await refresh();
+      await refreshLedger(selectedReleaseId);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : copy.error);
     } finally {
@@ -179,13 +248,15 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
   }
 
   const canSimulate = Boolean(selected) && !busy;
+  const split = selected?.participations ?? [];
 
   return (
-    <section className="mb-8 rounded-xl border border-border/60 bg-background/40 p-5">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+    <section className="mb-8 space-y-6 rounded-xl border border-border/60 bg-background/40 p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-medium">{copy.ledgerTitle}</h2>
           <p className="mt-1 max-w-xl text-sm text-foreground/60">{copy.ledgerHint}</p>
+          <p className="mt-1 text-xs text-foreground/45">{copy.assetLabel}</p>
         </div>
         <button
           type="button"
@@ -196,10 +267,11 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
           {copy.simulateRevenue}
         </button>
       </div>
+
       {catalog.length === 0 ? (
-        <p className="mb-3 text-sm text-foreground/50">{copy.noCatalog}</p>
+        <p className="text-sm text-foreground/50">{copy.noCatalog}</p>
       ) : (
-        <label className="mb-3 block text-sm text-foreground/70">
+        <label className="block text-sm text-foreground/70">
           <span className="mb-1 block font-medium text-foreground">{copy.selectRelease}</span>
           <span className="mb-2 block text-xs text-foreground/50">{copy.selectReleaseHint}</span>
           <select
@@ -207,7 +279,7 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
             value={selectedReleaseId}
             onChange={(event) => setSelectedReleaseId(event.target.value)}
           >
-            {catalog.length > 1 ? <option value="">{copy.selectRelease}</option> : null}
+            <option value="">{copy.selectRelease}</option>
             {catalog.map((row) => (
               <option key={row.id} value={row.id}>
                 {(row.work?.title || row.title) + " · " + row.title}
@@ -216,55 +288,132 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
           </select>
         </label>
       )}
-      {notice ? <p className="mb-3 text-sm text-foreground/70">{notice}</p> : null}
-      {rows.length === 0 ? (
-        <p className="text-sm text-foreground/50">{copy.emptyLedger}</p>
+
+      {notice ? <p className="text-sm text-foreground/70">{notice}</p> : null}
+
+      {!selected ? (
+        catalog.length > 0 ? <p className="text-sm text-foreground/50">{copy.selectReleaseHint}</p> : null
       ) : (
-        <ul className="space-y-2">
-          {rows.map((row) => {
-            const receipt = row.execution?.receipt;
-            const simulated = receipt ? isSimulatedMockReceipt(receipt) : false;
-            const catalogMatch = catalog.find((item) => item.id === row.releaseId);
-            const origin = catalogMatch
-              ? `${copy.originLabel} ${catalogMatch.work?.title || catalogMatch.title}`
-              : row.workId
-                ? `${copy.originLabel} ${row.workId}`
-                : null;
-            return (
-              <li
-                key={row.entitlementId}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/40 px-3 py-2 text-sm"
-              >
-                <span>
-                  {formatAmount(row.amount)} · {executionLabel(copy, row)}
-                  {origin ? (
-                    <span className="mt-1 block text-xs text-foreground/45">{origin}</span>
-                  ) : null}
-                  {row.execution?.intentRef ? (
-                    <span className="mt-1 block text-xs text-foreground/45">
-                      {copy.execIntent} {shortenRef(row.execution.intentRef)}
+        <>
+          <div>
+            <h3 className="mb-2 text-sm font-medium">{copy.splitTitle}</h3>
+            {split.length === 0 ? (
+              <p className="text-sm text-foreground/50">{copy.emptySplit}</p>
+            ) : (
+              <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+                {split.map((row) => (
+                  <li key={row.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                    <span>
+                      {row.displayName}
+                      <span className="mt-0.5 block text-xs text-foreground/45">{row.role}</span>
                     </span>
-                  ) : null}
-                  {receipt?.externalRef && !simulated ? (
-                    <span className="block text-xs text-foreground/45">
-                      {copy.execReference} {shortenRef(receipt.externalRef)}
-                    </span>
-                  ) : null}
-                </span>
-                {row.status === "accrued" ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void settle(row.entitlementId)}
-                    className="rounded-md border border-border px-3 py-1 text-xs disabled:opacity-60"
-                  >
-                    {copy.settle}
-                  </button>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
+                    <span className="font-mono">{row.revenueSharePercent}%</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-sm font-medium">{copy.revenueTitle}</h3>
+            {revenues.length === 0 ? (
+              <p className="text-sm text-foreground/50">{copy.emptyMovements}</p>
+            ) : (
+              <ul className="space-y-2">
+                {revenues.map((row) => {
+                  const protocol = row.fees.find((fee) => fee.kind === "protocol");
+                  return (
+                    <li key={row.revenueId} className="rounded-lg border border-border/40 px-3 py-2 text-sm">
+                      <p>
+                        {copy.originLabel} {selected.work?.title || selected.title} · {selected.title}
+                      </p>
+                      <p className="mt-1 text-foreground/70">
+                        {copy.gross} {formatAmount(row.gross)} · {copy.protocolFee}{" "}
+                        {protocol ? formatAmount(protocol.amount) : "—"} · {copy.net} {formatAmount(row.net)}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-sm font-medium">{copy.entitlementsTitle}</h3>
+            {rows.length === 0 ? (
+              <p className="text-sm text-foreground/50">{copy.emptyLedger}</p>
+            ) : (
+              <ul className="space-y-2">
+                {rows.map((row) => {
+                  const receipt = row.execution?.receipt;
+                  const simulated = receipt ? isSimulatedMockReceipt(receipt) : false;
+                  const onChain = receipt ? isOnChainReceipt(receipt) : false;
+                  const name = nameByActor.get(row.actorRef) ?? copy.beneficiaryLabel;
+                  const percent = row.shareBps / 100;
+                  return (
+                    <li
+                      key={row.entitlementId}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/40 px-3 py-2 text-sm"
+                    >
+                      <span>
+                        {name} · {percent}% · {formatAmount(row.amount)} · {executionLabel(copy, row)}
+                        {row.execution?.intentRef ? (
+                          <span className="mt-1 block text-xs text-foreground/45">
+                            {copy.execIntent} {shortenRef(row.execution.intentRef)}
+                          </span>
+                        ) : null}
+                        {receipt?.externalRef && onChain && !simulated ? (
+                          <span className="block text-xs text-foreground/45">
+                            {copy.execReference} {shortenRef(receipt.externalRef)}
+                          </span>
+                        ) : null}
+                      </span>
+                      {row.status === "accrued" && row.actorRef === actorRef ? (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void settle(row.entitlementId)}
+                          className="rounded-md border border-border px-3 py-1 text-xs disabled:opacity-60"
+                        >
+                          {copy.settle}
+                        </button>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-sm font-medium">{copy.balanceAccrued}</h3>
+            {split.length === 0 ? (
+              <p className="text-sm text-foreground/50">{copy.noBalance}</p>
+            ) : (
+              <ul className="space-y-2">
+                {split.map((row) => {
+                  const ledger = row.actorRef ? balances.get(row.actorRef) : undefined;
+                  const scale = ledger?.scale ?? 6;
+                  const asset = ledger?.asset ?? "USDC";
+                  const accrued = ledger ? ledger.accrued / 10 ** scale : 0;
+                  const settledAmt = ledger ? ledger.settled / 10 ** scale : 0;
+                  return (
+                    <li key={row.id} className="rounded-lg border border-border/40 px-3 py-2 text-sm">
+                      <p>
+                        {row.displayName} · {row.revenueSharePercent}%
+                      </p>
+                      <p className="mt-1 text-xs text-foreground/55">
+                        {copy.balanceAccrued}: {accrued.toFixed(2)} {asset} · {copy.balanceSettled}:{" "}
+                        {settledAmt.toFixed(2)} {asset}
+                      </p>
+                      <p className="mt-1 text-xs text-foreground/40">{copy.withdrawSoon}</p>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </>
       )}
     </section>
   );

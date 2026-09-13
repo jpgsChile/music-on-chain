@@ -1,3 +1,4 @@
+/** Isolated demo fixture. Must not be imported by Artist Studio royalties. */
 import type { RoyaltyEngineSnapshot, RoyaltyParticipant, RoyaltyPaymentEvent } from "./types";
 
 /** Demo split from product brief */

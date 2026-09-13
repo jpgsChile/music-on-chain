@@ -2,7 +2,6 @@
 
 import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
-import RoyaltyEngine from "@/components/royalty-engine/RoyaltyEngine";
 import EconomicLedger from "@/components/economics/EconomicLedger";
 import { StudioPageHeader } from "@/components/studio/StudioStates";
 
@@ -18,6 +17,8 @@ export default function StudioRoyaltiesPage() {
           ledgerTitle: t.ledgerTitle,
           ledgerHint: t.ledgerHint,
           emptyLedger: t.emptyLedger,
+          emptyMovements: t.emptyMovements,
+          emptySplit: t.emptySplit,
           simulateRevenue: t.simulateRevenue,
           settle: t.settle,
           accrued: t.accrued,
@@ -40,9 +41,17 @@ export default function StudioRoyaltiesPage() {
           selectReleaseHint: t.selectReleaseHint,
           noCatalog: t.noCatalog,
           originLabel: t.originLabel,
+          splitTitle: t.splitTitle,
+          revenueTitle: t.revenueTitle,
+          entitlementsTitle: t.entitlementsTitle,
+          balanceAccrued: t.balanceAccrued,
+          balanceSettled: t.balanceSettled,
+          noBalance: t.noBalance,
+          assetLabel: t.assetLabel,
+          withdrawSoon: t.withdrawSoon,
+          beneficiaryLabel: t.beneficiaryLabel,
         }}
       />
-      <RoyaltyEngine />
     </div>
   );
 }

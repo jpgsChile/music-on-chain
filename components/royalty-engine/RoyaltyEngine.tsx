@@ -1,5 +1,6 @@
 "use client";
 
+/** Isolated demo UI. Not mounted on Artist Studio royalties. */
 import { useCallback, useMemo, useState } from "react";
 import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
