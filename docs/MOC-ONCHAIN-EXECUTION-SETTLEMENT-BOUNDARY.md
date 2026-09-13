@@ -7,7 +7,7 @@
 | **Status** | Active |
 | **Owner** | Architecture / Domain |
 | **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Hub](./README.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [C-BIND/1](./C-BIND.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Sepolia deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md) |
+| **Related Documents** | [Hub](./README.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [C-BIND/1](./C-BIND.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Sepolia deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md) · [Dev/test environments](./MOC-DEVELOPMENT-TEST-ENVIRONMENT-ARCHITECTURE.md) |
 
 <!-- doc-id: MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md -->
 

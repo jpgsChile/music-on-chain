@@ -1,6 +1,7 @@
 import { createPublicClient, createWalletClient, defineChain, http, isAddress, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { MOC_SETTLEMENT_VERSION } from "./abi";
+import { BASE_MAINNET_CHAIN_ID, assertNotMainnetChainId } from "./sepoliaGuard";
 import { createBaseSettlementAdapter, type BaseSettlementAdapter } from "./adapter";
 import { createViemBaseChainPort } from "./viemPort";
 import type { BaseSettlementConfig } from "./types";
@@ -36,6 +37,9 @@ export function readBaseSettlementEnv(
     : (env.MOC_SETTLEMENT_USDC_ADDRESS?.trim() ?? "");
   const executorAddress = env.MOC_SETTLEMENT_EXECUTOR_ADDRESS?.trim() ?? "";
   if (!Number.isInteger(chainId) || chainId <= 0) return null;
+  if (chainId === BASE_MAINNET_CHAIN_ID) {
+    throw new Error("MAINNET_FORBIDDEN");
+  }
   if (!rpcUrl || !isAddress(contractAddress) || !isAddress(usdcAddress) || !isAddress(executorAddress)) {
     return null;
   }
@@ -80,6 +84,7 @@ export function createBaseSettlementAdapterWithSigner(input: {
   env: BaseRuntimeEnv;
   executorKey: Hex;
 }): BaseSettlementAdapter {
+  assertNotMainnetChainId(input.env.chainId);
   const account = privateKeyToAccount(input.executorKey);
   if (account.address.toLowerCase() !== input.env.executorAddress.toLowerCase()) {
     throw new Error("EXECUTOR_KEY_ADDRESS_MISMATCH");

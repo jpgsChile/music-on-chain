@@ -17,6 +17,7 @@ import {
   BASE_SEPOLIA_CHAIN_ID,
   SEPOLIA_MIN_EXECUTOR_WEI,
   assertBaseSepoliaChainId,
+  gasShortageMessage,
   sepoliaContractUrl,
   sepoliaTxUrl,
 } from "./sepoliaGuard";
@@ -91,7 +92,7 @@ export async function assertSepoliaNetwork(publicClient: PublicClient): Promise<
 export async function assertExecutorFunded(publicClient: PublicClient, executor: Address): Promise<bigint> {
   const balance = await publicClient.getBalance({ address: executor });
   if (balance < SEPOLIA_MIN_EXECUTOR_WEI) {
-    throw new Error("GAS_ERROR");
+    throw new Error(gasShortageMessage(balance));
   }
   return balance;
 }

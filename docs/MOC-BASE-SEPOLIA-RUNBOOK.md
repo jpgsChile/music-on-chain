@@ -44,7 +44,16 @@ The deploy path calls `provider.getChainId()`. It must be **84532**. Mainnet **8
 
 ## 4. Validate balance
 
-Executor native balance must be ≥ `0.003 ETH`. Otherwise `GAS_ERROR`.
+Executor native balance must be ≥ `0.003 ETH` on **Base Sepolia** (chainId 84532). Otherwise `GAS_ERROR`.
+
+A connected signer with **0 ETH** still fails here: RPC and chain are valid; there is no gas to deploy.
+
+Fund the executor address (the one printed as `executorAddress`, never the private key) with testnet ETH:
+
+- Faucet list (official): https://docs.base.org/chain/network-faucets
+- Confirm on explorer: `https://sepolia.basescan.org/address/<executorAddress>`
+
+Do not send mainnet ETH. Do not use production treasury.
 
 ## 5. Deploy
 

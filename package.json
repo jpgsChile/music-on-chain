@@ -14,8 +14,10 @@
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run",
+    "test": "vitest run --exclude lib/domain/economics/execution/base/contract.test.ts --exclude lib/domain/economics/execution/base/integration.test.ts --exclude lib/domain/economics/execution/base/localEvm.matrix.test.ts --exclude lib/domain/economics/execution/base/sepolia.live.test.ts --exclude lib/domain/economics/execution/base/sepolia.fork.test.ts",
     "test:watch": "vitest",
+    "test:e2e": "vitest run lib/domain/economics/execution/base/contract.test.ts lib/domain/economics/execution/base/integration.test.ts lib/domain/economics/execution/base/localEvm.matrix.test.ts",
+    "test:fork": "vitest run lib/domain/economics/execution/base/sepolia.fork.test.ts",
     "test:contracts": "forge test",
     "test:sepolia": "vitest run lib/domain/economics/execution/base/sepolia.live.test.ts",
     "docs:validate": "node scripts/docs-validate.mjs"

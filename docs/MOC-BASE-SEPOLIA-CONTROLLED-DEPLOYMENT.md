@@ -24,12 +24,12 @@ A transaction does **not** prove Actor identity, rights, revenue, fees, or entit
 | Date | 2026-09-07 |
 | Commit (tooling) | see git `feat(moc): deploy and reconcile Base Sepolia settlement` |
 | chainId required | **84532** (mainnet 8453 is forbidden) |
-| Live execution | **NOT RUN** |
-| Classification | `SIGNER_ERROR` / `CONFIGURATION_ERROR` |
+| Live execution | **NOT RUN** (stopped at gas check) |
+| Classification | `GAS_ERROR` |
 
-`BASE_EXECUTOR_PRIVATE_KEY` and `BASE_SEPOLIA_RPC_URL` were not present in the local environment. No transaction was sent. No addresses were invented.
+RPC and signer reached Base Sepolia (`chainId` 84532). The executor native balance was **0 ETH** (required ≥ 0.003). No transaction was sent.
 
-To complete the live proof, follow the [Runbook](./MOC-BASE-SEPOLIA-RUNBOOK.md) and re-run `npm run test:sepolia`.
+Fund the printed `executorAddress` with testnet ETH (see the [Runbook](./MOC-BASE-SEPOLIA-RUNBOOK.md)) and re-run `npm run test:sepolia`.
 
 ## Deployment (when credentials exist)
 
@@ -98,7 +98,7 @@ Insufficient allowance/balance → `FAILED`, entitlement remains `accrued`.
 | Check | Result |
 |-------|--------|
 | Vitest (domain + contract + adapter + integration) | **PASS** (125 passed, 1 skipped = live Sepolia) |
-| Live Sepolia (`npm run test:sepolia`) | **NOT RUN** — missing `BASE_SEPOLIA_RPC_URL` + `BASE_EXECUTOR_PRIVATE_KEY` (`SIGNER_ERROR` / `CONFIGURATION_ERROR`) |
+| Live Sepolia (`npm run test:sepolia`) | **NOT RUN** — executor balance 0 ETH (`GAS_ERROR`; required ≥ 0.003) |
 | Foundry `forge test` | **NOT RUN** — `forge` not installed; Vitest compiles the same 0.8.24 bytecode |
 | Typecheck `tsc --noEmit` | **PASS** |
 | `next build` | **PASS** |

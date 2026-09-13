@@ -8,5 +8,8 @@ export {
   BASE_SEPOLIA_CHAIN_ID,
   BASE_MAINNET_CHAIN_ID,
   assertBaseSepoliaChainId,
+  assertNotMainnetChainId,
 } from "./sepoliaGuard";
+export { readEvmEnvProfile } from "./evmEnv";
+export type { EvmEnvProfile } from "./evmEnv";
 export { hasSepoliaLiveCredentials, readSepoliaLiveCredentials } from "./sepoliaEnv";

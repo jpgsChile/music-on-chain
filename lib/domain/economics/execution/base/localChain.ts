@@ -13,6 +13,7 @@ import { mockUsdcAbi, MOC_SETTLEMENT_VERSION } from "./abi";
 import { compileSettlementContracts } from "./compile";
 import { createViemBaseChainPort } from "./viemPort";
 import type { BaseChainPort, BaseSettlementConfig } from "./types";
+import { assertBaseSepoliaChainId, assertNotMainnetChainId } from "./sepoliaGuard";
 
 const require = createRequire(import.meta.url);
 
@@ -21,14 +22,23 @@ export const LOCAL_EXECUTOR_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as Hex;
 export const LOCAL_BENEFICIARY_KEY =
   "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d" as Hex;
+export const LOCAL_BENEFICIARY_B_KEY =
+  "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a" as Hex;
+export const LOCAL_ATTACKER_KEY =
+  "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6" as Hex;
 
-export const LOCAL_CHAIN_ID = 84532;
+/** Isolated local EVM id (Anvil/Ganache default). Never Base Mainnet. */
+export const LOCAL_CHAIN_ID = 31337;
+
+const LOCAL_NATIVE_BALANCE = "0x3635c9adc5dea00000";
 
 export type LocalSettlementChain = {
   config: BaseSettlementConfig;
   chain: BaseChainPort;
   executor: Account;
   beneficiary: Address;
+  beneficiaryB: Address;
+  attacker: Address;
   executorAddress: Address;
   usdcAddress: Address;
   contractAddress: Address;
@@ -43,10 +53,11 @@ export type LocalSettlementChain = {
 
 /**
  * In-process EVM (Ganache) with MockUSDC + MOCSettlement V1.
- * No public RPC. No Privy. No Base network access.
+ * No public RPC unless `forkUrl` is set. No Privy. No faucet. No Base Mainnet.
  */
 export async function startLocalSettlementChain(options?: {
   chainId?: number;
+  forkUrl?: string;
 }): Promise<LocalSettlementChain> {
   const ganache = require("ganache") as {
     provider: (opts: Record<string, unknown>) => {
@@ -55,25 +66,44 @@ export async function startLocalSettlementChain(options?: {
     };
   };
 
-  const chainId = options?.chainId ?? LOCAL_CHAIN_ID;
+  const requestedChainId = options?.chainId ?? LOCAL_CHAIN_ID;
+  assertNotMainnetChainId(requestedChainId);
+
   const executor = privateKeyToAccount(LOCAL_EXECUTOR_KEY);
   const beneficiaryAccount = privateKeyToAccount(LOCAL_BENEFICIARY_KEY);
+  const beneficiaryBAccount = privateKeyToAccount(LOCAL_BENEFICIARY_B_KEY);
+  const attackerAccount = privateKeyToAccount(LOCAL_ATTACKER_KEY);
 
-  const provider = ganache.provider({
-    chain: { chainId, hardfork: "berlin" },
+  const walletAccounts = [
+    { secretKey: LOCAL_EXECUTOR_KEY, balance: LOCAL_NATIVE_BALANCE },
+    { secretKey: LOCAL_BENEFICIARY_KEY, balance: LOCAL_NATIVE_BALANCE },
+    { secretKey: LOCAL_BENEFICIARY_B_KEY, balance: LOCAL_NATIVE_BALANCE },
+    { secretKey: LOCAL_ATTACKER_KEY, balance: LOCAL_NATIVE_BALANCE },
+  ];
+
+  const ganacheOpts: Record<string, unknown> = {
     miner: { blockTime: 0 },
-    wallet: {
-      accounts: [
-        { secretKey: LOCAL_EXECUTOR_KEY, balance: "0x3635c9adc5dea00000" },
-        { secretKey: LOCAL_BENEFICIARY_KEY, balance: "0x3635c9adc5dea00000" },
-      ],
-    },
+    wallet: { accounts: walletAccounts },
     logging: { quiet: true },
-  });
+  };
+  if (options?.forkUrl) {
+    ganacheOpts.fork = { url: options.forkUrl };
+  } else {
+    ganacheOpts.chain = { chainId: requestedChainId, hardfork: "berlin" };
+  }
+
+  const provider = ganache.provider(ganacheOpts);
+
+  const hexId = (await provider.request({ method: "eth_chainId" })) as string;
+  const chainId = Number.parseInt(hexId, 16);
+  assertNotMainnetChainId(chainId);
+  if (options?.forkUrl) {
+    assertBaseSepoliaChainId(chainId);
+  }
 
   const chain = defineChain({
     id: chainId,
-    name: "moc-local-base",
+    name: options?.forkUrl ? "moc-fork-base-sepolia" : "moc-local-evm",
     nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     rpcUrls: { default: { http: ["http://127.0.0.1:8545"] } },
   });
@@ -161,6 +191,8 @@ export async function startLocalSettlementChain(options?: {
     }),
     executor,
     beneficiary: beneficiaryAccount.address,
+    beneficiaryB: beneficiaryBAccount.address,
+    attacker: attackerAccount.address,
     executorAddress: executor.address,
     usdcAddress,
     contractAddress,

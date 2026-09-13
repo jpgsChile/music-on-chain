@@ -3,7 +3,9 @@ import { isAddress } from "viem";
 import {
   BASE_MAINNET_CHAIN_ID,
   BASE_SEPOLIA_CHAIN_ID,
+  SEPOLIA_MIN_EXECUTOR_WEI,
   assertBaseSepoliaChainId,
+  gasShortageMessage,
   sepoliaTxUrl,
 } from "./sepoliaGuard";
 import {
@@ -21,6 +23,12 @@ describe("Base Sepolia controlled deployment guards", () => {
     expect(() => assertBaseSepoliaChainId(BASE_SEPOLIA_CHAIN_ID)).not.toThrow();
     expect(() => assertBaseSepoliaChainId(BASE_MAINNET_CHAIN_ID)).toThrow("MAINNET_FORBIDDEN");
     expect(() => assertBaseSepoliaChainId(1)).toThrow("WRONG_CHAIN");
+  });
+
+  it("formats GAS_ERROR without exposing a private key", () => {
+    expect(gasShortageMessage(0n)).toBe("GAS_ERROR: balance=0 ETH required>=0.003 ETH");
+    expect(gasShortageMessage(SEPOLIA_MIN_EXECUTOR_WEI - 1n)).toContain("GAS_ERROR");
+    expect(gasShortageMessage(0n)).not.toMatch(/0x[a-fA-F0-9]{64}/);
   });
 
   it("maps env aliases without requiring the private key", () => {
