@@ -31,6 +31,11 @@ export {
   openSettlementIntent,
   rejectForeignReceipt,
 } from "./orchestrator";
+export {
+  isBaseSettlementAdapter,
+  prepareSessionSettlement,
+  settlementDestinationForActor,
+} from "./sessionSettlement";
 export { createBaseSettlementAdapter } from "./base/adapter";
 export type { BaseSettlementAdapter } from "./base/adapter";
 export { intentRefToBytes32 } from "./base/intentRef";

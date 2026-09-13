@@ -24,7 +24,7 @@ A transaction does **not** prove Actor identity, rights, revenue, fees, or entit
 | Date | 2026-09-13 |
 | chainId (on-chain) | **84532** |
 | Mainnet 8453 | Forbidden (`MAINNET_FORBIDDEN`) |
-| Studio adapter | `MockExecutionAdapter` (unchanged; Vengeance not settled on-chain) |
+| Studio adapter | Default remains `MockExecutionAdapter`. First real Vengeance settlements below used Base adapter **in-process only** (`MOC_SETTLEMENT_ADAPTER=base` for the CLI, not in `.env.local`). |
 
 ### Controlled MockUSDC (TEST ASSET — NOT production USDC)
 
@@ -53,7 +53,29 @@ A transaction does **not** prove Actor identity, rights, revenue, fees, or entit
 | approve tx | `0xdfa7b82a833fff996f3a98dd16fb39e31ba8538087138a50b320a403a84facfb` |
 | explorer | https://sepolia.basescan.org/address/0x2061f8A1f8A76885d606f98313ba72c1A931D61F |
 
-Host env (gitignored): `MOC_SETTLEMENT_ADDRESS`, `MOC_SETTLEMENT_ASSET`, `MOC_SETTLEMENT_EXECUTOR_ADDRESS`, `MOC_SETTLEMENT_CHAIN_ID=84532`. Do not set `MOC_SETTLEMENT_ADAPTER=base` until an on-chain settlement proof is explicitly authorized. `npm run test:sepolia` was **not** executed in this setup.
+Host env (gitignored): `MOC_SETTLEMENT_ADDRESS`, `MOC_SETTLEMENT_ASSET`, `MOC_SETTLEMENT_EXECUTOR_ADDRESS`, `MOC_SETTLEMENT_CHAIN_ID=84532`. Do **not** persist `MOC_SETTLEMENT_ADAPTER=base` in `.env.local` (that would send Studio/Vitest through live Base). First multi-actor proof: `npx tsx lib/domain/economics/execution/base/sepoliaRealSettlement.cli.ts pablo|carlos` (sets the adapter in-process). `npm run test:sepolia` was **not** run for this proof: it deploys a **new** contract and a synthetic intent, which is out of scope for existing Vengeance entitlements.
+
+## First real multi-actor settlement (Vengeance, existing entitlements)
+
+Not MockExecutionAdapter. Not production. Existing accrued rows only; no new Revenue / Distribution / Entitlement.
+
+Beneficiary = `EconomicEntitlement.actorRef`. Wallet = destination capability from `ActorWallet`.
+
+| Field | Pablo | Carlos |
+|-------|-------|--------|
+| ActorRef | `moc:actor:d219d488-f1ff-413b-abd9-3b3e23503358` | `moc:actor:9d838ad4-4242-4074-9f29-97cf454fe76e` |
+| Wallet (destination) | `0xDf79C70cb632Df5ac68d084E4209dacbA65DA5d5` | `0x80c7C70cC4a8Ad0Bf01AaE32d9aBBE2fA877c841` |
+| Entitlement | `rev:245c0209-e4de-42e7-b1de-72a681567a24:ent:1` | `rev:889eff20-6161-4590-9ebc-87278eda0fbc:ent:0` |
+| Amount | 190000 (0.19 MockUSDC) | 760000 (0.76 MockUSDC) |
+| Intent | `intent:rev:245c0209-e4de-42e7-b1de-72a681567a24:ent:1` | `intent:rev:889eff20-6161-4590-9ebc-87278eda0fbc:ent:0` |
+| Request | `req:intent:rev:245c0209-e4de-42e7-b1de-72a681567a24:ent:1:0` | `req:intent:rev:889eff20-6161-4590-9ebc-87278eda0fbc:ent:0:0` |
+| tx | [`0x3d5011…417b5`](https://sepolia.basescan.org/tx/0x3d5011335a31c16e56778b58477e3de1ebfa4239c685851cf89f8efa196417b5) | [`0xfdecca…43090`](https://sepolia.basescan.org/tx/0xfdecca3fcab60a0412ff522aa5c675024e8fce81a9881f30f7f34c645ee43090) |
+| block / logIndex | 46787557 / 166 | 46787618 / 169 |
+| ERC-20 `balanceOf` after | 190000 | 760000 (before 0) |
+| Replay | Same `transactionHash`; no second transfer | Same `transactionHash`; no second transfer |
+| Isolation | Carlos / Cleaver `openSettlementIntent` → `NOT_BENEFICIARY` | Pablo / Cleaver → `NOT_BENEFICIARY` |
+
+`SettlementExecuted` fields matched intentRef, beneficiary wallet, MockUSDC, amount. Receipt `CONFIRMED` persisted in SQLite (`adapter: base`, `onChain: true`, `simulated: false`). Studio copy for that receipt: Confirmado on-chain · On-chain · Base Sepolia + full tx hash (not “Liquidación simulada”). Remaining Carlos accrued 760000 rows were **not** settled.
 
 Asset setup: `npm run setup:sepolia-mockusdc`.
 
@@ -124,7 +146,7 @@ Insufficient allowance/balance → `FAILED`, entitlement remains `accrued`.
 | Check | Result |
 |-------|--------|
 | Vitest (domain + contract + adapter + integration) | **PASS** (125 passed, 1 skipped = live Sepolia) |
-| Live Sepolia (`npm run test:sepolia`) | **NOT RUN** — executor balance 0 ETH (`GAS_ERROR`; required ≥ 0.003) |
+| Live Sepolia (`npm run test:sepolia`) | **NOT RUN** for this proof (synthetic deploy). Vengeance multi-actor: **PASS** via `sepoliaRealSettlement.cli.ts` |
 | Foundry `forge test` | **NOT RUN** — `forge` not installed; Vitest compiles the same 0.8.24 bytecode |
 | Typecheck `tsc --noEmit` | **PASS** |
 | `next build` | **PASS** |

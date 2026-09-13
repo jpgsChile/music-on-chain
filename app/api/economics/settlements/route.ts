@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { executeSettlementIntent, moneyToJson, openSettlementIntent } from "@/lib/domain/economics";
+import { executeSettlementIntent, moneyToJson, openSettlementIntent, prepareSessionSettlement } from "@/lib/domain/economics";
 import {
   getEconomicsStore,
   getExecutionStore,
@@ -24,6 +24,8 @@ export async function POST(request: NextRequest) {
   try {
     const economics = getEconomicsStore();
     const execution = getExecutionStore();
+    const adapter = getSettlementAdapter();
+    const prepared = await prepareSessionSettlement({ actorRef, adapter });
     const intent = await openSettlementIntent(economics, execution, {
       entitlementId: body.entitlementId,
       actorRef,
@@ -32,12 +34,11 @@ export async function POST(request: NextRequest) {
     const result = await executeSettlementIntent({
       economics,
       execution,
-      adapter: getSettlementAdapter(),
+      adapter,
       intentRef: intent.intentRef,
       actorRef,
-      destinationCapability:
-        typeof body.destinationCapability === "string" ? body.destinationCapability : null,
-      executionMode: body.executionMode === "on-chain" ? "on-chain" : "off-chain",
+      destinationCapability: prepared.destinationCapability,
+      executionMode: prepared.executionMode,
       occurredAt: new Date().toISOString(),
     });
     logDomainEvent("economics.settlement", {

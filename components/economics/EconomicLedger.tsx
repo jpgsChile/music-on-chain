@@ -435,8 +435,8 @@ export default function EconomicLedger({ copy }: { copy: LedgerCopy }) {
                           </span>
                         ) : null}
                         {receipt?.externalRef && onChain && !simulated ? (
-                          <span className="block text-xs text-foreground/45">
-                            {copy.execReference} {shortenRef(receipt.externalRef)}
+                          <span className="block break-all text-xs text-foreground/45">
+                            {copy.execReference} {receipt.externalRef}
                           </span>
                         ) : null}
                       </span>

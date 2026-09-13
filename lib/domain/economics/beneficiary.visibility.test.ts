@@ -198,8 +198,36 @@ describe("Actor economic visibility for owner vs beneficiary", { timeout: 25_000
     const pabloEntitlementId = pabloJson.value[0].entitlementId as string;
     expect((await postSettlement(post("http://localhost/api/economics/settlements", carlosCookie, { entitlementId: pabloEntitlementId }))).status).toBe(403);
     expect((await postSettlement(post("http://localhost/api/economics/settlements", pabloCookie, { entitlementId: carlosEntitlementId }))).status).toBe(403);
+    expect(
+      (
+        await postSettlement(
+          new NextRequest("http://localhost/api/economics/settlements", {
+            method: "POST",
+            headers: { cookie: ownerCookie, "content-type": "application/json", "x-actor-ref": carlos },
+            body: JSON.stringify({ entitlementId: carlosEntitlementId }),
+          })
+        )
+      ).status
+    ).toBe(403);
+    expect(
+      (
+        await postSettlement(
+          post("http://localhost/api/economics/settlements", pabloCookie, {
+            entitlementId: pabloEntitlementId,
+            destinationCapability: "0x2222222222222222222222222222222222222222",
+            executionMode: "on-chain",
+          })
+        )
+      ).status
+    ).toBe(200);
+    const pabloRequests = await client.executionRequestRecord.findMany({
+      where: { intentRef: { contains: pabloEntitlementId } },
+    });
+    expect(pabloRequests.every((row) => row.destinationCapability !== "0x2222222222222222222222222222222222222222")).toBe(
+      true
+    );
+    expect(pabloRequests.every((row) => row.executionMode === "off-chain")).toBe(true);
     expect((await postSettlement(post("http://localhost/api/economics/settlements", carlosCookie, { entitlementId: carlosEntitlementId }))).status).toBe(200);
-    expect((await postSettlement(post("http://localhost/api/economics/settlements", pabloCookie, { entitlementId: pabloEntitlementId }))).status).toBe(200);
 
     expect(
       (
