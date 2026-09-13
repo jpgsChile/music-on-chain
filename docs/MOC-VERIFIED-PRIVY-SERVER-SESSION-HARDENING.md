@@ -9,7 +9,7 @@
 | **Status** | Active |
 | **Owner** | Architecture / Identity |
 | **Last Updated** | 2026-09-13 |
-| **Related Documents** | [Documentation Hub](./README.md) · [C-BIND](./C-BIND.md) · [Persistent economic ledger](./MOC-PERSISTENT-ECONOMIC-LEDGER-VERIFIED-ACTOR-SESSION.md) · [Artist Profile](./ARTIST_PROFILE.md) |
+| **Related Documents** | [Documentation Hub](./README.md) · [C-BIND](./C-BIND.md) · [Persistent economic ledger](./MOC-PERSISTENT-ECONOMIC-LEDGER-VERIFIED-ACTOR-SESSION.md) · [First real band pilot](./MOC-FIRST-REAL-BAND-PILOT.md) · [Artist Profile](./ARTIST_PROFILE.md) |
 
 ---
 

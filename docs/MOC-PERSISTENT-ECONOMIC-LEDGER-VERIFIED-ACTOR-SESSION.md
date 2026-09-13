@@ -9,7 +9,7 @@
 | **Status** | Active |
 | **Owner** | Architecture / Product |
 | **Last Updated** | 2026-09-13 |
-| **Related Documents** | [Documentation Hub](./README.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [C-BIND](./C-BIND.md) · [Verified Privy session](./MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md) · [Data Model](./data-model/README.md) |
+| **Related Documents** | [Documentation Hub](./README.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [C-BIND](./C-BIND.md) · [Verified Privy session](./MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md) · [First real band pilot](./MOC-FIRST-REAL-BAND-PILOT.md) · [Data Model](./data-model/README.md) |
 
 ---
 
