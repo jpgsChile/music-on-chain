@@ -25,9 +25,10 @@ export function createMockSettlementExecutionAdapter(options?: {
         occurredAt: request.createdAt,
         externalRef,
         metadata: {
+          ...(options?.metadata ?? {}),
           adapter: "mock",
           simulated: true,
-          ...(options?.metadata ?? {}),
+          onChain: false,
         },
       };
     },

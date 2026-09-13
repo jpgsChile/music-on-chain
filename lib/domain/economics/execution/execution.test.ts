@@ -103,6 +103,10 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
       occurredAt: TIME,
     });
     expect(result.receipt.status).toBe("CONFIRMED");
+    expect(result.receipt.executionMode).toBe("off-chain");
+    expect(result.receipt.metadata?.adapter).toBe("mock");
+    expect(result.receipt.metadata?.simulated).toBe(true);
+    expect(result.receipt.metadata?.onChain).toBe(false);
     expect(result.entitlement.status).toBe("settled");
     expect(result.settlement?.entitlementId).toBe(entitlement.entitlementId);
   });

@@ -104,6 +104,39 @@ export async function listReleasesByActor(actorRef: string) {
   });
 }
 
+export type MusicalContextError =
+  | "MUSICAL_CONTEXT_REQUIRED"
+  | "MUSICAL_CONTEXT_NOT_FOUND"
+  | "WORK_RELEASE_MISMATCH";
+
+/** Resolve Work (required origin) and optional Release owned by this Actor. Does not invent a Work. */
+export async function resolveOwnedMusicalContext(
+  actorRef: string,
+  input: { workId?: string | null; releaseId?: string | null }
+): Promise<{ workId: string; releaseId?: string } | { error: MusicalContextError }> {
+  const workId = typeof input.workId === "string" ? input.workId.trim() : "";
+  const releaseId = typeof input.releaseId === "string" ? input.releaseId.trim() : "";
+  if (!workId && !releaseId) return { error: "MUSICAL_CONTEXT_REQUIRED" };
+
+  const prisma = getPrisma();
+  if (releaseId) {
+    const release = await prisma.musicRelease.findFirst({
+      where: { id: releaseId, actorRef },
+      select: { id: true, workId: true },
+    });
+    if (!release) return { error: "MUSICAL_CONTEXT_NOT_FOUND" };
+    if (workId && workId !== release.workId) return { error: "WORK_RELEASE_MISMATCH" };
+    return { workId: release.workId, releaseId: release.id };
+  }
+
+  const work = await prisma.musicalWork.findFirst({
+    where: { id: workId, actorRef },
+    select: { id: true },
+  });
+  if (!work) return { error: "MUSICAL_CONTEXT_NOT_FOUND" };
+  return { workId: work.id };
+}
+
 export async function listParticipationsByActor(actorRef: string) {
   return getPrisma().participation.findMany({
     where: {

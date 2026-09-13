@@ -7,6 +7,7 @@ import {
   type DistributionRule,
 } from "@/lib/domain/economics";
 import { getEconomicsStore } from "@/lib/domain/economics/runtime";
+import { resolveOwnedMusicalContext } from "@/lib/domain/releaseRepository";
 import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
 import { logDomainEvent } from "@/lib/observability/domainLog";
 
@@ -24,6 +25,14 @@ export async function POST(request: NextRequest) {
   const asset = typeof body.asset === "string" ? body.asset : "USDC";
   const scale = Number.isInteger(body.scale) ? body.scale : 6;
   const shares = Array.isArray(body.shares) ? body.shares : null;
+
+  const context = await resolveOwnedMusicalContext(actorRef, {
+    workId: typeof body.workId === "string" ? body.workId : null,
+    releaseId: typeof body.releaseId === "string" ? body.releaseId : null,
+  });
+  if ("error" in context) {
+    return NextResponse.json({ ok: false, error: context.error }, { status: 400 });
+  }
 
   const rule: DistributionRule = shares
     ? {
@@ -53,20 +62,29 @@ export async function POST(request: NextRequest) {
       occurredAt: typeof body.occurredAt === "string" ? body.occurredAt : new Date().toISOString(),
       sale:
         typeof body.saleId === "string"
-          ? { saleId: body.saleId, occurredAt: new Date().toISOString(), workId: body.workId, releaseId: body.releaseId }
+          ? {
+              saleId: body.saleId,
+              occurredAt: new Date().toISOString(),
+              workId: context.workId,
+              releaseId: context.releaseId,
+            }
           : undefined,
-      workId: typeof body.workId === "string" ? body.workId : undefined,
-      releaseId: typeof body.releaseId === "string" ? body.releaseId : undefined,
+      workId: context.workId,
+      releaseId: context.releaseId,
     });
     logDomainEvent("economics.revenue", {
       actorRef,
       revenueId: assessed.revenue.revenueId,
+      workId: assessed.revenue.workId,
+      releaseId: assessed.revenue.releaseId,
       entitlements: assessed.entitlements.length,
     });
     return NextResponse.json({
       ok: true,
       value: {
         revenueId: assessed.revenue.revenueId,
+        workId: assessed.revenue.workId ?? null,
+        releaseId: assessed.revenue.releaseId ?? null,
         gross: moneyToJson(assessed.revenue.gross),
         net: moneyToJson(assessed.assessment.netDistributable),
         buyerPays: moneyToJson(assessed.assessment.buyerPays),

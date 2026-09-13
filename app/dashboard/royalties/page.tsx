@@ -34,6 +34,12 @@ export default function StudioRoyaltiesPage() {
           execUnknown: t.execUnknown,
           execReference: t.execReference,
           execIntent: t.execIntent,
+          execLayerOffChain: t.execLayerOffChain,
+          execLayerOnChain: t.execLayerOnChain,
+          selectRelease: t.selectRelease,
+          selectReleaseHint: t.selectReleaseHint,
+          noCatalog: t.noCatalog,
+          originLabel: t.originLabel,
         }}
       />
       <RoyaltyEngine />

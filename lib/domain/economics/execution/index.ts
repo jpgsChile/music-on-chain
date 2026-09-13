@@ -21,6 +21,7 @@ export {
 } from "./intent";
 
 export { createMockSettlementExecutionAdapter } from "./mockAdapter";
+export { isOnChainReceipt, isSimulatedMockReceipt } from "./semantics";
 export { createMemoryExecutionStore } from "./store";
 export { createPrismaExecutionStore } from "./prismaStore";
 export type { ExecutionStore } from "./store";

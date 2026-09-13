@@ -193,6 +193,8 @@ export function createBaseSettlementAdapter(input: {
       externalRef: event.transactionHash,
       metadata: {
         adapter: "base",
+        onChain: true,
+        simulated: false,
         contractVersion: config.contractVersion,
         chainId: config.chainId,
         contractAddress: config.contractAddress,
@@ -223,6 +225,8 @@ export function createBaseSettlementAdapter(input: {
       externalRef: hash,
       metadata: {
         adapter: "base",
+        onChain: true,
+        simulated: false,
         contractVersion: config.contractVersion,
         chainId: config.chainId,
         contractAddress: config.contractAddress,
@@ -252,6 +256,8 @@ export function createBaseSettlementAdapter(input: {
       externalRef: hash,
       metadata: {
         adapter: "base",
+        onChain: true,
+        simulated: false,
         contractVersion: config.contractVersion,
         chainId: config.chainId,
         contractAddress: config.contractAddress,
@@ -278,6 +284,8 @@ export function createBaseSettlementAdapter(input: {
         externalRef: options?.hash,
         metadata: {
           adapter: "base",
+          onChain: true,
+          simulated: false,
           errorCategory: "RPC_FAILURE",
           transactionHash: options?.hash,
         },

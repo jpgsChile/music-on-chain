@@ -120,6 +120,8 @@ None found that prevent publishing a real solo work from Studio or binding a Pri
 5. **Collaborators GET-only after publish.** Pending invite without wallet is possible at publish time (`actorRef` nullable on Participation); there is no later “invite collaborator” API.
 6. **Agent vs artist browser.** The band’s Chrome session published the work; the Cursor automation tab was logged out (401). Operator tooling must not scrape cookies.
 
+Historical Studio simulation `rev:491d03b4-6c6f-4c13-8268-3c76f46cde7d` remains unlinked (`workId`/`releaseId` null). It was **not** rewritten. Later Studio simulations require an owned Work, and Release when one is selected. Mock receipts still use adapter outcome `CONFIRMED` and always stamp `adapter: mock`, `simulated: true`, `onChain: false`.
+
 ---
 
 ## Future features (out of scope)

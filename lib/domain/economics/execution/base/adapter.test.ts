@@ -113,6 +113,9 @@ describe("Base settlement adapter", () => {
     expect(result.externalRef).toBe(TX);
     expect(result.metadata?.chainId).toBe(84532);
     expect(result.metadata?.transactionHash).toBe(TX);
+    expect(result.metadata?.adapter).toBe("base");
+    expect(result.metadata?.simulated).toBe(false);
+    expect(result.metadata?.onChain).toBe(true);
     expect(result.intentRef).toBe("intent-1");
     expect(result.intentRef).not.toBe(TX);
     expect(result.requestRef).toBe("req-1");

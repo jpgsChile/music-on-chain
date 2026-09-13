@@ -16,13 +16,17 @@ export async function GET(request: NextRequest) {
   }
 
   const execution = getExecutionStore();
-  const entitlements = await getEconomicsStore().listEntitlements(actorRef);
+  const economics = getEconomicsStore();
+  const entitlements = await economics.listEntitlements(actorRef);
   const value = await Promise.all(
     entitlements.map(async (row) => {
       const intent = await execution.getIntentByEntitlement(row.entitlementId);
+      const origin = await economics.getRevenue(row.revenueId);
       return {
         ...row,
         amount: moneyToJson(row.amount),
+        workId: origin?.revenue.workId ?? null,
+        releaseId: origin?.revenue.releaseId ?? null,
         execution: intent
           ? {
               intentRef: intent.intentRef,
