@@ -10,9 +10,8 @@ const privyConfig = {
   loginMethods: ["wallet", "google", "email", "passkey"],
   appearance: {
     theme: "dark",
-    // Privy 3.13 wraps each listed wallet in PrivyProxyProvider.setWalletProvider()
-    // and always calls provider.on(). `base_account` (@base-org/account getProvider)
-    // and `detected_ethereum_wallets` / `core` can supply a non-EventEmitter object.
+    // Product wallets on Base. Privy 3.39+ no longer crashes if another injected
+    // extension lacks EIP-1193 `.on()` (see official react-auth changelog).
     walletList: ["metamask", "coinbase_wallet"],
   },
   embeddedWallets: {
