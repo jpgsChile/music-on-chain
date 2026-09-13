@@ -6,7 +6,7 @@
 | **Dependencies** | [Controlled deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) |
 | **Status** | Active |
 | **Owner** | Architecture / Settlement |
-| **Last Updated** | 2026-09-07 |
+| **Last Updated** | 2026-09-13 |
 | **Related Documents** | [Hub](./README.md) · [Controlled deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) |
 
 <!-- doc-id: MOC-BASE-SEPOLIA-RUNBOOK.md -->
@@ -55,15 +55,25 @@ Fund the executor address (the one printed as `executorAddress`, never the priva
 
 Do not send mainnet ETH. Do not use production treasury.
 
-## 5. Deploy
+## 5. Deploy MockUSDC + MOCSettlement (asset setup)
+
+```bash
+npm run setup:sepolia-mockusdc
+```
+
+Deploys **MockUSDC** (test asset, 6 decimals, minter = executor) and **MOCSettlement V1** with that asset. Mints **10** MockUSDC to the executor and approves the settlement contract for the same limited amount (not unlimited). Does **not** settle Vengeance entitlements.
+
+Addresses are written to `.env.local` (gitignored). Record public addresses in [Controlled deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md).
+
+## 6. Optional live settlement proof
 
 ```bash
 npm run test:sepolia
 ```
 
-This compiles `MOCSettlement` + **MockUSDC (TEST ASSET — NOT production USDC)**, deploys both, then runs settlement tests.
+This compiles `MOCSettlement` + **MockUSDC (TEST ASSET — NOT production USDC)** and runs the isolated proof settlement (not Carlos/Pablo). Only after the asset setup above.
 
-## 6. Validate contract
+## 7. Validate contract
 
 The test reads `VERSION() === MOC-SETTLEMENT-V1`, `executor()`, `asset()`, and `getCode(address) !== 0x`.
 
@@ -77,25 +87,25 @@ MOC_SETTLEMENT_EXECUTOR_ADDRESS=0x...
 
 `MOC_SETTLEMENT_ASSET` here is the **token address**. Symbol remains `USDC` unless `MOC_SETTLEMENT_ASSET_SYMBOL` is set.
 
-## 7. Adapter
+## 8. Adapter
 
 Uses existing `createBaseSettlementAdapterWithSigner` / `SettlementExecutionAdapter`. Do not add a second adapter.
 
-## 8. Test entitlement
+## 9. Test entitlement
 
 Created in-process by the domain: Actor `moc:actor:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa` (not a wallet). Amount `1000` minor units.
 
-## 9. Execute settlement
+## 10. Execute settlement
 
 `EconomicEntitlement` → `SettlementIntent` → `ExecutionRequest` → Base adapter → `MOCSettlement.settle` → ERC-20 transfer to `0x70997970C51812dc3A010C7d01b50e0d17dc79C8` (wallet capability).
 
 `requestRef` must equal the input requestRef. `intentRef` stays stable.
 
-## 10. Reconcile
+## 11. Reconcile
 
 If the first attempt is `SUBMITTED` / `UNKNOWN`, `adapter.reconcile` reads the receipt/event on Sepolia. UNKNOWN is not FAILED.
 
-## 11. Explorer
+## 12. Explorer
 
 After a real tx, open:
 
@@ -104,7 +114,7 @@ After a real tx, open:
 
 Confirm `SettlementExecuted` (intentRef, beneficiary, asset, amount).
 
-## 12. Replay
+## 13. Replay
 
 The same `intentRef` must not pay twice. Domain retry returns the confirmed receipt; a raw second `settle` reverts.
 

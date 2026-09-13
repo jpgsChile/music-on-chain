@@ -20,6 +20,7 @@
     "test:fork": "vitest run lib/domain/economics/execution/base/sepolia.fork.test.ts",
     "test:contracts": "forge test",
     "test:sepolia": "vitest run lib/domain/economics/execution/base/sepolia.live.test.ts",
+    "setup:sepolia-mockusdc": "npx tsx lib/domain/economics/execution/base/sepoliaSetup.cli.ts",
     "typecheck": "tsc --noEmit",
     "docs:validate": "node scripts/docs-validate.mjs"
   },

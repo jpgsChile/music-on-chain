@@ -6,7 +6,7 @@
 | **Dependencies** | [Documentation Hub](./README.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Runbook](./MOC-BASE-SEPOLIA-RUNBOOK.md) |
 | **Status** | Active |
 | **Owner** | Architecture / Settlement |
-| **Last Updated** | 2026-09-07 |
+| **Last Updated** | 2026-09-13 |
 | **Related Documents** | [Hub](./README.md) · [Runbook](./MOC-BASE-SEPOLIA-RUNBOOK.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Threat model](./MOC-BASE-ONCHAIN-SETTLEMENT-THREAT-MODEL.md) · [C-BIND/1](./C-BIND.md) |
 
 <!-- doc-id: MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md -->
@@ -21,15 +21,41 @@ A transaction does **not** prove Actor identity, rights, revenue, fees, or entit
 
 | Field | Value |
 |-------|-------|
-| Date | 2026-09-07 |
-| Commit (tooling) | see git `feat(moc): deploy and reconcile Base Sepolia settlement` |
-| chainId required | **84532** (mainnet 8453 is forbidden) |
-| Live execution | **NOT RUN** (stopped at gas check) |
-| Classification | `GAS_ERROR` |
+| Date | 2026-09-13 |
+| chainId (on-chain) | **84532** |
+| Mainnet 8453 | Forbidden (`MAINNET_FORBIDDEN`) |
+| Studio adapter | `MockExecutionAdapter` (unchanged; Vengeance not settled on-chain) |
 
-RPC and signer reached Base Sepolia (`chainId` 84532). The executor native balance was **0 ETH** (required ≥ 0.003). No transaction was sent.
+### Controlled MockUSDC (TEST ASSET — NOT production USDC)
 
-Fund the printed `executorAddress` with testnet ETH (see the [Runbook](./MOC-BASE-SEPOLIA-RUNBOOK.md)) and re-run `npm run test:sepolia`.
+| Field | Value |
+|-------|-------|
+| address | `0x54aa6b5f077bD75634C2F7390c7df73B2e24BdED` |
+| deploy tx | `0x2f419dd911eb30f73a8c56bc232242686c7d1c30766fe87f88e97f72245dc4f5` |
+| runtime bytecode hash | `0x45a55b8726d922588bf2468b0f598816f74a3828ad95f5f33f3f2cab9d42d074` |
+| name / symbol / decimals | Mock USDC / `USDC` / `6` |
+| owner / minter / deployer | `0x0656D65986816A2F4006a2b6C4092Fae3bFfE751` |
+| mint | 10 MockUSDC (`10000000` units) to executor |
+| mint tx | `0xd0eb79ef1fac2717e3fcf17fd6ec4587a163b75e3a990a620febacf36aabbfd8` |
+| explorer | https://sepolia.basescan.org/address/0x54aa6b5f077bD75634C2F7390c7df73B2e24BdED |
+
+### MOCSettlement V1 (unchanged bytecode; constructor asset = MockUSDC)
+
+| Field | Value |
+|-------|-------|
+| address | `0x2061f8A1f8A76885d606f98313ba72c1A931D61F` |
+| deploy tx | `0x0cf912ddca3a2649f5f2992c567984b981374965953f4266214d560a942e1886` |
+| runtime bytecode hash | `0xe04266f3f51fe611b01fadff054389ddee26eb2ac843213fbe83de5cc5d4419a` |
+| VERSION | `MOC-SETTLEMENT-V1` |
+| executor | `0x0656D65986816A2F4006a2b6C4092Fae3bFfE751` |
+| asset() | `0x54aa6b5f077bD75634C2F7390c7df73B2e24BdED` |
+| allowance(executor, settlement) | `10000000` (limited; not unlimited) |
+| approve tx | `0xdfa7b82a833fff996f3a98dd16fb39e31ba8538087138a50b320a403a84facfb` |
+| explorer | https://sepolia.basescan.org/address/0x2061f8A1f8A76885d606f98313ba72c1A931D61F |
+
+Host env (gitignored): `MOC_SETTLEMENT_ADDRESS`, `MOC_SETTLEMENT_ASSET`, `MOC_SETTLEMENT_EXECUTOR_ADDRESS`, `MOC_SETTLEMENT_CHAIN_ID=84532`. Do not set `MOC_SETTLEMENT_ADAPTER=base` until an on-chain settlement proof is explicitly authorized. `npm run test:sepolia` was **not** executed in this setup.
+
+Asset setup: `npm run setup:sepolia-mockusdc`.
 
 ## Deployment (when credentials exist)
 

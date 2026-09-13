@@ -2,20 +2,34 @@
 pragma solidity ^0.8.24;
 
 /// @title MockUSDC
-/// @notice Test-only ERC-20 with 6 decimals. Not for production.
+/// @notice Test-only ERC-20 with 6 decimals. Not production USDC.
 contract MockUSDC {
     string public constant name = "Mock USDC";
     string public constant symbol = "USDC";
     uint8 public constant decimals = 6;
 
+    address public immutable owner;
+    address public immutable minter;
+
+    uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
+    error NotMinter();
+    error ZeroAddress();
+
+    constructor() {
+        owner = msg.sender;
+        minter = msg.sender;
+    }
+
     function mint(address to, uint256 amount) external {
-        require(to != address(0), "ZERO");
+        if (msg.sender != minter) revert NotMinter();
+        if (to == address(0)) revert ZeroAddress();
+        totalSupply += amount;
         balanceOf[to] += amount;
         emit Transfer(address(0), to, amount);
     }
@@ -42,7 +56,7 @@ contract MockUSDC {
     }
 
     function _transfer(address from, address to, uint256 amount) internal {
-        require(to != address(0), "ZERO");
+        if (to == address(0)) revert ZeroAddress();
         require(balanceOf[from] >= amount, "BALANCE");
         balanceOf[from] -= amount;
         balanceOf[to] += amount;
