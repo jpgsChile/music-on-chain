@@ -74,3 +74,39 @@ export async function acceptParticipationInvite(
   });
   return { participationId: invite.participationId, actorRef: input.actorRef };
 }
+
+export type ParticipationInvitePreview = {
+  displayName: string;
+  releaseTitle: string;
+  currentIsOwner: boolean;
+  alreadyBound: boolean;
+  boundToCurrentUser: boolean;
+  canAccept: boolean;
+};
+
+export async function previewParticipationInvite(
+  input: { token: string; actorRef: string },
+  client: PrismaClient = getPrisma()
+): Promise<ParticipationInvitePreview> {
+  const token = input.token.trim();
+  if (!token) throw new Error("INVALID_INVITE");
+  const invite = await client.participationInvite.findUnique({
+    where: { tokenHash: hashSessionToken(token) },
+    include: {
+      participation: {
+        include: { release: { select: { actorRef: true, title: true } } },
+      },
+    },
+  });
+  if (!invite) throw new Error("INVALID_INVITE");
+  const currentIsOwner = invite.participation.release.actorRef === input.actorRef;
+  const alreadyBound = Boolean(invite.participation.actorRef);
+  return {
+    displayName: invite.participation.displayName,
+    releaseTitle: invite.participation.release.title,
+    currentIsOwner,
+    alreadyBound,
+    boundToCurrentUser: invite.participation.actorRef === input.actorRef,
+    canAccept: !invite.acceptedAt && !alreadyBound && !currentIsOwner,
+  };
+}

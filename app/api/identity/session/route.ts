@@ -6,9 +6,12 @@ import { attachWalletToActor } from "@/lib/domain/actorWallet";
 import { claimOrphanProfile } from "@/lib/artist-profile/repository";
 import {
   actorSessionCookie,
+  clearActorSessionCookie,
   issueActorSession,
   isActorSession,
+  readSessionToken,
   requireActorSession,
+  revokeActorSessionToken,
 } from "@/lib/auth/actorSession";
 import {
   PrivyVerificationError,
@@ -102,4 +105,12 @@ export async function GET(request: NextRequest) {
       expiresAt: session.expiresAt,
     },
   });
+}
+
+export async function DELETE(request: NextRequest) {
+  const token = readSessionToken(request);
+  if (token) await revokeActorSessionToken(token);
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set(clearActorSessionCookie());
+  return response;
 }

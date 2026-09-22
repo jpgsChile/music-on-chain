@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { afterEach, describe, expect, it } from "vitest";
-import { POST as postSession } from "@/app/api/identity/session/route";
+import { POST as postSession, DELETE as deleteSession } from "@/app/api/identity/session/route";
 import { GET as getEntitlements } from "@/app/api/economics/entitlements/route";
 import { createCBindEngine } from "@/lib/c-bind/engine";
 import { C_BIND_PROFILE } from "@/lib/c-bind/contract";
@@ -222,5 +222,38 @@ describe("POST /api/identity/session Privy hardening", { timeout: 20_000 }, () =
       )
     );
     expect(res.status).toBe(403);
+  });
+
+  it("clears the Actor session cookie on logout", async () => {
+    await openDb();
+    setPrivyVerifierForTests(
+      createMockPrivyVerifier({ subjects: { "valid-token": "did:privy:logout" } })
+    );
+    const created = await postSession(
+      new NextRequest("http://localhost/api/identity/session", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer valid-token",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      })
+    );
+    const cookie = created.cookies.get("moc_actor_session")?.value;
+    expect(cookie).toBeTruthy();
+    const cleared = await deleteSession(
+      new NextRequest("http://localhost/api/identity/session", {
+        method: "DELETE",
+        headers: { cookie: `moc_actor_session=${cookie}` },
+      })
+    );
+    expect(cleared.status).toBe(200);
+    expect(cleared.cookies.get("moc_actor_session")?.value).toBe("");
+    const after = await getEntitlements(
+      new NextRequest("http://localhost/api/economics/entitlements", {
+        headers: { cookie: `moc_actor_session=${cookie}` },
+      })
+    );
+    expect(after.status).toBe(401);
   });
 });

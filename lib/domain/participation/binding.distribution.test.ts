@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { afterEach, describe, expect, it } from "vitest";
-import { POST as postAccept } from "@/app/api/participations/accept/route";
+import { POST as postAccept, GET as previewAccept } from "@/app/api/participations/accept/route";
 import { POST as postInvite } from "@/app/api/participations/invite/route";
 import { GET as getParticipations } from "@/app/api/participations/route";
 import { POST as postRevenue } from "@/app/api/economics/revenue/route";
@@ -172,6 +172,17 @@ describe("Participant Actor binding and participation distribution", { timeout: 
     );
     expect(ownerAccept.status).toBe(403);
     expect((await ownerAccept.json()).error).toBe("OWNER_CANNOT_ACCEPT_COLLABORATOR_INVITE");
+
+    const ownerPreview = await previewAccept(
+      new NextRequest(`http://localhost/api/participations/accept?token=${encodeURIComponent(carlosToken!)}`, {
+        headers: { cookie: ownerCookie },
+      })
+    );
+    const ownerPreviewJson = await ownerPreview.json();
+    expect(ownerPreview.status).toBe(200);
+    expect(ownerPreviewJson.value.currentIsOwner).toBe(true);
+    expect(ownerPreviewJson.value.canAccept).toBe(false);
+    expect(ownerPreviewJson.value.displayName).toBe("Carlos Concha");
 
     const badToken = await postAccept(
       jsonRequest("http://localhost/api/participations/accept", await sessionCookie(client, carlosActorRef, carlosSubject), {

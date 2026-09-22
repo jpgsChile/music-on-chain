@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
-import { acceptParticipationInvite } from "@/lib/domain/participation/invite";
+import { acceptParticipationInvite, previewParticipationInvite } from "@/lib/domain/participation/invite";
+
+export async function GET(request: NextRequest) {
+  const session = await requireActorSession(request);
+  if (!isActorSession(session)) return session;
+  const token = request.nextUrl.searchParams.get("token") ?? "";
+  try {
+    const value = await previewParticipationInvite({ token, actorRef: session.actorRef });
+    return NextResponse.json({ ok: true, value });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "INVALID_INVITE";
+    return NextResponse.json({ ok: false, error: message }, { status: 400 });
+  }
+}
 
 export async function POST(request: NextRequest) {
   const session = await requireActorSession(request);

@@ -131,3 +131,19 @@ export function actorSessionCookie(token: string, maxAgeSec = ACTOR_SESSION_TTL_
     maxAge: maxAgeSec,
   };
 }
+
+export function clearActorSessionCookie() {
+  return actorSessionCookie("", 0);
+}
+
+export async function revokeActorSessionToken(
+  token: string,
+  client: PrismaClient = getPrisma()
+): Promise<void> {
+  const trimmed = token.trim();
+  if (!trimmed) return;
+  await client.actorSession.updateMany({
+    where: { tokenHash: hashSessionToken(trimmed), revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
+}
