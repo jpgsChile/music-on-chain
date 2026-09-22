@@ -40,3 +40,8 @@ export { createBaseSettlementAdapter } from "./base/adapter";
 export type { BaseSettlementAdapter } from "./base/adapter";
 export { intentRefToBytes32 } from "./base/intentRef";
 export { MOC_SETTLEMENT_VERSION, MOC_SETTLEMENT_VERSION_NUMBER } from "./base/abi";
+export {
+  readBaseSettlementEnv,
+  requireBaseSettlementEnv,
+  settlementAdapterMode,
+} from "./base/env";

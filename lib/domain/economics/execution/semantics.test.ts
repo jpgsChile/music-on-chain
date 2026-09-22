@@ -23,4 +23,14 @@ describe("settlement receipt semantics", () => {
     expect(isSimulatedMockReceipt(receipt)).toBe(false);
     expect(isOnChainReceipt(receipt)).toBe(true);
   });
+
+  it("does not infer on-chain from CONFIRMED alone", () => {
+    const receipt = {
+      executionMode: "off-chain" as const,
+      status: "CONFIRMED",
+      externalRef: "rcpt:1",
+    };
+    expect(isOnChainReceipt(receipt)).toBe(false);
+    expect(isSimulatedMockReceipt(receipt)).toBe(false);
+  });
 });

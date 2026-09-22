@@ -21,6 +21,7 @@ type LedgerCopy = {
   execPending: string;
   execSubmitted: string;
   execConfirmed: string;
+  execSettledConfirmed: string;
   execSimulated: string;
   execFailed: string;
   execUnknown: string;
@@ -117,7 +118,7 @@ function executionLabel(copy: LedgerCopy, row: EntitlementWire): string {
   const onChain = receipt ? isOnChainReceipt(receipt) : false;
   if (row.status === "settled" || status === "CONFIRMED" || status === "confirmed") {
     if (simulated) return `${copy.execSimulated} · ${copy.execLayerOffChain}`;
-    if (onChain) return `${copy.execConfirmed} · ${copy.execLayerOnChain}`;
+    if (onChain) return `${copy.execSettledConfirmed} · ${copy.execConfirmed} · ${copy.execLayerOnChain}`;
     return copy.execSimulated;
   }
   if (status === "SUBMITTED" || status === "submitted") return copy.execSubmitted;

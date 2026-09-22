@@ -5,6 +5,9 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["packages/**/*.test.ts", "lib/**/*.test.ts"],
+    env: {
+      MOC_SETTLEMENT_ADAPTER: "mock",
+    },
   },
   resolve: {
     alias: {

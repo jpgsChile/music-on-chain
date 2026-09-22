@@ -102,6 +102,8 @@ EVM_ENV=local
 BASE_SEPOLIA_RPC_URL=
 
 # Live Sepolia only (never commit values)
+# MOC_SETTLEMENT_ADAPTER=mock
+# Studio: set MOC_SETTLEMENT_ADAPTER=base only when intending a real Sepolia transfer.
 BASE_EXECUTOR_PRIVATE_KEY=
 MOC_SETTLEMENT_ADDRESS=
 MOC_SETTLEMENT_ASSET=

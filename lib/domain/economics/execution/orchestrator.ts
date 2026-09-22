@@ -45,6 +45,7 @@ export async function openSettlementIntent(
 
   const existing = await execution.getIntentByEntitlement(entitlement.entitlementId);
   if (existing) return existing;
+  if (entitlement.status !== "accrued") throw new Error("ENTITLEMENT_NOT_ACCRUED");
 
   const intent = createSettlementIntent({
     intentRef: input.intentRef ?? `intent:${entitlement.entitlementId}`,

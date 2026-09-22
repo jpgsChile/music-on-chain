@@ -1,12 +1,26 @@
 import { createPublicClient, createWalletClient, defineChain, http, isAddress, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { MOC_SETTLEMENT_VERSION } from "./abi";
-import { BASE_MAINNET_CHAIN_ID, assertNotMainnetChainId } from "./sepoliaGuard";
+import {
+  BASE_MAINNET_CHAIN_ID,
+  BASE_SEPOLIA_CHAIN_ID,
+  assertBaseSepoliaChainId,
+  assertNotMainnetChainId,
+} from "./sepoliaGuard";
 import { createBaseSettlementAdapter, type BaseSettlementAdapter } from "./adapter";
 import { createViemBaseChainPort } from "./viemPort";
 import type { BaseSettlementConfig } from "./types";
 
 export type HostEnv = Record<string, string | undefined>;
+
+export type SettlementAdapterMode = "mock" | "base";
+
+export function settlementAdapterMode(env: HostEnv = process.env): SettlementAdapterMode {
+  const raw = (env.MOC_SETTLEMENT_ADAPTER ?? "mock").trim().toLowerCase();
+  if (raw === "" || raw === "mock") return "mock";
+  if (raw === "base") return "base";
+  throw new Error("UNKNOWN_SETTLEMENT_ADAPTER");
+}
 
 export type BaseRuntimeEnv = {
   chainId: number;
@@ -26,8 +40,8 @@ export type BaseRuntimeEnv = {
 export function readBaseSettlementEnv(
   env: HostEnv = process.env
 ): BaseRuntimeEnv | null {
-  if ((env.MOC_SETTLEMENT_ADAPTER ?? "mock").trim() !== "base") return null;
-  const chainId = Number(env.MOC_SETTLEMENT_CHAIN_ID ?? "84532");
+  if (settlementAdapterMode(env) !== "base") return null;
+  const chainId = Number(env.MOC_SETTLEMENT_CHAIN_ID ?? String(BASE_SEPOLIA_CHAIN_ID));
   const rpcUrl = (env.BASE_SEPOLIA_RPC_URL ?? env.MOC_SETTLEMENT_RPC_URL)?.trim() ?? "";
   const contractAddress =
     (env.MOC_SETTLEMENT_ADDRESS ?? env.MOC_SETTLEMENT_CONTRACT_ADDRESS)?.trim() ?? "";
@@ -40,12 +54,14 @@ export function readBaseSettlementEnv(
   if (chainId === BASE_MAINNET_CHAIN_ID) {
     throw new Error("MAINNET_FORBIDDEN");
   }
+  assertBaseSepoliaChainId(chainId);
   if (!rpcUrl || !isAddress(contractAddress) || !isAddress(usdcAddress) || !isAddress(executorAddress)) {
     return null;
   }
   const assetSymbol = isAddress(assetField)
     ? env.MOC_SETTLEMENT_ASSET_SYMBOL?.trim() || "USDC"
     : assetField || "USDC";
+  const tokenDecimals = Number(env.MOC_SETTLEMENT_TOKEN_DECIMALS ?? "6");
   return {
     chainId,
     rpcUrl,
@@ -53,9 +69,20 @@ export function readBaseSettlementEnv(
     usdcAddress,
     executorAddress,
     assetSymbol,
-    tokenDecimals: Number(env.MOC_SETTLEMENT_TOKEN_DECIMALS ?? "6"),
+    tokenDecimals,
     contractVersion: env.MOC_SETTLEMENT_CONTRACT_VERSION?.trim() || MOC_SETTLEMENT_VERSION,
   };
+}
+
+/** Adapter = base: missing RPC/addresses/executor is fatal. Never falls back to mock. */
+export function requireBaseSettlementEnv(env: HostEnv = process.env): BaseRuntimeEnv {
+  if (settlementAdapterMode(env) !== "base") throw new Error("ADAPTER_NOT_BASE");
+  const parsed = readBaseSettlementEnv(env);
+  if (!parsed) throw new Error("CONFIGURATION_ERROR");
+  if (parsed.chainId === BASE_MAINNET_CHAIN_ID) throw new Error("MAINNET_FORBIDDEN");
+  assertBaseSepoliaChainId(parsed.chainId);
+  if (parsed.tokenDecimals !== 6) throw new Error("CONFIGURATION_ERROR");
+  return parsed;
 }
 
 export function toBaseSettlementConfig(env: BaseRuntimeEnv): BaseSettlementConfig {

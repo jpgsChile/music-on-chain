@@ -24,7 +24,7 @@ A transaction does **not** prove Actor identity, rights, revenue, fees, or entit
 | Date | 2026-09-13 |
 | chainId (on-chain) | **84532** |
 | Mainnet 8453 | Forbidden (`MAINNET_FORBIDDEN`) |
-| Studio adapter | Default remains `MockExecutionAdapter`. First real Vengeance settlements below used Base adapter **in-process only** (`MOC_SETTLEMENT_ADAPTER=base` for the CLI, not in `.env.local`). |
+| Studio adapter | Selected by `MOC_SETTLEMENT_ADAPTER` (`mock` default, `base` explicit). `base` uses the deployed addresses below and never falls back to mock. Unit tests force `mock`. |
 
 ### Controlled MockUSDC (TEST ASSET — NOT production USDC)
 
@@ -53,7 +53,7 @@ A transaction does **not** prove Actor identity, rights, revenue, fees, or entit
 | approve tx | `0xdfa7b82a833fff996f3a98dd16fb39e31ba8538087138a50b320a403a84facfb` |
 | explorer | https://sepolia.basescan.org/address/0x2061f8A1f8A76885d606f98313ba72c1A931D61F |
 
-Host env (gitignored): `MOC_SETTLEMENT_ADDRESS`, `MOC_SETTLEMENT_ASSET`, `MOC_SETTLEMENT_EXECUTOR_ADDRESS`, `MOC_SETTLEMENT_CHAIN_ID=84532`. Do **not** persist `MOC_SETTLEMENT_ADAPTER=base` in `.env.local` (that would send Studio/Vitest through live Base). First multi-actor proof: `npx tsx lib/domain/economics/execution/base/sepoliaRealSettlement.cli.ts pablo|carlos` (sets the adapter in-process). `npm run test:sepolia` was **not** run for this proof: it deploys a **new** contract and a synthetic intent, which is out of scope for existing Vengeance entitlements.
+Host env (gitignored): `MOC_SETTLEMENT_ADDRESS`, `MOC_SETTLEMENT_ASSET`, `MOC_SETTLEMENT_EXECUTOR_ADDRESS`, `MOC_SETTLEMENT_CHAIN_ID=84532`. Studio `Liquidar` uses `getSettlementAdapter()`: `MOC_SETTLEMENT_ADAPTER=mock` (default) or `=base` (existing MOCSettlement + MockUSDC; abort if any requirement is missing). `npm test` / `test:e2e` force mock so they cannot send live transactions. First CLI multi-actor proof: `npx tsx lib/domain/economics/execution/base/sepoliaRealSettlement.cli.ts pablo|carlos`. `npm run test:sepolia` was **not** run for the CLI proof: it deploys a **new** contract and a synthetic intent.
 
 ## First real multi-actor settlement (Vengeance, existing entitlements)
 
@@ -75,7 +75,7 @@ Beneficiary = `EconomicEntitlement.actorRef`. Wallet = destination capability fr
 | Replay | Same `transactionHash`; no second transfer | Same `transactionHash`; no second transfer |
 | Isolation | Carlos / Cleaver `openSettlementIntent` → `NOT_BENEFICIARY` | Pablo / Cleaver → `NOT_BENEFICIARY` |
 
-`SettlementExecuted` fields matched intentRef, beneficiary wallet, MockUSDC, amount. Receipt `CONFIRMED` persisted in SQLite (`adapter: base`, `onChain: true`, `simulated: false`). Studio copy for that receipt: Confirmado on-chain · On-chain · Base Sepolia + full tx hash (not “Liquidación simulada”). Remaining Carlos accrued 760000 rows were **not** settled.
+`SettlementExecuted` fields matched intentRef, beneficiary wallet, MockUSDC, amount. Receipt `CONFIRMED` persisted in SQLite (`adapter: base`, `onChain: true`, `simulated: false`). Studio copy for that receipt: Liquidación confirmada · Confirmado on-chain · On-chain · Base Sepolia + full tx hash (not “Liquidación simulada”). Remaining Carlos accrued 760000 on `rev:245c0209-e4de-42e7-b1de-72a681567a24:ent:0` is the next Studio `Liquidar` candidate (not the CLI rows already settled).
 
 Asset setup: `npm run setup:sepolia-mockusdc`.
 

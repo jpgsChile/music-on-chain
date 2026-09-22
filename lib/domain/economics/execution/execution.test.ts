@@ -251,6 +251,18 @@ describe("On-chain execution settlement boundary (tests 1–24)", () => {
     expect(result.entitlement.status).toBe("accrued");
   });
 
+  it("does not open a new intent for a non-accrued entitlement", async () => {
+    const { economics, execution, entitlement } = await seedEntitlement();
+    await economics.putEntitlement({ ...entitlement, status: "settled" });
+    await expect(
+      openSettlementIntent(economics, execution, {
+        entitlementId: entitlement.entitlementId,
+        actorRef: ACTOR,
+        occurredAt: TIME,
+      })
+    ).rejects.toThrow("ENTITLEMENT_NOT_ACCRUED");
+  });
+
   it("TEST 13: Confirmed execution completes Settlement when conditions are valid", async () => {
     const { economics, execution, entitlement } = await seedEntitlement();
     const intent = await openSettlementIntent(economics, execution, {

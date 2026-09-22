@@ -2,7 +2,8 @@ export { mocSettlementAbi, mockUsdcAbi, MOC_SETTLEMENT_VERSION, MOC_SETTLEMENT_V
 export { createBaseSettlementAdapter } from "./adapter";
 export type { BaseSettlementAdapter } from "./adapter";
 export { intentRefToBytes32 } from "./intentRef";
-export { readBaseSettlementEnv, createBaseSettlementAdapterWithSigner } from "./env";
+export { readBaseSettlementEnv, requireBaseSettlementEnv, settlementAdapterMode, createBaseSettlementAdapterWithSigner } from "./env";
+export type { BaseRuntimeEnv, SettlementAdapterMode } from "./env";
 export type { BaseSettlementConfig, BaseChainPort } from "./types";
 export {
   BASE_SEPOLIA_CHAIN_ID,

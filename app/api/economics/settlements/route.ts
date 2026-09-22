@@ -25,12 +25,12 @@ export async function POST(request: NextRequest) {
     const economics = getEconomicsStore();
     const execution = getExecutionStore();
     const adapter = getSettlementAdapter();
-    const prepared = await prepareSessionSettlement({ actorRef, adapter });
     const intent = await openSettlementIntent(economics, execution, {
       entitlementId: body.entitlementId,
       actorRef,
       occurredAt: new Date().toISOString(),
     });
+    const prepared = await prepareSessionSettlement({ actorRef: intent.actorRef, adapter });
     const result = await executeSettlementIntent({
       economics,
       execution,

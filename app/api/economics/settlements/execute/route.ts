@@ -19,10 +19,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const adapter = getSettlementAdapter();
-    const prepared = await prepareSessionSettlement({ actorRef, adapter });
+    const execution = getExecutionStore();
+    const intent = await execution.getIntent(body.intentRef);
+    if (!intent) throw new Error("INTENT_NOT_FOUND");
+    if (intent.actorRef !== actorRef) throw new Error("NOT_BENEFICIARY");
+    const prepared = await prepareSessionSettlement({ actorRef: intent.actorRef, adapter });
     const result = await executeSettlementIntent({
       economics: getEconomicsStore(),
-      execution: getExecutionStore(),
+      execution,
       adapter,
       intentRef: body.intentRef,
       actorRef,
