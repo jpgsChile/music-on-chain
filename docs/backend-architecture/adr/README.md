@@ -6,8 +6,8 @@
 | **Dependencies** | [Architecture README](../README.md) · [Standards](../../_system/STANDARDS.md) |
 | **Status** | Active |
 | **Owner** | Architecture |
-| **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Architecture](../README.md) · [Data Model Decisions](../../data-model/15-business-decisions.md) · [C-BIND/1](../../C-BIND.md) · [Hub](../../README.md) |
+| **Last Updated** | 2026-09-23 |
+| **Related Documents** | [Architecture](../README.md) · [Data Model Decisions](../../data-model/15-business-decisions.md) · [C-BIND/1](../../C-BIND.md) · [CDR-009](../../cdr/CDR-009-fan-economy-reward-protocol.md) · [Hub](../../README.md) |
 
 <!-- doc-id: backend-architecture/adr/README.md -->
 
@@ -26,6 +26,7 @@
 | [ADR-010](./ADR-010-hexagonal-ports.md) | Hexagonal ports & @moc packages | Accepted |
 | [ADR-011](./ADR-011-identity-tenancy.md) | Identity & tenancy model | Accepted |
 | [ADR-012](./ADR-012-api-versioning.md) | API versioning & compatibility | Accepted |
+| [ADR-013](./ADR-013-fan-economy-persistence-transactional-consistency.md) | Fan Economy persistence & transactional consistency | Accepted |
 
 ## ADR format
 
