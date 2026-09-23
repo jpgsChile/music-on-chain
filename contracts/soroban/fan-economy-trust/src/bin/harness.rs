@@ -2,12 +2,18 @@ use std::collections::HashMap;
 use std::io::{BufRead, Write};
 
 use fan_economy_trust::{FanEconomyTrust, FanEconomyTrustClient, TrustError};
-use soroban_sdk::testutils::Address as _;
-use soroban_sdk::{Address, Bytes, BytesN, Env, String as SdkString};
+use soroban_sdk::testutils::{Address as _, MockAuth, MockAuthInvoke};
+use soroban_sdk::{vec, Address, Bytes, BytesN, Env, IntoVal, String as SdkString, Val};
 
 /// Local driver over the real contract `Env`.
-/// Authorization is mocked so the economic flow can run without a network signer.
-/// Authorization failures are covered by the Rust contract tests, not by this process.
+///
+/// Each command authorizes only the capability the protocol requires.
+/// `authCapability` can name a different label so tests can prove that the
+/// previous address, the fan, the artist, or a random address cannot perform
+/// a command reserved for someone else.
+///
+/// The materializer label is a trusted execution capability. Authorizing it
+/// proves who may lock. It does not prove that Prisma was read.
 fn main() {
     let mut session = Session::new();
     let stdin = std::io::stdin();
@@ -36,25 +42,56 @@ fn main() {
     }
 }
 
+struct Capability {
+    address: Address,
+    label: String,
+    previous_address: Option<Address>,
+    previous_label: Option<String>,
+}
+
 struct Session {
     env: Env,
     contract: Address,
-    actors: HashMap<String, Address>,
+    registrar: Address,
+    materializer: Address,
+    actors: HashMap<String, Capability>,
+    next_label: u32,
 }
 
 impl Session {
     fn new() -> Self {
         let env = Env::default();
-        env.mock_all_auths();
         let contract = env.register(FanEconomyTrust, ());
-        let client = FanEconomyTrustClient::new(&env, &contract);
         let registrar = Address::generate(&env);
+        let materializer = Address::generate(&env);
+        let client = FanEconomyTrustClient::new(&env, &contract);
+        env.mock_auths(&[MockAuth {
+            address: &registrar,
+            invoke: &MockAuthInvoke {
+                contract: &contract,
+                fn_name: "init",
+                args: vec![&env, registrar.clone().into_val(&env)],
+                sub_invokes: &[],
+            },
+        }]);
         client.init(&registrar);
-        client.set_materializer(&Address::generate(&env));
+        env.mock_auths(&[MockAuth {
+            address: &registrar,
+            invoke: &MockAuthInvoke {
+                contract: &contract,
+                fn_name: "set_materializer",
+                args: vec![&env, materializer.clone().into_val(&env)],
+                sub_invokes: &[],
+            },
+        }]);
+        client.set_materializer(&materializer);
         Self {
             env,
             contract,
+            registrar,
+            materializer,
             actors: HashMap::new(),
+            next_label: 1,
         }
     }
 
@@ -62,14 +99,90 @@ impl Session {
         FanEconomyTrustClient::new(&self.env, &self.contract)
     }
 
-    fn bind(&mut self, actor_ref: &str) {
-        if self.actors.contains_key(actor_ref) {
-            return;
+    fn authorize(&self, address: &Address, fn_name: &str, args: soroban_sdk::Vec<Val>) {
+        self.env.mock_auths(&[MockAuth {
+            address,
+            invoke: &MockAuthInvoke {
+                contract: &self.contract,
+                fn_name,
+                args,
+                sub_invokes: &[],
+            },
+        }]);
+    }
+
+    fn bind(&mut self, actor_ref: &str) -> String {
+        if let Some(existing) = self.actors.get(actor_ref) {
+            return existing.label.clone();
         }
         let actor = self.hash_text("moc.actor.v1", actor_ref);
         let address = Address::generate(&self.env);
+        let label = format!("address-{}", self.next_label);
+        self.next_label += 1;
+        self.authorize(
+            &self.registrar,
+            "bind_capability",
+            vec![
+                &self.env,
+                actor.clone().into_val(&self.env),
+                address.clone().into_val(&self.env),
+            ],
+        );
         self.client().bind_capability(&actor, &address);
-        self.actors.insert(actor_ref.to_string(), address);
+        self.actors.insert(
+            actor_ref.to_string(),
+            Capability {
+                address,
+                label: label.clone(),
+                previous_address: None,
+                previous_label: None,
+            },
+        );
+        label
+    }
+
+    fn address_by_label(&self, label: &str) -> Option<Address> {
+        if label == "materializer" {
+            return Some(self.materializer.clone());
+        }
+        for capability in self.actors.values() {
+            if capability.label == label {
+                return Some(capability.address.clone());
+            }
+            if capability.previous_label.as_deref() == Some(label) {
+                return capability.previous_address.clone();
+            }
+        }
+        None
+    }
+
+    fn current_address(&self, actor_ref: &str) -> Option<Address> {
+        self.actors
+            .get(actor_ref)
+            .map(|capability| capability.address.clone())
+    }
+
+    fn address_for_actor_hash(&self, hash: &BytesN<32>) -> Option<Address> {
+        let refs: Vec<String> = self.actors.keys().cloned().collect();
+        for actor_ref in refs {
+            if self.hash_text("moc.actor.v1", &actor_ref) == *hash {
+                return self.current_address(&actor_ref);
+            }
+        }
+        None
+    }
+
+    fn signer(
+        &self,
+        request: &serde_json::Value,
+        default: &Address,
+    ) -> Result<Address, serde_json::Value> {
+        match request["authCapability"].as_str() {
+            Some(label) => self
+                .address_by_label(label)
+                .ok_or_else(|| err("capability_missing")),
+            None => Ok(default.clone()),
+        }
     }
 
     fn hash_text(&self, tag: &str, value: &str) -> BytesN<32> {
@@ -92,8 +205,57 @@ impl Session {
                 if actor.is_empty() {
                     return err("actor_required");
                 }
-                self.bind(actor);
-                ok(serde_json::json!({"bound": true}))
+                let label = self.bind(actor);
+                let actor_hash = hex_encode(&self.hash_text("moc.actor.v1", actor).to_array());
+                ok(serde_json::json!({"bound": true, "label": label, "actorHash": actor_hash}))
+            }
+            "capability" => {
+                let actor = request["actorRef"].as_str().unwrap_or("");
+                let Some(capability) = self.actors.get(actor) else {
+                    return err("capability_missing");
+                };
+                ok(serde_json::json!({
+                    "label": capability.label,
+                    "previous": capability.previous_label,
+                    "actorHash": hex_encode(&self.hash_text("moc.actor.v1", actor).to_array()),
+                }))
+            }
+            "rotate" => {
+                let actor_ref = request["actorRef"].as_str().unwrap_or("");
+                if !self.actors.contains_key(actor_ref) {
+                    return err("capability_missing");
+                }
+                let actor = self.hash_text("moc.actor.v1", actor_ref);
+                let current = self.current_address(actor_ref).unwrap();
+                let from = self.actors.get(actor_ref).unwrap().label.clone();
+                let next = Address::generate(&self.env);
+                let to = format!("address-{}", self.next_label);
+                self.next_label += 1;
+                self.authorize(
+                    &current,
+                    "rotate_capability",
+                    vec![
+                        &self.env,
+                        actor.clone().into_val(&self.env),
+                        next.clone().into_val(&self.env),
+                    ],
+                );
+                match self.client().try_rotate_capability(&actor, &next) {
+                    Ok(Ok(())) => {
+                        let capability = self.actors.get_mut(actor_ref).unwrap();
+                        capability.previous_address = Some(capability.address.clone());
+                        capability.previous_label = Some(capability.label.clone());
+                        capability.address = next;
+                        capability.label = to.clone();
+                        ok(serde_json::json!({
+                            "from": from,
+                            "to": to,
+                            "actorHash": hex_encode(&actor.to_array()),
+                        }))
+                    }
+                    Ok(Err(_)) => err("conversion"),
+                    Err(error) => trust_err(error),
+                }
             }
             "commit" => {
                 let authority = request["authorityActorRef"].as_str().unwrap_or("");
@@ -103,50 +265,90 @@ impl Session {
                     Err(error) => return error,
                 };
                 let scale = request["scale"].as_u64().unwrap_or(0) as u32;
-                match self.client().try_commit_reserve(
-                    &self.hash_text(
-                        "moc.campaign.v1",
-                        request["campaignId"].as_str().unwrap_or(""),
-                    ),
-                    &self.hash_text("moc.actor.v1", authority),
-                    &self.hash_text("moc.asset.v1", request["asset"].as_str().unwrap_or("")),
-                    &scale,
-                    &amount,
-                ) {
+                let campaign = self.hash_text(
+                    "moc.campaign.v1",
+                    request["campaignId"].as_str().unwrap_or(""),
+                );
+                let actor = self.hash_text("moc.actor.v1", authority);
+                let asset = self.hash_text("moc.asset.v1", request["asset"].as_str().unwrap_or(""));
+                let default_signer = match self.current_address(authority) {
+                    Some(address) => address,
+                    None => return err("capability_missing"),
+                };
+                let signer = match self.signer(request, &default_signer) {
+                    Ok(address) => address,
+                    Err(error) => return error,
+                };
+                self.authorize(
+                    &signer,
+                    "commit_reserve",
+                    vec![
+                        &self.env,
+                        campaign.clone().into_val(&self.env),
+                        actor.clone().into_val(&self.env),
+                        asset.clone().into_val(&self.env),
+                        scale.into_val(&self.env),
+                        amount.into_val(&self.env),
+                    ],
+                );
+                match self
+                    .client()
+                    .try_commit_reserve(&campaign, &actor, &asset, &scale, &amount)
+                {
                     Ok(Ok(state)) => ok(campaign_json(&state)),
                     Ok(Err(_)) => err("conversion"),
                     Err(error) => trust_err(error),
                 }
             }
             "authorize" => {
-                self.bind(request["authorityActorRef"].as_str().unwrap_or(""));
-                self.bind(request["fanActorRef"].as_str().unwrap_or(""));
+                let authority = request["authorityActorRef"].as_str().unwrap_or("");
+                let fan = request["fanActorRef"].as_str().unwrap_or("");
+                self.bind(authority);
+                self.bind(fan);
                 let amount = match Self::parse_i128(&request["amount"]) {
                     Ok(amount) => amount,
                     Err(error) => return error,
                 };
-                match self.client().try_authorize_reward(
-                    &self.hash_text(
-                        "moc.assignment.v1",
-                        request["assignmentId"].as_str().unwrap_or(""),
-                    ),
-                    &self.hash_text(
-                        "moc.campaign.v1",
-                        request["campaignId"].as_str().unwrap_or(""),
-                    ),
-                    &self.hash_text(
-                        "moc.actor.v1",
-                        request["fanActorRef"].as_str().unwrap_or(""),
-                    ),
-                    &amount,
-                ) {
+                let grant = self.hash_text(
+                    "moc.assignment.v1",
+                    request["assignmentId"].as_str().unwrap_or(""),
+                );
+                let campaign = self.hash_text(
+                    "moc.campaign.v1",
+                    request["campaignId"].as_str().unwrap_or(""),
+                );
+                let fan_hash = self.hash_text("moc.actor.v1", fan);
+                let default_signer = match self.current_address(authority) {
+                    Some(address) => address,
+                    None => return err("capability_missing"),
+                };
+                let signer = match self.signer(request, &default_signer) {
+                    Ok(address) => address,
+                    Err(error) => return error,
+                };
+                self.authorize(
+                    &signer,
+                    "authorize_reward",
+                    vec![
+                        &self.env,
+                        grant.clone().into_val(&self.env),
+                        campaign.clone().into_val(&self.env),
+                        fan_hash.clone().into_val(&self.env),
+                        amount.into_val(&self.env),
+                    ],
+                );
+                match self
+                    .client()
+                    .try_authorize_reward(&grant, &campaign, &fan_hash, &amount)
+                {
                     Ok(Ok(grant)) => ok(reward_json(&grant)),
                     Ok(Err(_)) => err("conversion"),
                     Err(error) => trust_err(error),
                 }
             }
             "release" => {
-                self.bind(request["fanActorRef"].as_str().unwrap_or(""));
+                let fan = request["fanActorRef"].as_str().unwrap_or("");
+                self.bind(fan);
                 let amount = match Self::parse_i128(&request["amount"]) {
                     Ok(amount) => amount,
                     Err(error) => return error,
@@ -158,6 +360,24 @@ impl Session {
                 let command = self.hash_text(
                     "moc.release-command.v1",
                     request["commandId"].as_str().unwrap_or(""),
+                );
+                let default_signer = match self.current_address(fan) {
+                    Some(address) => address,
+                    None => return err("capability_missing"),
+                };
+                let signer = match self.signer(request, &default_signer) {
+                    Ok(address) => address,
+                    Err(error) => return error,
+                };
+                self.authorize(
+                    &signer,
+                    "release_reward",
+                    vec![
+                        &self.env,
+                        grant.clone().into_val(&self.env),
+                        command.clone().into_val(&self.env),
+                        amount.into_val(&self.env),
+                    ],
                 );
                 match self.client().try_release_reward(&grant, &command, &amount) {
                     Ok(Ok(grant)) => ok(reward_json(&grant)),
@@ -178,22 +398,43 @@ impl Session {
                     Ok(hash) => hash,
                     Err(error) => return error,
                 };
-                match self.client().try_redeem(
-                    &self.hash_text(
-                        "moc.redemption.v1",
-                        request["redemptionId"].as_str().unwrap_or(""),
-                    ),
-                    &self.hash_text(
-                        "moc.assignment.v1",
-                        request["assignmentId"].as_str().unwrap_or(""),
-                    ),
-                    &amount,
-                    &self.hash_text(
-                        "moc.release.v1",
-                        request["releaseId"].as_str().unwrap_or(""),
-                    ),
-                    &distribution,
-                ) {
+                let redemption = self.hash_text(
+                    "moc.redemption.v1",
+                    request["redemptionId"].as_str().unwrap_or(""),
+                );
+                let grant = self.hash_text(
+                    "moc.assignment.v1",
+                    request["assignmentId"].as_str().unwrap_or(""),
+                );
+                let target = self.hash_text(
+                    "moc.release.v1",
+                    request["releaseId"].as_str().unwrap_or(""),
+                );
+                let fan = request["fanActorRef"].as_str().unwrap_or("");
+                let default_signer = match self.current_address(fan) {
+                    Some(address) => address,
+                    None => return err("capability_missing"),
+                };
+                let signer = match self.signer(request, &default_signer) {
+                    Ok(address) => address,
+                    Err(error) => return error,
+                };
+                self.authorize(
+                    &signer,
+                    "redeem",
+                    vec![
+                        &self.env,
+                        redemption.clone().into_val(&self.env),
+                        grant.clone().into_val(&self.env),
+                        amount.into_val(&self.env),
+                        target.clone().into_val(&self.env),
+                        distribution.clone().into_val(&self.env),
+                    ],
+                );
+                match self
+                    .client()
+                    .try_redeem(&redemption, &grant, &amount, &target, &distribution)
+                {
                     Ok(Ok(record)) => ok(redemption_json(&record)),
                     Ok(Err(_)) => err("conversion"),
                     Err(error) => trust_err(error),
@@ -215,6 +456,20 @@ impl Session {
                     "moc.revenue.v1",
                     request["revenueId"].as_str().unwrap_or(""),
                 );
+                let signer = match self.signer(request, &self.materializer) {
+                    Ok(address) => address,
+                    Err(error) => return error,
+                };
+                self.authorize(
+                    &signer,
+                    "lock_redemption",
+                    vec![
+                        &self.env,
+                        redemption.clone().into_val(&self.env),
+                        revenue.clone().into_val(&self.env),
+                        distribution.clone().into_val(&self.env),
+                    ],
+                );
                 match self
                     .client()
                     .try_lock_redemption(&redemption, &revenue, &distribution)
@@ -228,6 +483,25 @@ impl Session {
                 let redemption = self.hash_text(
                     "moc.redemption.v1",
                     request["redemptionId"].as_str().unwrap_or(""),
+                );
+                let Some(record) = self.client().get_redemption(&redemption) else {
+                    return err("redemption_missing");
+                };
+                let Some(grant) = self.client().get_reward(&record.grant_id) else {
+                    return err("grant_missing");
+                };
+                let default_signer = match self.address_for_actor_hash(&grant.actor_hash) {
+                    Some(address) => address,
+                    None => return err("capability_missing"),
+                };
+                let signer = match self.signer(request, &default_signer) {
+                    Ok(address) => address,
+                    Err(error) => return error,
+                };
+                self.authorize(
+                    &signer,
+                    "reverse_redemption",
+                    vec![&self.env, redemption.clone().into_val(&self.env)],
                 );
                 match self.client().try_reverse_redemption(&redemption) {
                     Ok(Ok(record)) => ok(redemption_json(&record)),
@@ -319,7 +593,15 @@ fn trust_err(error: Result<TrustError, impl std::fmt::Debug>) -> serde_json::Val
         Ok(TrustError::NotMaterializer) => err("not_materializer"),
         Ok(TrustError::AlreadyInitialized) => err("already_initialized"),
         Ok(TrustError::NotInitialized) => err("not_initialized"),
-        Err(_) => err("host"),
+        Err(invoke) => {
+            let rendered = format!("{invoke:?}");
+            let lower = rendered.to_ascii_lowercase();
+            if lower.contains("auth") || rendered.contains("Abort") {
+                err("unauthorized")
+            } else {
+                err("host")
+            }
+        }
     }
 }
 

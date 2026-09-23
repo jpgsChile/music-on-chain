@@ -493,3 +493,23 @@ export async function protocolDisagreement(
   if (projected !== authoritative) disagreements.push("remaining");
   return { disagreements, protocol, projection: row, authoritativeRemaining: authoritative.toString() };
 }
+
+/** Copies trust-critical counters from the protocol into Prisma. Never writes the contract. */
+export async function syncRewardProjectionFromProtocol(
+  client: PrismaClient,
+  trust: FanEconomyTrustExecution,
+  assignmentId: string
+) {
+  const protocol = await trust.getReward(assignmentId);
+  if (!protocol) throw new FanEconomyError("TRUST_REJECTED");
+  const row = await client.rewardEntitlement.findUnique({ where: { assignmentId } });
+  if (!row) throw new FanEconomyError("REWARD_NOT_FOUND");
+  return client.rewardEntitlement.update({
+    where: { id: row.id },
+    data: {
+      authorizedUnits: protocol.authorized,
+      consumedUnits: protocol.consumed,
+      releasedUnits: protocol.released,
+    },
+  });
+}

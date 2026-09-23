@@ -22,7 +22,9 @@ type Response = { ok: true; data: unknown } | { ok: false; error: string };
 
 /**
  * Speaks to the Soroban test harness, which executes the real contract in `Env`.
- * `mock_all_auths` in that process does not prove authorization. Rust tests do.
+ * Each command authorizes only the required capability. Passing another
+ * capability label must fail. The materializer proves lock authorization,
+ * not that Prisma was verified.
  */
 export class LocalSorobanTrust implements FanEconomyTrustExecution {
   private pending: Promise<void> = Promise.resolve();
@@ -128,6 +130,28 @@ export class LocalSorobanTrust implements FanEconomyTrustExecution {
 
   getRedemption(redemptionId: string) {
     return this.call<RedemptionTrustState | null>({ op: "getRedemption", redemptionId });
+  }
+
+  capability(actorRef: string) {
+    return this.call<{ label: string; previous: string | null; actorHash: string }>({ op: "capability", actorRef });
+  }
+
+  rotateCapability(actorRef: string) {
+    return this.call<{ from: string; to: string; actorHash: string }>({ op: "rotate", actorRef });
+  }
+
+  releaseAuthorizedBy(
+    input: { assignmentId: string; fanActorRef: string; commandId: string; amount: string },
+    authCapability: string
+  ) {
+    return this.call<RewardTrustState>({ op: "release", ...input, authCapability });
+  }
+
+  lockAuthorizedBy(
+    input: { redemptionId: string; revenueId: string; distributionHash: string },
+    authCapability: string
+  ) {
+    return this.call<RedemptionTrustState>({ op: "lock", ...input, authCapability });
   }
 
   async reset() {

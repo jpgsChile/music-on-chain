@@ -22,6 +22,7 @@
     "test:sepolia": "vitest run lib/domain/economics/execution/base/sepolia.live.test.ts",
     "setup:sepolia-mockusdc": "npx tsx lib/domain/economics/execution/base/sepoliaSetup.cli.ts",
     "typecheck": "tsc --noEmit",
+    "test:fan-economy:trust-flow": "MOC_SETTLEMENT_ADAPTER=mock vitest run lib/fan-economy/trust/trustFlow.test.ts",
     "docs:validate": "node scripts/docs-validate.mjs"
   },
   "dependencies": {

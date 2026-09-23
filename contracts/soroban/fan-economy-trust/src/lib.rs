@@ -474,8 +474,10 @@ impl FanEconomyTrust {
     }
 
     /// Temporary trust assumption: the configured materializer attests that this
-    /// exact redemption was written into the economic kernel. The contract does
-    /// not read Prisma. Amount, target, grant and distribution hash stay fixed.
+    /// exact redemption was written into the economic kernel. That attestation
+    /// is authorization of a trusted capability. It is not decentralized
+    /// verification of Prisma. The contract does not read Prisma. Amount,
+    /// target, grant and distribution hash stay fixed.
     pub fn lock_redemption(
         env: Env,
         redemption_id: BytesN<32>,
