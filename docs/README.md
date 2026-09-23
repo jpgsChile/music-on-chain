@@ -6,8 +6,8 @@
 | **Dependencies** | [`_system/STANDARDS.md`](./_system/STANDARDS.md) |
 | **Status** | Active |
 | **Owner** | Documentation Steward |
-| **Last Updated** | 2026-09-13 |
-| **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Base Sepolia deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md) · [Dev/test environments](./MOC-DEVELOPMENT-TEST-ENVIRONMENT-ARCHITECTURE.md) · [Final Trust-Native validation](./MOC-FINAL-END-TO-END-WEB3-TRUST-NATIVE-ARCHITECTURE-VALIDATION.md) · [Persistent economic ledger](./MOC-PERSISTENT-ECONOMIC-LEDGER-VERIFIED-ACTOR-SESSION.md) · [Verified Privy session](./MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md) · [First real band pilot](./MOC-FIRST-REAL-BAND-PILOT.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
+| **Last Updated** | 2026-09-23 |
+| **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [CDR index](./cdr/README.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Base Sepolia deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md) · [Dev/test environments](./MOC-DEVELOPMENT-TEST-ENVIRONMENT-ARCHITECTURE.md) · [Final Trust-Native validation](./MOC-FINAL-END-TO-END-WEB3-TRUST-NATIVE-ARCHITECTURE-VALIDATION.md) · [Persistent economic ledger](./MOC-PERSISTENT-ECONOMIC-LEDGER-VERIFIED-ACTOR-SESSION.md) · [Verified Privy session](./MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md) · [First real band pilot](./MOC-FIRST-REAL-BAND-PILOT.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
 
 ---
 
@@ -45,6 +45,8 @@
 | [vc-demo.md](./vc-demo.md) | Demo narrative for stakeholders |
 | [ARTIST_PROFILE.md](./ARTIST_PROFILE.md) | Artist profile / channel (PoC + evolution) |
 | [C-BIND.md](./C-BIND.md) | C-BIND/1 1.0.0 (CDR-008) consumption: Privy auth vs binding vs Actor |
+| [cdr/README.md](./cdr/README.md) | Canonical Decision Records: CDR vs ADR; CDR-008 pin; CDR-009 accepted 1.0.0 |
+| [cdr/CDR-009-fan-economy-reward-protocol.md](./cdr/CDR-009-fan-economy-reward-protocol.md) | Accepted Fan Economy & Reward Protocol 1.0.0 (2026-09-23) |
 | [MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) | Domain reconstruction: Actor, Work, Participation, Rights semantics |
 | [MOC-ECONOMIC-RIGHTS-FOUNDATION.md](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) | Rights, Revenue, Distribution, Entitlement, Settlement, Fees |
 | [MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) | Domain vs execution: Intent, Adapter, Receipt, idempotency |
