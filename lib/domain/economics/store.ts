@@ -1,6 +1,6 @@
 import type { ActorRef } from "../types";
-import type { AssessedRevenue, EconomicEntitlement, PaymentRecord, SettlementRecord } from "./types";
-import { recordRevenue, settleEntitlementOnce } from "./engine";
+import type { AssessedRevenue, EconomicEntitlement, PaymentRecord, Revenue, SettlementRecord } from "./types";
+import { recordRevenue, reverseEntitlement, settleEntitlementOnce } from "./engine";
 import type { ProtocolFeePolicy } from "./policy";
 import type { DistributionRule, Sale } from "./types";
 import type { Money } from "./money";
@@ -12,6 +12,7 @@ export type EconomicsStore = {
   listEntitlements(actorRef: ActorRef): Promise<EconomicEntitlement[]>;
   getEntitlement(entitlementId: string): Promise<EconomicEntitlement | null>;
   putEntitlement(entitlement: EconomicEntitlement): Promise<void>;
+  markRevenueReversed(revenueId: string): Promise<void>;
   hasSettlementFor(entitlementId: string): Promise<boolean>;
   putSettlement(settlement: SettlementRecord, payment: PaymentRecord): Promise<void>;
   listRevenues(): Promise<AssessedRevenue[]>;
@@ -57,6 +58,11 @@ export function createMemoryEconomicsStore(seed?: AssessedRevenue[]): EconomicsS
         );
       }
     },
+    async markRevenueReversed(revenueId) {
+      const assessed = revenues.get(revenueId);
+      if (!assessed) throw new Error("REVENUE_NOT_FOUND");
+      assessed.revenue = { ...assessed.revenue, status: "reversed" };
+    },
     async hasSettlementFor(entitlementId) {
       for (const settlement of settlements.values()) {
         if (settlement.entitlementId === entitlementId && settlement.status === "completed") {
@@ -85,6 +91,7 @@ export async function recordRevenueOnce(
     rule: DistributionRule;
     occurredAt?: string;
     sale?: Sale;
+    origin?: Revenue["origin"];
     workId?: string;
     releaseId?: string;
   }
@@ -124,4 +131,20 @@ export async function settleOnce(
   await store.putEntitlement(result.entitlement);
   await store.putSettlement(result.settlement, result.payment);
   return result;
+}
+
+export async function reverseKernelEntitlement(
+  store: EconomicsStore,
+  entitlementId: string
+): Promise<EconomicEntitlement> {
+  const entitlement = await store.getEntitlement(entitlementId);
+  if (!entitlement) throw new Error("ENTITLEMENT_NOT_FOUND");
+  const assessed = await store.getRevenue(entitlement.revenueId);
+  if (!assessed) throw new Error("REVENUE_NOT_FOUND");
+  if (assessed.revenue.origin.kind === "redemption") {
+    throw new Error("REDEMPTION_REVENUE_REQUIRES_CANONICAL_REVERSAL");
+  }
+  const reversed = reverseEntitlement(entitlement);
+  await store.putEntitlement(reversed);
+  return reversed;
 }

@@ -25,6 +25,14 @@ export const MOC_PRODUCT_FEE_POLICY_V1: ProtocolFeePolicy = {
   convenienceFeeBps: 0,
 };
 
+/** Redemption MVP. Partitions nothing. Does not replace the sale policy. */
+export const MOC_REDEMPTION_FEE_POLICY_V1: ProtocolFeePolicy = {
+  policyId: "moc-redemption-fee-v1",
+  version: 1,
+  protocolFeeBps: 0,
+  convenienceFeeBps: 0,
+};
+
 export function creatorShareBps(policy: ProtocolFeePolicy): number {
   return BPS_DENOMINATOR - policy.protocolFeeBps;
 }

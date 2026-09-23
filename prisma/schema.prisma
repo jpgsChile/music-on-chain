@@ -173,9 +173,12 @@ model EconomicRevenue {
   protocolFeeBps      Int      @default(0)
   convenienceFeeBps   Int      @default(0)
   ruleId              String
+  status              String                 @default("recorded")
   occurredAt          DateTime
   createdAt           DateTime               @default(now())
   entitlements        EconomicEntitlement[]
+
+  @@unique([originKind, originId])
 }
 
 model EconomicEntitlement {
@@ -293,4 +296,143 @@ model SettlementReceiptRecord {
 
   @@unique([intentRef, requestRef])
   @@index([intentRef])
+}
+
+/// Fan Economy. Domain: lib/domain/fanEconomy. Not a wallet ledger.
+model Campaign {
+  id              String    @id
+  artistActorRef  String
+  title           String
+  asset           String
+  scale           Int
+  committedUnits  String
+  reserveKind     String
+  version         Int       @default(0)
+  createdAt       DateTime  @default(now())
+  missions        Mission[]
+
+  @@index([artistActorRef])
+}
+
+model Mission {
+  id                 String              @id
+  campaignId         String
+  campaign           Campaign            @relation(fields: [campaignId], references: [id])
+  title              String
+  criterion          String
+  maximumRewardUnits String
+  asset              String
+  scale              Int
+  assignmentMode     String
+  status             String
+  createdAt          DateTime            @default(now())
+  assignments        MissionAssignment[]
+
+  @@index([campaignId])
+}
+
+model MissionAssignment {
+  id           String               @id
+  missionId    String
+  mission      Mission              @relation(fields: [missionId], references: [id])
+  fanActorRef  String
+  state        String
+  createdAt    DateTime             @default(now())
+  evidence     EvidenceRecord[]
+  verifications VerificationRecord[]
+  reward       RewardEntitlement?
+
+  @@unique([fanActorRef, missionId])
+  @@index([missionId])
+}
+
+model EvidenceRecord {
+  id                String            @id
+  assignmentId      String
+  assignment        MissionAssignment @relation(fields: [assignmentId], references: [id])
+  submitterActorRef String
+  contentHash       String
+  locator           String
+  createdAt         DateTime          @default(now())
+
+  @@index([assignmentId])
+}
+
+model VerificationRecord {
+  id               String            @id
+  assignmentId     String
+  assignment       MissionAssignment @relation(fields: [assignmentId], references: [id])
+  evidenceId       String
+  outcome          String
+  verifierActorRef String
+  policyId         String
+  current          Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+
+  @@index([assignmentId, current])
+}
+
+model RewardEntitlement {
+  id              String            @id
+  assignmentId    String            @unique
+  assignment      MissionAssignment @relation(fields: [assignmentId], references: [id])
+  campaignId      String
+  fanActorRef     String
+  verificationId  String
+  authorizedUnits String
+  consumedUnits   String
+  releasedUnits   String
+  asset           String
+  scale           Int
+  version         Int               @default(0)
+  createdAt       DateTime          @default(now())
+  redemptions     Redemption[]
+  releases        RewardReleaseCommand[]
+
+  @@index([campaignId])
+  @@index([fanActorRef])
+}
+
+model Redemption {
+  id                  String            @id
+  rewardEntitlementId String
+  reward              RewardEntitlement @relation(fields: [rewardEntitlementId], references: [id])
+  fanActorRef         String
+  releaseId           String
+  units               String
+  asset               String
+  scale               Int
+  payloadHash         String
+  revenueId           String            @unique
+  state               String
+  createdAt           DateTime          @default(now())
+  reversedAt          DateTime?
+
+  @@index([fanActorRef])
+  @@index([rewardEntitlementId])
+}
+
+model RewardReleaseCommand {
+  id                  String            @id
+  rewardEntitlementId String
+  reward              RewardEntitlement @relation(fields: [rewardEntitlementId], references: [id])
+  fanActorRef         String
+  units               String
+  asset               String
+  scale               Int
+  payloadHash         String
+  createdAt           DateTime          @default(now())
+}
+
+model FanEconomyTransition {
+  id         String   @id @default(cuid())
+  command    String
+  actorRef   String
+  authority  String
+  subjectId  String
+  priorState String
+  nextState  String
+  createdAt  DateTime @default(now())
+
+  @@index([subjectId])
 }

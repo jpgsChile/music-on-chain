@@ -18,6 +18,8 @@ const NAV = [
   { id: "royalties", href: "/dashboard/royalties" },
   { id: "sales", href: "/dashboard/sales" },
   { id: "analytics", href: "/dashboard/analytics" },
+  { id: "campaigns", href: "/dashboard/campaigns" },
+  { id: "support", href: "/dashboard/support" },
   { id: "settings", href: "/dashboard/settings" },
 ] as const;
 

@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import type { ActorRef } from "../types";
 import { money } from "./money";
 import type { ProtocolFeePolicy } from "./policy";
@@ -10,6 +10,17 @@ import type {
   SettlementRecord,
 } from "./types";
 import type { EconomicsStore } from "./store";
+
+type EconomicsClient = PrismaClient | Prisma.TransactionClient;
+
+function writesOwnTransaction(client: EconomicsClient): client is PrismaClient {
+  return "$transaction" in client && typeof client.$transaction === "function";
+}
+
+function readOriginKind(value: string): "sale" | "other" | "redemption" {
+  if (value === "sale" || value === "other" || value === "redemption") return value;
+  return "other";
+}
 
 function moneyFrom(units: string, asset: string, scale: number) {
   return money(units, asset, scale);
@@ -66,6 +77,7 @@ function toAssessed(
     protocolFeeBps: number;
     convenienceFeeBps: number;
     ruleId: string;
+    status: string;
     occurredAt: Date;
     entitlements: Parameters<typeof toEntitlement>[0][];
   }
@@ -93,7 +105,7 @@ function toAssessed(
     revenue: {
       revenueId: row.id,
       origin: {
-        kind: row.originKind === "sale" ? "sale" : "other",
+        kind: readOriginKind(row.originKind),
         id: row.originId,
       },
       saleId: row.saleId ?? undefined,
@@ -103,6 +115,7 @@ function toAssessed(
       occurredAt: row.occurredAt.toISOString(),
       policyId: row.policyId,
       policyVersion: row.policyVersion,
+      status: row.status === "reversed" ? "reversed" : "recorded",
     },
     assessment: {
       revenueId: row.id,
@@ -130,7 +143,10 @@ function toAssessed(
   };
 }
 
-export function createPrismaEconomicsStore(client: PrismaClient): EconomicsStore {
+export function createPrismaEconomicsStore(
+  client: EconomicsClient,
+  options?: { joined?: boolean }
+): EconomicsStore {
   return {
     async hasRevenue(revenueId) {
       const row = await client.economicRevenue.findUnique({ where: { id: revenueId } });
@@ -139,7 +155,7 @@ export function createPrismaEconomicsStore(client: PrismaClient): EconomicsStore
     async putAssessed(assessed) {
       const protocol = assessed.assessment.fees.find((line) => line.kind === "protocol");
       const convenience = assessed.assessment.fees.find((line) => line.kind === "convenience");
-      await client.$transaction(async (tx) => {
+      const write = async (tx: EconomicsClient) => {
         await tx.economicRevenue.create({
           data: {
             id: assessed.revenue.revenueId,
@@ -159,6 +175,7 @@ export function createPrismaEconomicsStore(client: PrismaClient): EconomicsStore
             protocolFeeBps: assessed.assessment.policy.protocolFeeBps,
             convenienceFeeBps: assessed.assessment.policy.convenienceFeeBps,
             ruleId: assessed.distribution.ruleId,
+            status: assessed.revenue.status,
             occurredAt: new Date(assessed.revenue.occurredAt),
           },
         });
@@ -179,7 +196,12 @@ export function createPrismaEconomicsStore(client: PrismaClient): EconomicsStore
             settledAt: row.settledAt ? new Date(row.settledAt) : null,
           })),
         });
-      });
+      };
+      if (options?.joined || !writesOwnTransaction(client)) {
+        await write(client);
+        return;
+      }
+      await client.$transaction(write);
     },
     async getRevenue(revenueId) {
       const row = await client.economicRevenue.findUnique({
@@ -208,12 +230,18 @@ export function createPrismaEconomicsStore(client: PrismaClient): EconomicsStore
         },
       });
     },
+    async markRevenueReversed(revenueId) {
+      await client.economicRevenue.update({
+        where: { id: revenueId },
+        data: { status: "reversed" },
+      });
+    },
     async hasSettlementFor(entitlementId) {
       const row = await client.economicSettlement.findUnique({ where: { entitlementId } });
       return row?.status === "completed";
     },
     async putSettlement(settlement: SettlementRecord, payment: PaymentRecord) {
-      await client.$transaction(async (tx) => {
+      const write = async (tx: EconomicsClient) => {
         await tx.economicEntitlement.update({
           where: { id: settlement.entitlementId },
           data: {
@@ -246,7 +274,12 @@ export function createPrismaEconomicsStore(client: PrismaClient): EconomicsStore
             createdAt: new Date(payment.createdAt),
           },
         });
-      });
+      };
+      if (options?.joined || !writesOwnTransaction(client)) {
+        await write(client);
+        return;
+      }
+      await client.$transaction(write);
     },
     async listRevenues() {
       const rows = await client.economicRevenue.findMany({ include: { entitlements: true } });

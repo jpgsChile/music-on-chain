@@ -11,7 +11,7 @@ export type Sale = {
 };
 
 export type RevenueOrigin = {
-  kind: "sale" | "other";
+  kind: "sale" | "other" | "redemption";
   id: string;
 };
 
@@ -25,6 +25,8 @@ export type Revenue = {
   occurredAt: string;
   policyId: string;
   policyVersion: number;
+  /** recorded until a canonical reversal marks it reversed. Sale rows stay recorded. */
+  status: "recorded" | "reversed";
 };
 
 export type FeeLine = {

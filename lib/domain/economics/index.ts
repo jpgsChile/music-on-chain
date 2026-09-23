@@ -4,6 +4,7 @@ export type { AssetCode, Money, MoneyJson } from "./money";
 export {
   BPS_DENOMINATOR,
   MOC_PRODUCT_FEE_POLICY_V1,
+  MOC_REDEMPTION_FEE_POLICY_V1,
   assertFeePolicy,
   creatorShareBps,
 } from "./policy";
@@ -30,6 +31,7 @@ export {
 export {
   createMemoryEconomicsStore,
   recordRevenueOnce,
+  reverseKernelEntitlement,
   settleOnce,
 } from "./store";
 export type { EconomicsStore } from "./store";

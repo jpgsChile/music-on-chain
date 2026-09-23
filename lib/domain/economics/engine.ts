@@ -118,6 +118,7 @@ export function recordRevenue(input: {
     occurredAt,
     policyId: input.policy.policyId,
     policyVersion: input.policy.version,
+    status: "recorded",
   };
   const assessment = assessFees(revenue.revenueId, revenue.gross, input.policy);
   const distribution = applyDistributionRule(
