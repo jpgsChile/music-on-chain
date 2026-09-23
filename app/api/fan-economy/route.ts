@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
-import { isFanEconomyError } from "@/lib/domain/fanEconomy/errors";
+import { FanEconomyError, isFanEconomyError } from "@/lib/domain/fanEconomy/errors";
 import {
   acceptMission,
   artistDesk,
@@ -15,6 +15,9 @@ import {
   submitEvidence,
   traceRedemption,
 } from "@/lib/fan-economy/service";
+import { configuredTrust } from "@/lib/fan-economy/trust/configured";
+import { reconcileRedemption } from "@/lib/fan-economy/trust/flow";
+import { getPrisma } from "@/lib/db";
 
 function fail(error: unknown) {
   if (isFanEconomyError(error)) {
@@ -44,6 +47,7 @@ export async function GET(request: NextRequest) {
   const session = await requireActorSession(request);
   if (!isActorSession(session)) return session;
   const view = request.nextUrl.searchParams.get("view");
+  const trust = configuredTrust();
   try {
     if (view === "artist") {
       return NextResponse.json({ ok: true, campaigns: await artistDesk(session.actorRef) });
@@ -52,7 +56,7 @@ export async function GET(request: NextRequest) {
       const redemptionId = request.nextUrl.searchParams.get("redemptionId")?.trim() ?? "";
       return NextResponse.json({ ok: true, value: await traceRedemption(session.actorRef, redemptionId) });
     }
-    return NextResponse.json({ ok: true, ...(await fanDesk(session.actorRef)) });
+    return NextResponse.json({ ok: true, ...(await fanDesk(session.actorRef, getPrisma(), trust)) });
   } catch (error) {
     return fail(error);
   }
@@ -67,6 +71,8 @@ export async function POST(request: NextRequest) {
   }
   const command = String((body as { command?: unknown }).command ?? "");
   const actorRef = session.actorRef;
+  const trust = configuredTrust();
+  const prisma = getPrisma();
   try {
     switch (command) {
       case "createCampaign":
@@ -76,7 +82,7 @@ export async function POST(request: NextRequest) {
             artistActorRef: actorRef,
             title: String(body.title ?? ""),
             committed: amount(body),
-          }),
+          }, prisma, trust),
         });
       case "createMission":
         return NextResponse.json({
@@ -121,7 +127,7 @@ export async function POST(request: NextRequest) {
             artistActorRef: actorRef,
             assignmentId: String(body.assignmentId ?? ""),
             amount: amount(body),
-          }),
+          }, prisma, trust),
         });
       case "releaseReward":
         return NextResponse.json({
@@ -131,7 +137,7 @@ export async function POST(request: NextRequest) {
             rewardEntitlementId: String(body.rewardEntitlementId ?? ""),
             amount: amount(body),
             commandId: String(body.commandId ?? ""),
-          }),
+          }, prisma, trust),
         });
       case "redeemReward":
         return NextResponse.json({
@@ -142,7 +148,7 @@ export async function POST(request: NextRequest) {
             amount: amount(body),
             redemptionId: String(body.redemptionId ?? ""),
             releaseId: String(body.releaseId ?? ""),
-          }),
+          }, prisma, trust),
         });
       case "reverseRedemption":
         return NextResponse.json({
@@ -150,7 +156,19 @@ export async function POST(request: NextRequest) {
           value: await reverseRedemption({
             fanActorRef: actorRef,
             redemptionId: String(body.redemptionId ?? ""),
-          }),
+          }, prisma, trust),
+        });
+      case "reconcileRedemption":
+        if (!trust) throw new FanEconomyError("TRUST_NOT_CONFIGURED");
+        return NextResponse.json({
+          ok: true,
+          value: await reconcileRedemption({
+            fanActorRef: actorRef,
+            redemptionId: String(body.redemptionId ?? ""),
+            releaseId: String(body.releaseId ?? ""),
+            rewardEntitlementId: String(body.rewardEntitlementId ?? ""),
+            amount: amount(body),
+          }, prisma, trust),
         });
       default:
         return NextResponse.json({ ok: false, error: "UNKNOWN_COMMAND" }, { status: 400 });

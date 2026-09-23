@@ -1,0 +1,60 @@
+{
+  "actor": {
+    "tag": "moc.actor.v1",
+    "input": "moc:actor:11111111-1111-4111-8111-111111111111",
+    "hash": "b0e0299c5de8a2c5ee7e51daa7c4f63630f5a98755573dabb710b37d81a1992f"
+  },
+  "campaign": {
+    "tag": "moc.campaign.v1",
+    "input": "campaign:vector-1",
+    "hash": "74dec46df4730a2bf4aeb6fbddd75b52dd062dd129209aa0d34ecdd9762322df"
+  },
+  "assignment": {
+    "tag": "moc.assignment.v1",
+    "input": "assignment:vector-1",
+    "hash": "6d3efe860dd25d88716d8062a7e88a6195106840649c24458646a4866501c927"
+  },
+  "redemption": {
+    "tag": "moc.redemption.v1",
+    "input": "redeem-vector-1",
+    "hash": "4d881c331ff5954c3968d98dce9c72b055e972c3ab79ff070da5a69bebf8ffab"
+  },
+  "release": {
+    "tag": "moc.release.v1",
+    "input": "release:vector-1",
+    "hash": "bf4c0c3624526e4af3a0a9da20d21161f965fb3a4b2dde6f083a5172f6a6c599"
+  },
+  "asset": {
+    "tag": "moc.asset.v1",
+    "input": "USDC",
+    "hash": "165bc5cdc5d739eb79b36d6699fd2dbef03d5870935f4584798e0c0c1b5bc0a7"
+  },
+  "revenue": {
+    "tag": "moc.revenue.v1",
+    "input": "revenue:redemption:redeem-vector-1",
+    "hash": "e4ee66eda3b51d7f204117a016e2aab726006ac26335d44d7c2fee6b6f37020c"
+  },
+  "command": {
+    "tag": "moc.release-command.v1",
+    "input": "release-cmd-vector-1",
+    "hash": "505fda45f4d469b1e04eb4f63aa2e6fc016183963613cb65d40878c9d2c12f33"
+  },
+  "distribution": {
+    "entries": [
+      {
+        "actorRef": "moc:actor:22222222-2222-4222-8222-222222222222",
+        "shareBps": 2500
+      },
+      {
+        "actorRef": "moc:actor:11111111-1111-4111-8111-111111111111",
+        "shareBps": 7500
+      }
+    ],
+    "hash": "7fbe9d94824ff1be6569a52c5f50fcb6d3f81f968a6656bab8c9540227755ff2"
+  },
+  "materialization": {
+    "redemptionId": "redeem-vector-1",
+    "revenueId": "revenue:redemption:redeem-vector-1",
+    "hash": "f50e57f14c7537734c4feee29a07fae0cc5ea08ae9810b90b425f751e8128617"
+  }
+}

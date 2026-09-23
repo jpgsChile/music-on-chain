@@ -22,6 +22,14 @@ import {
   assertPilotVerificationAuthority,
   PILOT_VERIFICATION_POLICY_ID,
 } from "@/lib/fan-economy/verificationPolicy";
+import type { FanEconomyTrustExecution } from "@/lib/fan-economy/trust/port";
+import {
+  authorizeWithTrust,
+  commitCampaignReserve,
+  redeemWithTrust,
+  releaseWithTrust,
+  reverseWithTrust,
+} from "@/lib/fan-economy/trust/flow";
 
 type Tx = Prisma.TransactionClient;
 
@@ -97,14 +105,25 @@ async function requireCampaign(tx: Tx, campaignId: string, artistActorRef: strin
 
 export async function createCampaign(
   input: { artistActorRef: string; title: string; committed: Amount },
-  client: PrismaClient = getPrisma()
+  client: PrismaClient = getPrisma(),
+  trust: FanEconomyTrustExecution | null = null
 ) {
   const title = input.title.trim();
   if (!title) throw new FanEconomyError("TITLE_REQUIRED");
   if (input.committed.units <= 0n) throw new FanEconomyError("INVALID_AMOUNT");
+  const campaignId = id("campaign");
+  if (trust) {
+    await commitCampaignReserve(trust, {
+      campaignId,
+      artistActorRef: input.artistActorRef,
+      asset: input.committed.asset,
+      scale: input.committed.scale,
+      units: input.committed.units,
+    });
+  }
   const campaign = await client.campaign.create({
     data: {
-      id: id("campaign"),
+      id: campaignId,
       artistActorRef: input.artistActorRef,
       title,
       asset: input.committed.asset,
@@ -278,9 +297,11 @@ export async function recordVerification(
 
 export async function authorizeReward(
   input: { artistActorRef: string; assignmentId: string; amount: Amount },
-  client: PrismaClient = getPrisma()
+  client: PrismaClient = getPrisma(),
+  trust: FanEconomyTrustExecution | null = null
 ) {
   if (input.amount.units <= 0n) throw new FanEconomyError("INVALID_AMOUNT");
+  if (trust) return authorizeWithTrust(input, client, trust);
   try {
     return await authorizeRewardOnce(input, client);
   } catch (error) {
@@ -396,11 +417,13 @@ async function moveReward(
 
 export async function releaseReward(
   input: { fanActorRef: string; rewardEntitlementId: string; amount: Amount; commandId: string },
-  client: PrismaClient = getPrisma()
+  client: PrismaClient = getPrisma(),
+  trust: FanEconomyTrustExecution | null = null
 ) {
   const commandId = input.commandId.trim();
   if (!commandId) throw new FanEconomyError("COMMAND_ID_REQUIRED");
   if (input.amount.units <= 0n) throw new FanEconomyError("INVALID_AMOUNT");
+  if (trust) return releaseWithTrust({ ...input, commandId }, client, trust);
   const hash = canonicalHash({
     commandId,
     rewardEntitlementId: input.rewardEntitlementId,
@@ -489,9 +512,14 @@ export async function redeemReward(
     redemptionId: string;
     releaseId: string;
   },
-  client: PrismaClient = getPrisma()
+  client: PrismaClient = getPrisma(),
+  trust: FanEconomyTrustExecution | null = null
 ) {
   const redemptionId = input.redemptionId.trim();
+  if (trust) {
+    await redeemWithTrust({ ...input, redemptionId }, client, trust);
+    return readRedemption(client, redemptionId, input.fanActorRef);
+  }
   if (!/^[A-Za-z0-9:_-]{8,80}$/.test(redemptionId)) throw new FanEconomyError("INVALID_REDEMPTION_ID");
   if (input.amount.units <= 0n) throw new FanEconomyError("INVALID_AMOUNT");
   const hash = canonicalHash({
@@ -598,8 +626,13 @@ export async function redeemReward(
 
 export async function reverseRedemption(
   input: { fanActorRef: string; redemptionId: string },
-  client: PrismaClient = getPrisma()
+  client: PrismaClient = getPrisma(),
+  trust: FanEconomyTrustExecution | null = null
 ) {
+  if (trust) {
+    await reverseWithTrust(input, client, trust);
+    return readRedemption(client, input.redemptionId, input.fanActorRef);
+  }
   const outcome = await client.$transaction(async (tx) => {
     const redemption = await tx.redemption.findUnique({ where: { id: input.redemptionId } });
     if (!redemption || redemption.fanActorRef !== input.fanActorRef) throw new FanEconomyError("FORBIDDEN");
@@ -713,15 +746,33 @@ export async function artistDesk(artistActorRef: string, client: PrismaClient = 
   });
 }
 
-export async function fanDesk(fanActorRef: string, client: PrismaClient = getPrisma()) {
+export async function fanDesk(
+  fanActorRef: string,
+  client: PrismaClient = getPrisma(),
+  trust: FanEconomyTrustExecution | null = null
+) {
   const rewards = await client.rewardEntitlement.findMany({ where: { fanActorRef } });
+  const protocolRemaining = new Map<string, bigint>();
+  if (trust) {
+    for (const row of rewards) {
+      const protocol = await trust.getReward(row.assignmentId);
+      if (!protocol) continue;
+      protocolRemaining.set(
+        row.assignmentId,
+        BigInt(protocol.authorized) - BigInt(protocol.consumed) - BigInt(protocol.released)
+      );
+    }
+  }
+  const remainingOf = (row: { assignmentId: string; authorizedUnits: string; consumedUnits: string; releasedUnits: string }) =>
+    protocolRemaining.get(row.assignmentId) ??
+    remainingUnits({
+      authorizedUnits: BigInt(row.authorizedUnits),
+      consumedUnits: BigInt(row.consumedUnits),
+      releasedUnits: BigInt(row.releasedUnits),
+    });
   const power = purchasingPower(
     rewards.map((row) => ({
-      remainingUnits: remainingUnits({
-        authorizedUnits: BigInt(row.authorizedUnits),
-        consumedUnits: BigInt(row.consumedUnits),
-        releasedUnits: BigInt(row.releasedUnits),
-      }),
+      remainingUnits: remainingOf(row),
       asset: row.asset,
       scale: row.scale,
     }))
@@ -767,11 +818,7 @@ export async function fanDesk(fanActorRef: string, client: PrismaClient = getPri
         ? {
             id: assignment.reward.id,
             remaining: view(
-              remainingUnits({
-                authorizedUnits: BigInt(assignment.reward.authorizedUnits),
-                consumedUnits: BigInt(assignment.reward.consumedUnits),
-                releasedUnits: BigInt(assignment.reward.releasedUnits),
-              }),
+              remainingOf(assignment.reward),
               assignment.reward.scale,
               assignment.reward.asset
             ),

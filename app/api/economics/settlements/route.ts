@@ -6,6 +6,7 @@ import {
   getSettlementAdapter,
 } from "@/lib/domain/economics/runtime";
 import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
+import { configuredTrust } from "@/lib/fan-economy/trust/configured";
 import { logDomainEvent } from "@/lib/observability/domainLog";
 
 /**
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
       entitlementId: body.entitlementId,
       actorRef,
       occurredAt: new Date().toISOString(),
+      trustRedemption: configuredTrust(),
     });
     const prepared = await prepareSessionSettlement({ actorRef: intent.actorRef, adapter });
     const result = await executeSettlementIntent({

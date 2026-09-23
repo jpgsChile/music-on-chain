@@ -37,11 +37,21 @@ export async function openSettlementIntent(
     actorRef: ActorRef;
     intentRef?: string;
     occurredAt?: string;
+    trustRedemption?: {
+      getRedemption(redemptionId: string): Promise<{ status: "committed" | "locked" | "reversed" } | null>;
+    } | null;
   }
 ): Promise<SettlementIntent> {
   const entitlement = await economics.getEntitlement(input.entitlementId);
   if (!entitlement) throw new Error("ENTITLEMENT_NOT_FOUND");
   if (entitlement.actorRef !== input.actorRef) throw new Error("NOT_BENEFICIARY");
+  if (input.trustRedemption) {
+    const revenue = await economics.getRevenue(entitlement.revenueId);
+    if (revenue?.revenue.origin.kind === "redemption") {
+      const record = await input.trustRedemption.getRedemption(revenue.revenue.origin.id);
+      if (!record || record.status !== "locked") throw new Error("REDEMPTION_NOT_LOCKED");
+    }
+  }
 
   const existing = await execution.getIntentByEntitlement(entitlement.entitlementId);
   if (existing) return existing;

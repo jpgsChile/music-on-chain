@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { moneyToJson, openSettlementIntent } from "@/lib/domain/economics";
 import { getEconomicsStore, getExecutionStore } from "@/lib/domain/economics/runtime";
 import { isActorSession, requireActorSession } from "@/lib/auth/actorSession";
+import { configuredTrust } from "@/lib/fan-economy/trust/configured";
 import { logDomainEvent } from "@/lib/observability/domainLog";
 
 export async function POST(request: NextRequest) {
@@ -18,6 +19,7 @@ export async function POST(request: NextRequest) {
       actorRef,
       intentRef: typeof body.intentRef === "string" ? body.intentRef : undefined,
       occurredAt: new Date().toISOString(),
+      trustRedemption: configuredTrust(),
     });
     logDomainEvent("economics.intent", {
       actorRef,

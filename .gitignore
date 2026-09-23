@@ -32,6 +32,8 @@ yarn-error.log*
 # Foundry / contract artifacts
 /contracts/out/
 /contracts/cache/
+/contracts/soroban/**/target/
+/contracts/soroban/**/test_snapshots/
 /broadcast/
 /cache/
 

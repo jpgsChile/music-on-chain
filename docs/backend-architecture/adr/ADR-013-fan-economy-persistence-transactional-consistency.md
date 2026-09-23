@@ -286,3 +286,24 @@ Automated tests and at least one settlement execution helper bind named catalog 
 ## Consistency with CDR-009
 
 Checked against I-01 through I-34. No invariant is redefined. In particular: I-09 and I-19 (redemption idempotency and the success triple), I-10 and I-34 (standing and no decrease of committed), I-17 and I-28 (amount identity and serialization), I-20 and I-21 and I-32 (one entitlement, all-or-nothing authorization, mission maximum), I-22 and I-30 (redemption and reversal do not free reserve), I-23 (no half success), I-24 (snapshot is inside the redeem commit; the snapshot rule itself is ADR-014), I-26 (settlement is outside this transaction and still only accepts an EconomicEntitlement), I-27 and I-31 (full reversal, named authority), I-33 (kernel reversal of a redemption Revenue only inside ReverseRedemption).
+
+## Amendment — 2026-09-23 — Phase 5C / Trust Execution
+
+Phase 5B found a conflict with Decision 1 and Decision 2 once trust-critical counters move to an execution port. This amendment does not replace the historical decision. It records what changes when Trust Execution is enabled.
+
+**Before.** Prisma is authoritative for the campaign committed amount, reward consumption, reward release, and redemption anti-replay.
+
+**After.** When Trust Execution is enabled, the Trust Execution Port is authoritative for that trust-critical economic state:
+
+- Campaign committed limit and outstanding commitment
+- RewardGrant authorized, consumed, and released
+- Redemption uniqueness, amount, target commitment, and distribution commitment
+- The redemption lifecycle that must exist before economic materialization
+
+Prisma remains the operational projection and materialization of that state. It stays authoritative for catalog, Campaign and Mission metadata, Evidence, Verification, Revenue, Distribution, EconomicEntitlement, and settlement records.
+
+The relational transaction remains authoritative and atomic for the Redemption projection together with Revenue, Distribution, and EconomicEntitlement. That transaction must materialize an already valid Trust Execution redemption. It must not invent a protocol grant, a second Revenue, or a second consumption. A committed redemption whose materialization fails stays committed and reconcilable. SettlementIntent for a redemption-origin entitlement stays closed until that redemption is locked.
+
+When Trust Execution is not enabled, Decisions 1 and 2 continue to apply to the Prisma-only path.
+
+A protocol commitment is an accounting ceiling. It is not custody or proof that assets are reserved.

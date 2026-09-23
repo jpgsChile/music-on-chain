@@ -26,7 +26,7 @@
 | [ADR-010](./ADR-010-hexagonal-ports.md) | Hexagonal ports & @moc packages | Accepted |
 | [ADR-011](./ADR-011-identity-tenancy.md) | Identity & tenancy model | Accepted |
 | [ADR-012](./ADR-012-api-versioning.md) | API versioning & compatibility | Accepted |
-| [ADR-013](./ADR-013-fan-economy-persistence-transactional-consistency.md) | Fan Economy persistence & transactional consistency | Accepted |
+| [ADR-013](./ADR-013-fan-economy-persistence-transactional-consistency.md) | Fan Economy persistence & transactional consistency. Amended 2026-09-23 for Trust Execution. | Accepted |
 | [ADR-014](./ADR-014-fan-economy-redemption-economic-kernel-integration.md) | Fan Economy redemption → economic kernel integration | Accepted |
 
 ## ADR format
