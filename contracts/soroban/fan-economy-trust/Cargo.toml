@@ -28,3 +28,6 @@ required-features = ["testutils"]
 [dependencies.serde_json]
 version = "1"
 optional = true
+
+[profile.release]
+overflow-checks = true
