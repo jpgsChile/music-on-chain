@@ -3,6 +3,7 @@ import { FanEconomyError } from "@/lib/domain/fanEconomy/errors";
 import { configuredTrust } from "@/lib/fan-economy/trust/configured";
 import { assertStellarTestnet, assertStellarTestnetRpc } from "@/lib/fan-economy/trust/networkGuard";
 import { createSorobanRpcTrust, readSorobanTrustConfig } from "@/lib/fan-economy/trust/rpc";
+import { readTestnetProof } from "@/lib/fan-economy/trust/testnetProof";
 
 const ready = {
   MOC_TRUST_EXECUTION: "soroban",
@@ -40,5 +41,6 @@ describe("Stellar testnet guard", () => {
     expect(() => configuredTrust({ MOC_TRUST_EXECUTION: "soroban", STELLAR_NETWORK: "mainnet" })).toThrow(
       "STELLAR_MAINNET_FORBIDDEN"
     );
+    await expect(readTestnetProof({ STELLAR_NETWORK: "mainnet" })).rejects.toThrow("STELLAR_MAINNET_FORBIDDEN");
   });
 });

@@ -14,8 +14,10 @@ import {
   reverseRedemption,
   submitEvidence,
   traceRedemption,
+  trustProof,
 } from "@/lib/fan-economy/service";
 import { configuredTrust } from "@/lib/fan-economy/trust/configured";
+import { readTestnetProof } from "@/lib/fan-economy/trust/testnetProof";
 import { reconcileRedemption } from "@/lib/fan-economy/trust/flow";
 import { getPrisma } from "@/lib/db";
 
@@ -51,6 +53,20 @@ export async function GET(request: NextRequest) {
   try {
     if (view === "artist") {
       return NextResponse.json({ ok: true, campaigns: await artistDesk(session.actorRef) });
+    }
+    if (view === "testnet-proof") {
+      return NextResponse.json({ ok: true, proof: await readTestnetProof() });
+    }
+    if (view === "trust") {
+      const redemptionId = request.nextUrl.searchParams.get("redemptionId")?.trim() ?? "";
+      try {
+        return NextResponse.json({ ok: true, proof: await trustProof(session.actorRef, redemptionId, getPrisma(), trust) });
+      } catch (error) {
+        if (isFanEconomyError(error) && error.code === "TRUST_RPC_NOT_READY") {
+          return NextResponse.json({ ok: true, proof: { published: false } });
+        }
+        throw error;
+      }
     }
     if (view === "trace") {
       const redemptionId = request.nextUrl.searchParams.get("redemptionId")?.trim() ?? "";

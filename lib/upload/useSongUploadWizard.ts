@@ -19,6 +19,19 @@ import { mintSongNFT } from "@/lib/contracts/songNft";
 import { addExtraTrack } from "@/lib/artistTracksStorage";
 import { getArtistByWallet } from "@/data/artists";
 import { savePublishedRelease } from "@/lib/release/storage";
+import { resolveReleaseCoverUrl } from "@/lib/release/coverUrl";
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("COVER_READ_FAILED"));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("COVER_READ_FAILED"));
+    reader.readAsDataURL(file);
+  });
+}
 
 export interface UseReleaseWizardOptions {
   actorRef: string;
@@ -230,6 +243,11 @@ export function useReleaseWizard({
         price: state.priceUsdc,
       });
 
+      // Persist a durable cover (data URL). Never store ephemeral blob: previews.
+      const durableCoverUrl = state.coverFile
+        ? await readFileAsDataUrl(state.coverFile)
+        : resolveReleaseCoverUrl(state.coverUrl);
+
       const persisted = await fetch("/api/releases", {
         method: "POST",
         credentials: "include",
@@ -243,7 +261,7 @@ export function useReleaseWizard({
           primaryGenre: state.primaryGenre,
           secondaryGenre: state.secondaryGenre,
           description: state.description,
-          coverUrl: state.coverUrl,
+          coverUrl: durableCoverUrl,
           soloCreator: state.soloCreator,
           primaryDisplayName: artistName,
           collaborators: state.soloCreator ? [] : state.collaborators,
@@ -277,7 +295,7 @@ export function useReleaseWizard({
         primaryGenre: state.primaryGenre,
         secondaryGenre: state.secondaryGenre,
         description: state.description,
-        coverUrl: state.coverUrl,
+        coverUrl: durableCoverUrl,
         trackIds: [storedTrack.id],
         tracks: state.tracks.map((t) => ({
           title: t.title,

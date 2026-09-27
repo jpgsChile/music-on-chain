@@ -1,4 +1,5 @@
 import { getPrisma } from "@/lib/db";
+import { resolveReleaseCoverUrl } from "@/lib/release/coverUrl";
 import type { ReleaseCollaborator, ReleaseType, PricingModel } from "@/types/upload";
 
 export type PersistReleaseInput = {
@@ -69,7 +70,7 @@ export async function persistMusicRelease(input: PersistReleaseInput) {
         primaryGenre: input.primaryGenre,
         secondaryGenre: input.secondaryGenre,
         description: input.description,
-        coverUrl: input.coverUrl,
+        coverUrl: resolveReleaseCoverUrl(input.coverUrl),
         status: "PUBLISHED",
         soloCreator: input.soloCreator,
         pricingModels: JSON.stringify(input.pricingModels),

@@ -62,6 +62,12 @@ export default function FanDashboardPage() {
             >
               {ready ? t.auth.connectTitle : t.auth.loading}
             </button>
+            <Link
+              href="/dashboard/support"
+              className="mt-4 block text-sm font-medium text-accent hover:text-accent-hover"
+            >
+              {t.fanDashboard.supportMusic}
+            </Link>
           </div>
         </div>
       </div>
@@ -72,12 +78,20 @@ export default function FanDashboardPage() {
     <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-12">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <Link
-            href="/#marketplace"
-            className="text-sm text-foreground/60 hover:text-foreground mb-3 inline-block"
-          >
-            {t.fanDashboard.backMarketplace}
-          </Link>
+          <div className="mb-3 flex flex-wrap items-center gap-4">
+            <Link
+              href="/#marketplace"
+              className="text-sm text-foreground/60 hover:text-foreground"
+            >
+              {t.fanDashboard.backMarketplace}
+            </Link>
+            <Link
+              href="/dashboard/support"
+              className="text-sm font-medium text-accent hover:text-accent-hover"
+            >
+              {t.fanDashboard.supportMusic}
+            </Link>
+          </div>
           <p className="text-xs uppercase tracking-[0.2em] text-accent mb-2">
             {t.fanDashboard.investorQuestion}
           </p>

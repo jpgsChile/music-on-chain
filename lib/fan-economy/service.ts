@@ -30,6 +30,7 @@ import {
   releaseWithTrust,
   reverseWithTrust,
 } from "@/lib/fan-economy/trust/flow";
+import { resolveReleaseCoverUrl } from "@/lib/release/coverUrl";
 
 type Tx = Prisma.TransactionClient;
 
@@ -228,7 +229,9 @@ export async function submitEvidence(
         assignmentId: assignment.id,
         submitterActorRef: input.fanActorRef,
         contentHash,
-        locator: `inline:${contentHash}`,
+        // Persist the statement in locator so Artist/Fan UIs can display it.
+        // contentHash remains the integrity digest. Legacy rows used inline:<hash>.
+        locator: statement,
       },
     });
     await tx.missionAssignment.update({
@@ -717,30 +720,35 @@ export async function artistDesk(artistActorRef: string, client: PrismaClient = 
         criterion: mission.criterion,
         assignmentMode: mission.assignmentMode,
         maximumReward: view(mission.maximumRewardUnits, mission.scale, mission.asset),
-        assignments: mission.assignments.map((assignment) => ({
-          id: assignment.id,
-          state: assignment.state,
-          fanActorRef: assignment.fanActorRef,
-          verification: assignment.verifications.find((row) => row.current)?.outcome ?? null,
-          evidenceId: assignment.evidence[0]?.id ?? null,
-          reward: assignment.reward
-            ? {
-                id: assignment.reward.id,
-                authorized: view(assignment.reward.authorizedUnits, assignment.reward.scale, assignment.reward.asset),
-                consumed: view(assignment.reward.consumedUnits, assignment.reward.scale, assignment.reward.asset),
-                released: view(assignment.reward.releasedUnits, assignment.reward.scale, assignment.reward.asset),
-                remaining: view(
-                  remainingUnits({
-                    authorizedUnits: BigInt(assignment.reward.authorizedUnits),
-                    consumedUnits: BigInt(assignment.reward.consumedUnits),
-                    releasedUnits: BigInt(assignment.reward.releasedUnits),
-                  }),
-                  assignment.reward.scale,
-                  assignment.reward.asset
-                ),
-              }
-            : null,
-        })),
+        assignments: mission.assignments.map((assignment) => {
+          const evidenceRow = assignment.evidence[0] ?? null;
+          return {
+            id: assignment.id,
+            state: assignment.state,
+            fanActorRef: assignment.fanActorRef,
+            participantLabel: participantLabel(assignment.fanActorRef),
+            verification: assignment.verifications.find((row) => row.current)?.outcome ?? null,
+            evidenceId: evidenceRow?.id ?? null,
+            evidenceText: evidenceDisplayText(evidenceRow?.locator),
+            reward: assignment.reward
+              ? {
+                  id: assignment.reward.id,
+                  authorized: view(assignment.reward.authorizedUnits, assignment.reward.scale, assignment.reward.asset),
+                  consumed: view(assignment.reward.consumedUnits, assignment.reward.scale, assignment.reward.asset),
+                  released: view(assignment.reward.releasedUnits, assignment.reward.scale, assignment.reward.asset),
+                  remaining: view(
+                    remainingUnits({
+                      authorizedUnits: BigInt(assignment.reward.authorizedUnits),
+                      consumedUnits: BigInt(assignment.reward.consumedUnits),
+                      releasedUnits: BigInt(assignment.reward.releasedUnits),
+                    }),
+                    assignment.reward.scale,
+                    assignment.reward.asset
+                  ),
+                }
+              : null,
+          };
+        }),
       })),
     };
   });
@@ -793,10 +801,15 @@ export async function fanDesk(
   });
   const targets = await client.musicRelease.findMany({
     where: { status: "PUBLISHED" },
-    select: { id: true, title: true },
+    select: { id: true, title: true, coverUrl: true, actorRef: true },
     orderBy: { createdAt: "desc" },
     take: 50,
   });
+  const artistRefs = [
+    ...openMissions.map((mission) => mission.campaign.artistActorRef),
+    ...targets.map((target) => target.actorRef),
+  ];
+  const names = await artisticNames(client, artistRefs);
   return {
     purchasingPower: power,
     missions: openMissions
@@ -806,27 +819,39 @@ export async function fanDesk(
         title: mission.title,
         criterion: mission.criterion,
         campaignTitle: mission.campaign.title,
+        artistName: names.get(mission.campaign.artistActorRef) ?? null,
         maximumReward: view(mission.maximumRewardUnits, mission.scale, mission.asset),
       })),
-    assignments: assignments.map((assignment) => ({
-      id: assignment.id,
-      state: assignment.state,
-      missionTitle: assignment.mission.title,
-      campaignTitle: assignment.mission.campaign.title,
-      evidenceIds: assignment.evidence.map((row) => row.id),
-      reward: assignment.reward
-        ? {
-            id: assignment.reward.id,
-            remaining: view(
-              remainingOf(assignment.reward),
-              assignment.reward.scale,
-              assignment.reward.asset
-            ),
-            asset: assignment.reward.asset,
-            scale: assignment.reward.scale,
-          }
-        : null,
-    })),
+    assignments: assignments.map((assignment) => {
+      const latestEvidence = [...assignment.evidence].sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+      )[0];
+      return {
+        id: assignment.id,
+        state: assignment.state,
+        missionTitle: assignment.mission.title,
+        campaignTitle: assignment.mission.campaign.title,
+        evidenceIds: assignment.evidence.map((row) => row.id),
+        evidenceText: evidenceDisplayText(latestEvidence?.locator),
+        reward: assignment.reward
+          ? {
+              id: assignment.reward.id,
+              remaining: view(
+                remainingOf(assignment.reward),
+                assignment.reward.scale,
+                assignment.reward.asset
+              ),
+              authorized: view(
+                assignment.reward.authorizedUnits,
+                assignment.reward.scale,
+                assignment.reward.asset
+              ),
+              asset: assignment.reward.asset,
+              scale: assignment.reward.scale,
+            }
+          : null,
+      };
+    }),
     redemptions: await Promise.all(
       redemptions.map(async (row) => {
         const traced = await readRedemption(client, row.id, fanActorRef);
@@ -837,13 +862,91 @@ export async function fanDesk(
           state: traced.state,
           revenueId: traced.revenueId,
           economicEntitlementIds: traced.economicEntitlementIds,
+          participants: await redemptionParticipants(client, traced.revenueId, traced.releaseId),
         };
       })
     ),
-    targets,
+    targets: targets.map((target) => ({
+      id: target.id,
+      title: target.title,
+      coverUrl: resolveReleaseCoverUrl(target.coverUrl),
+      artistName: names.get(target.actorRef) ?? null,
+    })),
+  };
+}
+
+async function artisticNames(client: PrismaClient, actorRefs: string[]) {
+  const unique = [...new Set(actorRefs.filter(Boolean))];
+  if (unique.length === 0) return new Map<string, string>();
+  const rows = await client.artistProfile.findMany({
+    where: { actorRef: { in: unique } },
+    select: { actorRef: true, artisticName: true },
+  });
+  return new Map(rows.flatMap((row) => (row.actorRef && row.artisticName ? [[row.actorRef, row.artisticName] as const] : [])));
+}
+
+async function redemptionParticipants(client: PrismaClient, revenueId: string, releaseId: string) {
+  const entitlements = await client.economicEntitlement.findMany({
+    where: { revenueId },
+    select: { actorRef: true, shareBps: true },
+    orderBy: { shareBps: "desc" },
+  });
+  if (entitlements.length === 0) return [];
+  const names = await artisticNames(client, entitlements.map((row) => row.actorRef));
+  const participations = await client.participation.findMany({
+    where: { releaseId, actorRef: { in: entitlements.map((row) => row.actorRef) } },
+    select: { actorRef: true, displayName: true },
+  });
+  const byParticipation = new Map(
+    participations.flatMap((row) => (row.actorRef ? [[row.actorRef, row.displayName] as const] : []))
+  );
+  return entitlements.map((row) => ({
+    name: names.get(row.actorRef) || byParticipation.get(row.actorRef) || null,
+    shareBps: row.shareBps,
+  }));
+}
+
+export async function trustProof(
+  fanActorRef: string,
+  redemptionId: string,
+  client: PrismaClient = getPrisma(),
+  trust: FanEconomyTrustExecution | null = null
+) {
+  if (!trust) return { published: false as const };
+  const redemption = await client.redemption.findUnique({
+    where: { id: redemptionId },
+    include: { reward: true },
+  });
+  if (!redemption || redemption.fanActorRef !== fanActorRef) throw new FanEconomyError("FORBIDDEN");
+  const chain = await trust.getRedemption(redemptionId);
+  if (!chain) return { published: false as const };
+  const network = process.env.STELLAR_NETWORK?.trim() ?? "";
+  const contractId = process.env.MOC_FAN_ECONOMY_CONTRACT_ID?.trim() ?? "";
+  if (network !== "testnet" || !contractId) return { published: false as const };
+  const reward = await trust.getReward(redemption.reward.assignmentId);
+  return {
+    published: true as const,
+    network,
+    contractId,
+    status: chain.status,
+    actorHash: reward?.actorHash ?? null,
+    redemptionId,
+    distributionHash: chain.distributionHash,
   };
 }
 
 export async function traceRedemption(fanActorRef: string, redemptionId: string, client: PrismaClient = getPrisma()) {
   return readRedemption(client, redemptionId, fanActorRef);
+}
+
+/** Legacy rows used `inline:<sha256>`; those cannot recover the original statement. */
+function evidenceDisplayText(locator: string | null | undefined): string | null {
+  if (!locator) return null;
+  if (/^inline:[a-f0-9]{64}$/i.test(locator)) return null;
+  return locator;
+}
+
+function participantLabel(actorRef: string): string {
+  const id = actorRef.startsWith("moc:actor:") ? actorRef.slice("moc:actor:".length) : actorRef;
+  return id.slice(0, 8);
 }

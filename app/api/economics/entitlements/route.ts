@@ -12,6 +12,8 @@ async function wireEntitlement(row: EconomicEntitlement, origin: AssessedRevenue
     amount: moneyToJson(row.amount),
     workId: origin?.revenue.workId ?? null,
     releaseId: origin?.revenue.releaseId ?? null,
+    origin: origin?.revenue.origin ?? null,
+    gross: origin ? moneyToJson(origin.revenue.gross) : null,
     execution: intent
       ? {
           intentRef: intent.intentRef,
@@ -27,6 +29,7 @@ function wireRevenue(assessed: AssessedRevenue) {
     revenueId: assessed.revenue.revenueId,
     workId: assessed.revenue.workId ?? null,
     releaseId: assessed.revenue.releaseId ?? null,
+    origin: assessed.revenue.origin,
     ruleId: assessed.distribution.ruleId,
     gross: moneyToJson(assessed.revenue.gross),
     net: moneyToJson(assessed.assessment.netDistributable),

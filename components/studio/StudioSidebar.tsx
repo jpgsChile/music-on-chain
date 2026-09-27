@@ -19,7 +19,6 @@ const NAV = [
   { id: "sales", href: "/dashboard/sales" },
   { id: "analytics", href: "/dashboard/analytics" },
   { id: "campaigns", href: "/dashboard/campaigns" },
-  { id: "support", href: "/dashboard/support" },
   { id: "settings", href: "/dashboard/settings" },
 ] as const;
 
@@ -74,16 +73,23 @@ export default function StudioSidebar() {
   );
 }
 
-export function StudioAuthGate({ children }: { children: React.ReactNode }) {
+export function StudioAuthGate({
+  children,
+  variant = "studio",
+}: {
+  children: React.ReactNode;
+  variant?: "studio" | "fan";
+}) {
   const locale = useLocale();
   const t = getTranslations(locale);
   const { authenticated, ready, user } = useAuth();
   const session = useCBindSession(authenticated);
+  const isFan = variant === "fan";
 
   if (!ready || (authenticated && session.loading)) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center text-foreground/60 text-sm">
-        {t.studio.loading}
+        {isFan ? t.fanDashboard.loading : t.studio.loading}
       </div>
     );
   }
@@ -93,12 +99,14 @@ export function StudioAuthGate({ children }: { children: React.ReactNode }) {
       <div className="min-h-[50vh] flex items-center justify-center px-4">
         <div className="w-full max-w-md rounded-2xl border border-border bg-background p-8 text-center">
           <p className="text-xs uppercase tracking-[0.2em] text-accent mb-3">
-            {t.studio.brand}
+            {isFan ? t.fanDashboard.title : t.studio.brand}
           </p>
           <h1 className="text-2xl font-semibold text-foreground mb-2">
-            {t.auth.connectAsArtist}
+            {isFan ? t.fanDashboard.supportGateTitle : t.auth.connectAsArtist}
           </h1>
-          <p className="text-sm text-foreground/60 mb-6">{t.studio.gateDesc}</p>
+          <p className="text-sm text-foreground/60 mb-6">
+            {isFan ? t.fanDashboard.supportGateDesc : t.studio.gateDesc}
+          </p>
           <div className="flex justify-center">
             <ConnectArtist
               variant="modal"
@@ -113,7 +121,7 @@ export function StudioAuthGate({ children }: { children: React.ReactNode }) {
   if (session.error || !session.binding) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center text-foreground/60 text-sm px-4 text-center">
-        {t.studio.sessionError}
+        {isFan ? t.fanDashboard.sessionError : t.studio.sessionError}
       </div>
     );
   }
