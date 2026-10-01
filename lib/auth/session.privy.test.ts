@@ -256,4 +256,66 @@ describe("POST /api/identity/session Privy hardening", { timeout: 20_000 }, () =
     );
     expect(after.status).toBe(401);
   });
+
+  it("TEST 9: concurrent first login returns the same Actor", async () => {
+    const db = await openDb();
+    setPrivyVerifierForTests(
+      createMockPrivyVerifier({ subjects: { "race-token": "did:privy:race" } })
+    );
+    const wallet = "0xcccccccccccccccccccccccccccccccccccccccc";
+    const call = () =>
+      postSession(
+        new NextRequest("http://localhost/api/identity/session", {
+          method: "POST",
+          headers: {
+            authorization: "Bearer race-token",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ walletAddress: wallet }),
+        })
+      );
+    const [first, second] = await Promise.all([call(), call()]);
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    const a = await first.json();
+    const b = await second.json();
+    expect(a.ok && b.ok).toBe(true);
+    expect(b.value.actorRef).toBe(a.value.actorRef);
+    expect(await db.identityBinding.count()).toBe(1);
+    const wallets = await db.actorWallet.findMany();
+    expect(wallets).toHaveLength(1);
+    expect(wallets[0]?.actorRef).toBe(a.value.actorRef);
+  });
+
+  it("TEST 10: a second sequential login keeps the same Actor", async () => {
+    const db = await openDb();
+    setPrivyVerifierForTests(
+      createMockPrivyVerifier({ subjects: { "again-token": "did:privy:again" } })
+    );
+    const call = () =>
+      postSession(
+        new NextRequest("http://localhost/api/identity/session", {
+          method: "POST",
+          headers: {
+            authorization: "Bearer again-token",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            walletAddress: "0xdddddddddddddddddddddddddddddddddddddddd",
+          }),
+        })
+      );
+    const first = await call();
+    const second = await call();
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    const a = await first.json();
+    const b = await second.json();
+    expect(b.value.actorRef).toBe(a.value.actorRef);
+    expect(await db.actor.count()).toBe(1);
+    expect(await db.identityBinding.count()).toBe(1);
+    expect(await db.actorWallet.count()).toBe(1);
+    const binding = await db.identityBinding.findFirst();
+    expect(binding?.actorRef).toBe(a.value.actorRef);
+  });
 });

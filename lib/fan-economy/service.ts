@@ -857,6 +857,7 @@ export async function fanDesk(
         const traced = await readRedemption(client, row.id, fanActorRef);
         return {
           redemptionId: traced.redemptionId,
+          releaseId: traced.releaseId,
           releaseTitle: traced.releaseTitle,
           amount: traced.amount,
           state: traced.state,

@@ -1,17 +1,26 @@
 import { config } from "dotenv";
 import { defineConfig } from "prisma/config";
 
-// Load .env and then .env.local (local overrides)
 config();
 config({ path: ".env.local" });
 
-// Fallback for environments where DATABASE_URL is not set yet (e.g. Vercel install).
-// prisma generate only needs a valid URL shape; runtime uses real DATABASE_URL from env.
-const databaseUrl = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
+/**
+ * CLI connection (generate / migrate).
+ * Migrations need a direct PostgreSQL session. Supabase pooler URLs belong in
+ * DATABASE_URL at runtime; set DIRECT_URL to the non-pooled connection.
+ * Generate does not open this URL. The placeholder only lets generate run
+ * before a database exists.
+ */
+const databaseUrl =
+  process.env.DIRECT_URL?.trim() ||
+  process.env.DATABASE_URL?.trim() ||
+  "postgresql://postgres:postgres@127.0.0.1:5432/moc";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
-    url: databaseUrl,
+    url: databaseUrl.startsWith("file:")
+      ? "postgresql://postgres:postgres@127.0.0.1:5432/moc"
+      : databaseUrl,
   },
 });

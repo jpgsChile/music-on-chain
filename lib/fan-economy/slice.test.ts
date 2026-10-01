@@ -24,6 +24,7 @@ import {
   submitEvidence,
   traceRedemption,
 } from "@/lib/fan-economy/service";
+import { groupSupportHistory } from "@/lib/fan-economy/supportHistory";
 
 const ARTIST = "moc:actor:11111111-1111-4111-8111-111111111111";
 const FAN = "moc:actor:22222222-2222-4222-8222-222222222222";
@@ -337,6 +338,106 @@ describe("Fan Economy vertical slice", { timeout: 30_000 }, () => {
       code: "REDEMPTION_PAYLOAD_CONFLICT",
     });
     expect((await prisma.rewardEntitlement.findUnique({ where: { id: reward.id } }))?.consumedUnits).toBe("1000000");
+  });
+
+  it("does not let two concurrent redemptions exceed remaining purchasing power", async () => {
+    const prisma = await db();
+    const { reward } = await granted(prisma, 10_000_000n, 5_000_000n);
+    const release = await releaseWith(prisma, [{ actorRef: ARTIST, percent: 100 }]);
+    const results = await Promise.allSettled([
+      redeemReward(
+        {
+          fanActorRef: FAN,
+          rewardEntitlementId: reward.id,
+          amount: { units: 5_000_000n, ...USDC },
+          redemptionId: "redeem-race-a",
+          releaseId: release.id,
+        },
+        prisma
+      ),
+      redeemReward(
+        {
+          fanActorRef: FAN,
+          rewardEntitlementId: reward.id,
+          amount: { units: 5_000_000n, ...USDC },
+          redemptionId: "redeem-race-b",
+          releaseId: release.id,
+        },
+        prisma
+      ),
+    ]);
+    const succeeded = results.filter((row) => row.status === "fulfilled");
+    expect(succeeded).toHaveLength(1);
+    const failed = results.find((row) => row.status === "rejected");
+    expect(failed?.status).toBe("rejected");
+    if (failed?.status === "rejected") {
+      expect(failed.reason).toBeInstanceOf(FanEconomyError);
+      expect(["INSUFFICIENT_REMAINING", "CONCURRENCY_CONFLICT"]).toContain(
+        (failed.reason as FanEconomyError).code
+      );
+    }
+    const stored = await prisma.rewardEntitlement.findUnique({ where: { id: reward.id } });
+    const consumed = BigInt(stored?.consumedUnits ?? "0");
+    const released = BigInt(stored?.releasedUnits ?? "0");
+    expect(consumed + released).toBe(5_000_000n);
+    expect(consumed + released <= BigInt(stored?.authorizedUnits ?? "0")).toBe(true);
+    expect(await prisma.redemption.count()).toBe(1);
+    expect(await prisma.economicRevenue.count()).toBe(1);
+  });
+
+  it("allows a later support of the same release when purchasing power remains", async () => {
+    const prisma = await db();
+    const { reward } = await granted(prisma, 10_000_000n, 10_000_000n);
+    const release = await releaseWith(prisma, [{ actorRef: ARTIST, percent: 100 }]);
+    const first = await redeemReward(
+      {
+        fanActorRef: FAN,
+        rewardEntitlementId: reward.id,
+        amount: { units: 5_000_000n, ...USDC },
+        redemptionId: "redeem-intent-1",
+        releaseId: release.id,
+      },
+      prisma
+    );
+    const second = await redeemReward(
+      {
+        fanActorRef: FAN,
+        rewardEntitlementId: reward.id,
+        amount: { units: 5_000_000n, ...USDC },
+        redemptionId: "redeem-intent-2",
+        releaseId: release.id,
+      },
+      prisma
+    );
+    expect(second.revenueId).not.toBe(first.revenueId);
+    expect(second.idempotent).toBe(false);
+    const stored = await prisma.rewardEntitlement.findUnique({ where: { id: reward.id } });
+    expect(stored?.consumedUnits).toBe("10000000");
+    expect(await prisma.redemption.count()).toBe(2);
+    const redemptionCount = await prisma.redemption.count();
+    const revenueCount = await prisma.economicRevenue.count();
+    const desk = await fanDesk(FAN, prisma);
+    const groups = groupSupportHistory(desk.redemptions);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.releaseId).toBe(release.id);
+    expect(groups[0]?.rows.map((row) => row.redemptionId)).toEqual(["redeem-intent-1", "redeem-intent-2"]);
+    expect(groups[0]?.total).toEqual({ units: "10000000", scale: 6, asset: "USDC" });
+    expect(desk.purchasingPower).toEqual([]);
+    expect(await prisma.redemption.count()).toBe(redemptionCount);
+    expect(await prisma.economicRevenue.count()).toBe(revenueCount);
+    await expect(
+      redeemReward(
+        {
+          fanActorRef: FAN,
+          rewardEntitlementId: reward.id,
+          amount: { units: 1_000_000n, ...USDC },
+          redemptionId: "redeem-intent-3",
+          releaseId: release.id,
+        },
+        prisma
+      )
+    ).rejects.toMatchObject({ code: "INSUFFICIENT_REMAINING" });
+    expect(await prisma.redemption.count()).toBe(2);
   });
 
   it("does not let release and redeem spend the same remaining", async () => {

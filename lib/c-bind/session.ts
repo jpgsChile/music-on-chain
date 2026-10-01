@@ -1,5 +1,6 @@
 import { C_BIND_PROFILE } from "./contract";
 import { createCBindEngine } from "./engine";
+import { isIdentityBindingOccupied } from "./prismaStore";
 import { provisionMocActor } from "./store";
 import type { CBindStore } from "./store";
 import type { AuthSubject, BindingView, CBindProof, CBindResult } from "./types";
@@ -22,10 +23,22 @@ export async function provisionThenBind(
   const existing = await store.getByAuthSubject(input.authSubject.issuer, input.authSubject.subject);
   const actorRef = existing ? existing.actorRef : await provisionMocActor(store);
 
-  return engine.bind({
-    authSubject: input.authSubject,
-    actorRef,
-    proof: input.proof,
-    profileVersion,
-  });
+  try {
+    return await engine.bind({
+      authSubject: input.authSubject,
+      actorRef,
+      proof: input.proof,
+      profileVersion,
+    });
+  } catch (error) {
+    if (!isIdentityBindingOccupied(error)) throw error;
+    const winner = await store.getByAuthSubject(input.authSubject.issuer, input.authSubject.subject);
+    if (!winner) throw error;
+    return engine.bind({
+      authSubject: input.authSubject,
+      actorRef: winner.actorRef,
+      proof: input.proof,
+      profileVersion,
+    });
+  }
 }

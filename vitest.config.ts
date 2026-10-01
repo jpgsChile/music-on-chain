@@ -4,6 +4,7 @@ import path from "node:path";
 export default defineConfig({
   test: {
     environment: "node",
+    testTimeout: 60_000,
     include: ["packages/**/*.test.ts", "lib/**/*.test.ts"],
     env: {
       MOC_SETTLEMENT_ADAPTER: "mock",

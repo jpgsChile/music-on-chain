@@ -1,13 +1,12 @@
-// Persistence mapping for the current SQLite runtime.
-// Domain specification lives in lib/domain — not in this file.
-// SQLite may be replaced by PostgreSQL without changing Actor / Work / Participation semantics.
+// Persistence mapping. Domain specification lives in lib/domain — not in this file.
+// Production runtime is PostgreSQL. The local SQLite file is not the production store.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model ArtistProfile {

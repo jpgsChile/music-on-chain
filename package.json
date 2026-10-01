@@ -31,7 +31,7 @@
     "@moc/domain": "*",
     "@moc/ports": "*",
     "@moc/shared": "*",
-    "@prisma/adapter-better-sqlite3": "^7.4.0",
+    "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.0",
     "@privy-io/node": "^0.34.0",
     "@privy-io/react-auth": "^3.39.0",
@@ -41,6 +41,7 @@
     "@wagmi/connectors": "^7.0.6",
     "framer-motion": "^12.42.2",
     "next": "^16.1.6",
+    "pg": "^8.23.0",
     "prisma": "^7.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -48,7 +49,9 @@
     "wagmi": "^3.1.4"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.3.15",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",

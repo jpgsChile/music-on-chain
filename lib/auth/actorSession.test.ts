@@ -161,4 +161,65 @@ describe("Verified Actor session", { timeout: 20_000 }, () => {
       "0x2222222222222222222222222222222222222222"
     );
   });
+
+  it("SESSION-07 concurrent first login keeps one binding and one wallet", async () => {
+    const db = await openIsolatedPrisma();
+    client = db.client;
+    file = db.file;
+    const subject = "did:privy:race";
+    const wallet = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const store = createPrismaCBindStore(client);
+    const [a, b] = await Promise.all([
+      provisionThenBind(store, {
+        authSubject: { issuer: PRIVY_ISSUER, subject },
+        proof: PROOF,
+      }),
+      provisionThenBind(store, {
+        authSubject: { issuer: PRIVY_ISSUER, subject },
+        proof: PROOF,
+      }),
+    ]);
+    expect(a.ok && b.ok).toBe(true);
+    if (!a.ok || !b.ok) return;
+    expect(b.value.actorRef).toBe(a.value.actorRef);
+    await Promise.all([
+      attachWalletToActor(a.value.actorRef, wallet),
+      attachWalletToActor(b.value.actorRef, wallet),
+    ]);
+    expect(await client.identityBinding.count()).toBe(1);
+    expect(await client.actorWallet.count()).toBe(1);
+    const walletRow = await client.actorWallet.findFirst();
+    expect(walletRow?.actorRef).toBe(a.value.actorRef);
+  });
+
+  it("SESSION-08 a wallet left on an unbound actor follows the binding", async () => {
+    const db = await openIsolatedPrisma();
+    client = db.client;
+    file = db.file;
+    const wallet = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    const bound = await bindSubject(client, "did:privy:bound");
+    expect(bound.ok).toBe(true);
+    if (!bound.ok) return;
+    const stray = "moc:actor:stray-session";
+    await client.actor.create({ data: { actorRef: stray } });
+    await client.actorWallet.create({ data: { actorRef: stray, address: wallet } });
+    await issueActorSession(
+      { actorRef: stray, issuer: PRIVY_ISSUER, subject: "did:privy:bound" },
+      client
+    );
+
+    const moved = await attachWalletToActor(bound.value.actorRef, wallet);
+    expect(moved.result).toBe("ok");
+    const row = await client.actorWallet.findUnique({ where: { address: wallet } });
+    expect(row?.actorRef).toBe(bound.value.actorRef);
+    expect(await client.actor.findUnique({ where: { actorRef: stray } })).toBeNull();
+
+    const other = await bindSubject(client, "did:privy:other");
+    expect(other.ok).toBe(true);
+    if (!other.ok) return;
+    const stolen = await attachWalletToActor(other.value.actorRef, wallet);
+    expect(stolen.result).toBe("conflict");
+    const kept = await client.actorWallet.findUnique({ where: { address: wallet } });
+    expect(kept?.actorRef).toBe(bound.value.actorRef);
+  });
 });

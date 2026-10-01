@@ -77,7 +77,7 @@ function MissingPrivyConfig({ appId }: { appId: string | undefined }) {
         </ol>
         <pre className="text-xs bg-background border border-border rounded-lg p-4 overflow-x-auto font-mono text-foreground/90">
 {`NEXT_PUBLIC_PRIVY_APP_ID=clxxxxxxxxxxxxxxxx
-DATABASE_URL="file:./prisma/dev.db"
+DATABASE_URL="postgresql://postgres:password@host:5432/postgres"
 NEXT_PUBLIC_CLEAVER_WALLET=0xYourAddress
 NEXT_PUBLIC_SOU_WALLET=0xYourAddress`}
         </pre>

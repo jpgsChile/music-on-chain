@@ -14,15 +14,82 @@ export async function attachWalletToActor(
     where: { address: normalized },
   });
   const result = canAttachWallet(existing?.actorRef, actorRef);
-  if (result === "conflict") {
-    return { address: existing?.address ?? normalized, result };
+  if (result === "conflict" && existing) {
+    return reclaimWalletFromUnboundActor(actorRef, existing);
   }
   if (result === "ok") {
-    await getPrisma().actorWallet.create({
-      data: { actorRef, address: normalized },
+    const created = await getPrisma().actorWallet.createMany({
+      data: [{ actorRef, address: normalized }],
+      skipDuplicates: true,
     });
+    if (created.count === 1) {
+      return { address: normalized, result: "ok" };
+    }
+    const winner = await getPrisma().actorWallet.findUnique({
+      where: { address: normalized },
+    });
+    if (!winner || winner.actorRef === actorRef) {
+      return { address: normalized, result: "already" };
+    }
+    return reclaimWalletFromUnboundActor(actorRef, winner);
   }
   return { address: normalized, result };
+}
+
+/**
+ * A concurrent first login can leave the wallet on an Actor that lost the bind.
+ * That Actor is not an identity. Move the capability to the bound Actor.
+ * A wallet already owned by another bound Actor stays where it is.
+ */
+async function reclaimWalletFromUnboundActor(
+  actorRef: string,
+  existing: { id: string; actorRef: string; address: string }
+): Promise<{ address: string; result: "ok" | "conflict" }> {
+  const ownerIsBound = await getPrisma().identityBinding.findFirst({
+    where: { actorRef: existing.actorRef, status: "VIGENTE" },
+    select: { id: true },
+  });
+  if (ownerIsBound) {
+    return { address: existing.address, result: "conflict" };
+  }
+  const previous = existing.actorRef;
+  await getPrisma().actorWallet.update({
+    where: { id: existing.id },
+    data: { actorRef },
+  });
+  await releaseUnboundActor(previous);
+  return { address: existing.address, result: "ok" };
+}
+
+async function releaseUnboundActor(actorRef: string): Promise<void> {
+  const prisma = getPrisma();
+  const [bindings, wallets, profiles, releases, works] = await Promise.all([
+    prisma.identityBinding.count({ where: { actorRef } }),
+    prisma.actorWallet.count({ where: { actorRef } }),
+    prisma.artistProfile.count({ where: { actorRef } }),
+    prisma.musicRelease.count({ where: { actorRef } }),
+    prisma.musicalWork.count({ where: { actorRef } }),
+  ]);
+  if (bindings || wallets || profiles || releases || works) return;
+  await prisma.actorSession.updateMany({
+    where: { actorRef, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
+  await prisma.actor.delete({ where: { actorRef } }).catch((error: unknown) => {
+    if (!isUniqueConstraint(error) && !isForeignKeyConstraint(error)) throw error;
+  });
+}
+
+function isForeignKeyConstraint(error: unknown): boolean {
+  if (typeof error !== "object" || error === null || !("code" in error)) return false;
+  const code = (error as { code?: string }).code;
+  return code === "P2003" || code === "23503";
+}
+
+function isUniqueConstraint(error: unknown): boolean {
+  if (typeof error !== "object" || error === null || !("code" in error)) return false;
+  const code = (error as { code?: string }).code;
+  return code === "P2002" || code === "23505";
 }
 
 /** Remove a wallet capability. Never deletes the Actor. */

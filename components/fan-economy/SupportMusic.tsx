@@ -1,7 +1,9 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
-import { decimalToUnits, unitsToDecimal } from "@/lib/domain/fanEconomy/display";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { decimalToUnits, formatMoney, unitsToDecimal } from "@/lib/domain/fanEconomy/display";
+import { groupSupportHistory } from "@/lib/fan-economy/supportHistory";
+import { beginSupportIntent, supportSubmitAllowed, type SupportIntent } from "@/lib/fan-economy/supportIntent";
 import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
 import { StudioEmptyState, StudioLoading, StudioPageHeader } from "@/components/studio/StudioStates";
@@ -39,6 +41,7 @@ type FanView = {
   }[];
   redemptions: {
     redemptionId: string;
+    releaseId: string;
     releaseTitle: string | null;
     amount: Money;
     state: string;
@@ -49,6 +52,10 @@ type FanView = {
 
 function dollars(units: string, scale: number) {
   return `$${unitsToDecimal(units, scale)}`;
+}
+
+function supportMoney(money: Money) {
+  return `$${formatMoney(money.units, money.scale, money.asset)}`;
 }
 
 async function post(body: Record<string, unknown>) {
@@ -72,6 +79,9 @@ export default function SupportMusic() {
   const [releaseId, setReleaseId] = useState("");
   const [amount, setAmount] = useState("");
   const [justSupported, setJustSupported] = useState<string | null>(null);
+  const [pendingSupport, setPendingSupport] = useState(false);
+  const pendingSupportRef = useRef(false);
+  const supportIntentRef = useRef<SupportIntent | null>(null);
 
   const load = useCallback(async () => {
     const response = await fetch("/api/fan-economy", {
@@ -113,32 +123,81 @@ export default function SupportMusic() {
 
   async function onRedeem(event: FormEvent, reward: NonNullable<FanView["assignments"][number]["reward"]>) {
     event.preventDefault();
-    const units = amount.trim() ? decimalToUnits(amount, reward.scale) : BigInt(reward.remaining.units);
-    if (units <= 0n || units > BigInt(reward.remaining.units)) {
+    if (pendingSupportRef.current) return;
+    let units: bigint;
+    try {
+      units = amount.trim() ? decimalToUnits(amount, reward.scale) : BigInt(reward.remaining.units);
+    } catch {
       setError(true);
       return;
     }
-    const redemptionId = `redeem-${crypto.randomUUID().slice(0, 12)}`;
-    await run({
-      command: "redeemReward",
-      rewardEntitlementId: reward.id,
+    const allowed = supportSubmitAllowed({
+      pending: false,
       releaseId,
-      units: units.toString(),
-      scale: reward.scale,
-      asset: reward.asset,
-      redemptionId,
+      remainingUnits: BigInt(reward.remaining.units),
+      amountUnits: units,
     });
-    setJustSupported(redemptionId);
-    setAmount("");
+    if (!allowed) {
+      setError(true);
+      return;
+    }
+    const intent = beginSupportIntent(
+      supportIntentRef.current,
+      { releaseId, units: units.toString() },
+      () => `redeem-${crypto.randomUUID().slice(0, 12)}`
+    );
+    supportIntentRef.current = intent;
+    pendingSupportRef.current = true;
+    setPendingSupport(true);
+    setError(false);
+    try {
+      await post({
+        command: "redeemReward",
+        rewardEntitlementId: reward.id,
+        releaseId,
+        units: units.toString(),
+        scale: reward.scale,
+        asset: reward.asset,
+        redemptionId: intent.id,
+      });
+      await load();
+      supportIntentRef.current = null;
+      setJustSupported(intent.id);
+      setAmount("");
+    } catch {
+      setError(true);
+    } finally {
+      pendingSupportRef.current = false;
+      setPendingSupport(false);
+    }
   }
 
   const power = desk?.purchasingPower[0] ?? null;
   const earned = desk?.assignments.find((assignment) => assignment.reward && assignment.reward.remaining.units !== "0");
-  const highlighted = desk?.redemptions.find((row) => row.redemptionId === justSupported) ?? desk?.redemptions.at(-1);
-  const selected = desk?.targets.find((target) => target.id === releaseId) ?? null;
-  const supportLabel = earned
-    ? `${t.supportWith} ${amount.trim() ? `$${amount.trim()}` : dollars(earned.reward!.remaining.units, earned.reward!.scale)}`
-    : t.redeem;
+  const supportGroups = groupSupportHistory(desk?.redemptions ?? []);
+  const supportLabel = pendingSupport
+    ? t.registeringSupport
+    : earned
+      ? `${t.supportWith} ${amount.trim() ? `$${amount.trim()}` : dollars(earned.reward!.remaining.units, earned.reward!.scale)}`
+      : t.redeem;
+  const supportAmountUnits = (() => {
+    if (!earned?.reward) return null;
+    if (!amount.trim()) return BigInt(earned.reward.remaining.units);
+    try {
+      return decimalToUnits(amount, earned.reward.scale);
+    } catch {
+      return null;
+    }
+  })();
+  const supportAllowed =
+    earned?.reward && supportAmountUnits !== null
+      ? supportSubmitAllowed({
+          pending: pendingSupport,
+          releaseId,
+          remainingUnits: BigInt(earned.reward.remaining.units),
+          amountUnits: supportAmountUnits,
+        })
+      : false;
   const hasAssignments = (desk?.assignments.length ?? 0) > 0;
 
   return (
@@ -259,18 +318,26 @@ export default function SupportMusic() {
           {!desk || desk.targets.length === 0 ? (
             <p className="text-sm text-foreground/60">{t.noReleases}</p>
           ) : (
-            <form onSubmit={(event) => onRedeem(event, earned.reward!)} className="grid gap-3 md:grid-cols-2">
+            <form
+              onSubmit={(event) => onRedeem(event, earned.reward!)}
+              aria-busy={pendingSupport}
+              className="grid gap-3 md:grid-cols-2"
+            >
               {desk.targets.map((target) => (
                 <label
                   key={target.id}
-                  className={`cursor-pointer rounded-2xl border p-4 ${target.id === releaseId ? "border-accent" : "border-border"}`}
+                  className={`rounded-2xl border p-4 ${pendingSupport ? "" : "cursor-pointer"} ${target.id === releaseId ? "border-accent" : "border-border"}`}
                 >
                   <input
                     className="sr-only"
                     type="radio"
                     name="release"
                     checked={target.id === releaseId}
-                    onChange={() => setReleaseId(target.id)}
+                    disabled={pendingSupport}
+                    onChange={() => {
+                      if (pendingSupportRef.current) return;
+                      setReleaseId(target.id);
+                    }}
                   />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -284,13 +351,18 @@ export default function SupportMusic() {
               ))}
               <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center">
                 <input
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm sm:w-40"
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm sm:w-40 disabled:opacity-60"
                   aria-label={t.amount}
                   placeholder={t.amount}
                   value={amount}
+                  disabled={pendingSupport}
                   onChange={(event) => setAmount(event.target.value)}
                 />
-                <button className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-background" type="submit" disabled={!releaseId}>
+                <button
+                  className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-background disabled:opacity-60"
+                  type="submit"
+                  disabled={!supportAllowed}
+                >
                   {supportLabel}
                 </button>
               </div>
@@ -299,38 +371,41 @@ export default function SupportMusic() {
         </section>
       ) : null}
 
-      {highlighted && highlighted.state !== "reversed" ? (
-        <section className="mt-8 rounded-2xl border border-border bg-background/80 p-5">
-          <h2 className="text-lg font-semibold">{t.supportedRelease}</h2>
-          <p className="mt-1 text-sm text-foreground/65">{t.supportGenerates}</p>
-          <ol className="mt-5 space-y-2 text-sm">
-            <li className="rounded-xl bg-border/20 px-4 py-3">
-              {t.yourReward}
-              <span className="mt-1 block text-lg font-semibold">{dollars(highlighted.amount.units, highlighted.amount.scale)}</span>
-            </li>
-            <li className="px-4 text-foreground/40" aria-hidden>
-              ↓
-            </li>
-            <li className="rounded-xl bg-border/20 px-4 py-3">
-              {t.releaseStep}
-              <span className="mt-1 block font-semibold">{highlighted.releaseTitle ?? selected?.title}</span>
-            </li>
-            <li className="px-4 text-foreground/40" aria-hidden>
-              ↓
-            </li>
-            <li className="rounded-xl bg-border/20 px-4 py-3">
-              {t.participantsStep}
-              <ul className="mt-2 space-y-1">
-                {highlighted.participants.map((participant, index) => (
-                  <li key={`${participant.name ?? "participant"}-${index}`}>
-                    {participant.name ?? t.participants}
-                    {typeof participant.shareBps === "number" ? ` · ${participant.shareBps / 100}%` : ""}
-                  </li>
-                ))}
-              </ul>
-            </li>
-          </ol>
-          <TrustProof redemptionId={highlighted.redemptionId} />
+      {supportGroups.length > 0 ? (
+        <section className="mt-8">
+          <h2 className="text-sm font-medium uppercase tracking-[0.14em] text-foreground/55">{t.yourSupports}</h2>
+          <div className="mt-4 space-y-4">
+            {supportGroups.map((group) => (
+              <article key={group.releaseId} className="rounded-2xl border border-border bg-background/80 p-5">
+                <h3 className="text-lg font-semibold">{group.releaseTitle}</h3>
+                {group.total ? (
+                  <p className="mt-1 text-sm font-medium">
+                    {t.totalSupported}: {supportMoney(group.total)}
+                  </p>
+                ) : null}
+                <ul className="mt-4 space-y-3">
+                  {group.rows.map((row) => (
+                    <li
+                      key={row.redemptionId}
+                      className={`rounded-xl px-4 py-3 ${row.redemptionId === justSupported ? "bg-accent/10" : "bg-border/20"}`}
+                    >
+                      <p className="text-sm">{t.supportAmount}</p>
+                      <p className="mt-1 text-lg font-semibold">{supportMoney(row.amount)}</p>
+                      <ul className="mt-2 space-y-1 text-sm text-foreground/70">
+                        {row.participants.map((participant, index) => (
+                          <li key={`${row.redemptionId}-${participant.name ?? "participant"}-${index}`}>
+                            {participant.name ?? t.artist}
+                            {typeof participant.shareBps === "number" ? ` · ${participant.shareBps / 100}%` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                      <TrustProof redemptionId={row.redemptionId} />
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
         </section>
       ) : null}
     </div>

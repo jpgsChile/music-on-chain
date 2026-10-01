@@ -1,25 +1,22 @@
-import { execSync } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
-import { createPrismaClient, installPrismaClient } from "@/lib/db";
+import { PGlite } from "@electric-sql/pglite";
 import type { PrismaClient } from "@prisma/client";
+import { bindPostgresPool, createPrismaClient, installPrismaClient, takePostgresPool } from "@/lib/db";
+import { createPglitePool } from "@/lib/persistence/pglitePool";
 
 const ROOT = path.resolve(__dirname, "../..");
+const BASELINE = path.join(
+  ROOT,
+  "prisma/migrations/20260927180000_init_postgresql/migration.sql"
+);
 
-let templateFile: string | null = null;
+let templateSql: string | null = null;
+let sequence = 0;
 
-function ensureTemplate(): string {
-  if (templateFile && fs.existsSync(templateFile)) return templateFile;
-  const file = path.join(os.tmpdir(), `moc-ledger-template-${process.pid}.db`);
-  const url = `file:${file}`;
-  execSync(`npx prisma db push --url ${JSON.stringify(url)}`, {
-    cwd: ROOT,
-    env: { ...process.env, DATABASE_URL: url },
-    stdio: "pipe",
-  });
-  templateFile = file;
-  return file;
+function baselineSql(): string {
+  if (!templateSql) templateSql = fs.readFileSync(BASELINE, "utf8");
+  return templateSql;
 }
 
 export async function openIsolatedPrisma(): Promise<{
@@ -27,15 +24,15 @@ export async function openIsolatedPrisma(): Promise<{
   file: string;
   client: PrismaClient;
 }> {
-  const file = path.join(
-    os.tmpdir(),
-    `moc-ledger-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.db`
-  );
-  fs.copyFileSync(ensureTemplate(), file);
-  const url = `file:${file}`;
+  const db = new PGlite();
+  await db.waitReady;
+  await db.exec(baselineSql());
+  const url = `pglite:moc-${process.pid}-${++sequence}`;
+  const pool = createPglitePool(db);
+  bindPostgresPool(url, pool);
   const client = createPrismaClient(url);
   installPrismaClient(client);
-  return { url, file, client };
+  return { url, file: url, client };
 }
 
 export async function reopenPrisma(url: string): Promise<PrismaClient> {
@@ -46,7 +43,7 @@ export async function reopenPrisma(url: string): Promise<PrismaClient> {
 
 export async function closeIsolatedPrisma(client: PrismaClient, file?: string) {
   await client.$disconnect();
-  if (file && fs.existsSync(file)) {
-    fs.unlinkSync(file);
+  if (file?.startsWith("pglite:")) {
+    await takePostgresPool(file)?.end();
   }
 }
