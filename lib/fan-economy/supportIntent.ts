@@ -16,6 +16,29 @@ export function beginSupportIntent(
   return { id: mintId(), releaseId: next.releaseId, units: next.units };
 }
 
+export type SupportLoadPhase = "loading" | "ready" | "error";
+
+/** A stale response must not replace a loaded desk with a failure. */
+export function resolveSupportLoadPhase(
+  current: SupportLoadPhase,
+  requestGeneration: number,
+  latestGeneration: number,
+  outcome: "ready" | "failed"
+): SupportLoadPhase {
+  if (requestGeneration !== latestGeneration) return current;
+  if (outcome === "ready") return "ready";
+  return current === "ready" ? current : "error";
+}
+
+/** The load failure is only for an empty desk. An action failure stays visible. */
+export function supportLoadFailureVisible(
+  phase: SupportLoadPhase,
+  hasDesk: boolean,
+  actionFailed: boolean
+): boolean {
+  return actionFailed || (phase === "error" && !hasDesk);
+}
+
 export function supportSubmitAllowed(input: {
   pending: boolean;
   releaseId: string;

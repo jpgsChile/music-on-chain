@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { beginSupportIntent, supportSubmitAllowed } from "./supportIntent";
+import {
+  beginSupportIntent,
+  resolveSupportLoadPhase,
+  supportLoadFailureVisible,
+  supportSubmitAllowed,
+} from "./supportIntent";
 
 describe("support intent", () => {
   it("disables submit while the request is pending", () => {
@@ -45,5 +50,14 @@ describe("support intent", () => {
         amountUnits: 5_000_000n,
       })
     ).toBe(true);
+  });
+
+  it("keeps a loaded desk when an older request fails", () => {
+    expect(resolveSupportLoadPhase("ready", 1, 2, "failed")).toBe("ready");
+    expect(resolveSupportLoadPhase("ready", 2, 2, "failed")).toBe("ready");
+    expect(resolveSupportLoadPhase("loading", 1, 1, "failed")).toBe("error");
+    expect(supportLoadFailureVisible("error", true, false)).toBe(false);
+    expect(supportLoadFailureVisible("error", false, false)).toBe(true);
+    expect(supportLoadFailureVisible("ready", true, true)).toBe(true);
   });
 });

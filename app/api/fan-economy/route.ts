@@ -15,11 +15,12 @@ import {
   traceRedemption,
 } from "@/lib/fan-economy/service";
 import { configuredTrust } from "@/lib/fan-economy/trust/configured";
-import { readRedemptionProof, readTestnetProof } from "@/lib/fan-economy/trust/testnetProof";
+import { readTestnetProof } from "@/lib/fan-economy/trust/testnetProof";
 import { reconcileForActor } from "@/lib/fan-economy/materialization/publish";
 import { completeRedeemReward } from "@/lib/fan-economy/redeemApplication";
 import { ingestConfiguredContractEvents } from "@/lib/fan-economy/events/ingest";
 import { acceptedMaterializationBody, canonicalFanForReader } from "@/lib/fan-economy/materialization/access";
+import { readProofCard } from "@/lib/fan-economy/materialization/proofCard";
 import { reconcileRedemption } from "@/lib/fan-economy/trust/flow";
 import { getPrisma } from "@/lib/db";
 
@@ -61,10 +62,8 @@ export async function GET(request: NextRequest) {
     if (view === "materialization" || view === "trust") {
       const redemptionId = request.nextUrl.searchParams.get("redemptionId")?.trim() ?? "";
       const fanActorRef = await canonicalFanForReader(getPrisma(), session.actorRef, redemptionId);
-      return NextResponse.json({
-        ok: true,
-        proof: await readRedemptionProof({ redemptionId, fanActorRef }, getPrisma()),
-      });
+      const card = await readProofCard(getPrisma(), { redemptionId, fanActorRef });
+      return NextResponse.json({ ok: true, ...card });
     }
     if (view === "trace") {
       const redemptionId = request.nextUrl.searchParams.get("redemptionId")?.trim() ?? "";

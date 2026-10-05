@@ -94,7 +94,10 @@ describe("application-native materialization", { timeout: 40_000 }, () => {
     } catch (error) {
       expect(String(error)).not.toContain(secret);
     }
-    const ui = readFileSync("components/fan-economy/StellarEvidence.tsx", "utf8");
+    const ui = [
+      readFileSync("components/fan-economy/StellarEvidence.tsx", "utf8"),
+      readFileSync("components/fan-economy/StellarProofCard.tsx", "utf8"),
+    ].join("\n");
     expect(ui).not.toContain("SECRET");
     expect(ui).not.toContain("@stellar/stellar-sdk");
   });

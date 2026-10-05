@@ -7,7 +7,7 @@ import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
 import { useAuth } from "@/lib/auth/useAuth";
 import { useStudioIdentity } from "@/lib/identity/StudioIdentity";
-import StellarEvidence from "@/components/fan-economy/StellarEvidence";
+import StellarProofCard from "@/components/fan-economy/StellarProofCard";
 import StatCard from "@/components/StatCard";
 import {
   StudioEmptyState,
@@ -179,7 +179,7 @@ export default function StudioSalesPage() {
                     <dd className="mt-1 font-medium text-foreground/90">{t.economicCreated}</dd>
                   </div>
                   <div className="sm:col-span-2">
-                    <dt className="text-xs uppercase tracking-wide text-foreground/45">{t.statusLabel}</dt>
+                    <dt className="text-xs uppercase tracking-wide text-foreground/45">{t.economicStatus}</dt>
                     <dd className="mt-1">
                       <span className="font-medium text-foreground/90">
                         {row.status === "accrued" ? t.statusAccrued : row.status === "settled" ? t.statusSettled : row.status}
@@ -191,7 +191,7 @@ export default function StudioSalesPage() {
                   </div>
                   {row.redemptionId ? (
                     <div className="sm:col-span-2">
-                      <StellarEvidence redemptionId={row.redemptionId} />
+                      <StellarProofCard redemptionId={row.redemptionId} />
                     </div>
                   ) : null}
                 </dl>

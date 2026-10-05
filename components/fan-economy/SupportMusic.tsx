@@ -3,14 +3,20 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { decimalToUnits, formatMoney, unitsToDecimal } from "@/lib/domain/fanEconomy/display";
 import { groupSupportHistory } from "@/lib/fan-economy/supportHistory";
-import { beginSupportIntent, supportSubmitAllowed, type SupportIntent } from "@/lib/fan-economy/supportIntent";
+import {
+  beginSupportIntent,
+  resolveSupportLoadPhase,
+  supportLoadFailureVisible,
+  supportSubmitAllowed,
+  type SupportIntent,
+} from "@/lib/fan-economy/supportIntent";
 import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
 import { StudioEmptyState, StudioLoading, StudioPageHeader } from "@/components/studio/StudioStates";
 import TestnetProof from "@/components/fan-economy/TestnetProof";
 import { EvidenceBody } from "@/components/fan-economy/EvidenceBody";
 import { releaseCoverSrc } from "@/lib/release/coverUrl";
-import StellarEvidence from "@/components/fan-economy/StellarEvidence";
+import StellarProofCard from "@/components/fan-economy/StellarProofCard";
 
 type Money = { units: string; scale: number; asset: string };
 
@@ -83,26 +89,33 @@ export default function SupportMusic() {
   const [pendingSupport, setPendingSupport] = useState(false);
   const pendingSupportRef = useRef(false);
   const supportIntentRef = useRef<SupportIntent | null>(null);
+  const loadGeneration = useRef(0);
 
   const load = useCallback(async () => {
-    const response = await fetch("/api/fan-economy", {
-      credentials: "include",
-      signal: AbortSignal.timeout(8000),
-    });
-    const json = await response.json();
-    if (!json.ok || !Array.isArray(json.purchasingPower)) throw new Error("failed");
-    setDesk(json);
-    setReleaseId((current) => current || json.targets?.[0]?.id || "");
-    setPhase("ready");
+    const generation = ++loadGeneration.current;
+    try {
+      const response = await fetch("/api/fan-economy", {
+        credentials: "include",
+        signal: AbortSignal.timeout(20000),
+      });
+      const json = await response.json();
+      if (generation !== loadGeneration.current) return;
+      if (!json.ok || !Array.isArray(json.purchasingPower)) throw new Error("failed");
+      setDesk(json);
+      setReleaseId((current) => current || json.targets?.[0]?.id || "");
+      setPhase((current) => resolveSupportLoadPhase(current, generation, loadGeneration.current, "ready"));
+      setError(false);
+    } catch (error) {
+      if (generation !== loadGeneration.current) return;
+      setPhase((current) => resolveSupportLoadPhase(current, generation, loadGeneration.current, "failed"));
+      throw error;
+    }
   }, []);
 
   useEffect(() => {
-    let active = true;
-    load().catch(() => {
-      if (active) setPhase("error");
-    });
+    load().catch(() => undefined);
     return () => {
-      active = false;
+      loadGeneration.current += 1;
     };
   }, [load]);
 
@@ -206,24 +219,27 @@ export default function SupportMusic() {
       <StudioPageHeader eyebrow={t.fanEyebrow} title={t.fanTitle} subtitle={t.fanSubtitle} />
       <TestnetProof story="fan" />
       {phase === "loading" ? <StudioLoading label={t.fanEyebrow} /> : null}
-      {phase === "error" || error ? <p className="mb-4 text-sm text-red-400">{t.failed}</p> : null}
-
-      <section className="mb-8 rounded-2xl border border-accent/40 bg-accent/10 p-6">
-        <p className="text-xs uppercase tracking-[0.16em] text-foreground/55">{t.available}</p>
-        <p className="mt-2 text-4xl font-semibold tracking-tight">
-          {power ? dollars(power.units, power.scale) : "$0"}
-        </p>
-        {!power ? <p className="mt-2 text-sm text-foreground/60">{t.emptyPower}</p> : null}
-      </section>
-
-      {earned?.reward ? (
-        <section className="mb-8 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
-          <p className="text-lg font-semibold text-emerald-300">{t.rewardEarned}</p>
-          <p className="mt-1 text-2xl font-semibold">
-            {dollars(earned.reward.authorized.units, earned.reward.authorized.scale)}
-          </p>
-        </section>
+      {supportLoadFailureVisible(phase, desk !== null, error) ? (
+        <p className="mb-4 text-sm text-red-400">{t.failed}</p>
       ) : null}
+
+      <div className="mb-8 grid gap-4 md:grid-cols-2">
+        {earned?.reward ? (
+          <section className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+            <p className="text-xs uppercase tracking-[0.16em] text-foreground/55">{t.rewardEarned}</p>
+            <p className="mt-2 text-4xl font-semibold tracking-tight">
+              {dollars(earned.reward.authorized.units, earned.reward.authorized.scale)}
+            </p>
+          </section>
+        ) : null}
+        <section className="rounded-2xl border border-accent/40 bg-accent/10 p-6">
+          <p className="text-xs uppercase tracking-[0.16em] text-foreground/55">{t.available}</p>
+          <p className="mt-2 text-4xl font-semibold tracking-tight">
+            {power ? dollars(power.units, power.scale) : "$0"}
+          </p>
+          {!power ? <p className="mt-2 text-sm text-foreground/60">{t.emptyPower}</p> : null}
+        </section>
+      </div>
 
       <section className="mb-8">
         <h2 className="mb-3 text-sm font-medium uppercase tracking-[0.14em] text-foreground/55">{t.missionsAvailable}</h2>
@@ -390,8 +406,10 @@ export default function SupportMusic() {
                       key={row.redemptionId}
                       className={`rounded-xl px-4 py-3 ${row.redemptionId === justSupported ? "bg-accent/10" : "bg-border/20"}`}
                     >
-                      <p className="text-sm">{t.supportAmount}</p>
-                      <p className="mt-1 text-lg font-semibold">{supportMoney(row.amount)}</p>
+                      <p className="text-xs uppercase tracking-[0.14em] text-foreground/45">{t.supportRegistered}</p>
+                      <p className="mt-1 text-lg font-semibold">
+                        {supportMoney(row.amount)} → {group.releaseTitle}
+                      </p>
                       <ul className="mt-2 space-y-1 text-sm text-foreground/70">
                         {row.participants.map((participant, index) => (
                           <li key={`${row.redemptionId}-${participant.name ?? "participant"}-${index}`}>
@@ -400,10 +418,7 @@ export default function SupportMusic() {
                           </li>
                         ))}
                       </ul>
-                      <p className="mt-3 text-xs uppercase tracking-[0.14em] text-foreground/45">{t.economicSection}</p>
-                      <p className="text-sm font-medium">{t.supportRegistered}</p>
-                      <p className="text-sm text-foreground/80">{t.economicCreated}</p>
-                      <StellarEvidence redemptionId={row.redemptionId} />
+                      <StellarProofCard redemptionId={row.redemptionId} />
                     </li>
                   ))}
                 </ul>

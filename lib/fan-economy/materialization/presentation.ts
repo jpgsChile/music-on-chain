@@ -1,5 +1,7 @@
 export type PublicationKind = "pending" | "publishing" | "published" | "error";
 
+export type ProofExperience = "recorded" | "pending" | "publishing" | "verified" | "retryable" | "review";
+
 export type PublicationProof = {
   economicRecord: boolean;
   verification: "verified" | "pending" | "failed" | "inconsistent" | "conflict";
@@ -27,6 +29,31 @@ export function publicationPresentation(proof: PublicationProof | null): Publica
   if (proof.publicationState === "submitting") return "publishing";
   if (proof.publicationState === "failed" || proof.verification === "failed") return "error";
   return "pending";
+}
+
+/** UX state for one economic redemption. Conflict is never presented as a simple failure. */
+export function proofExperience(proof: PublicationProof | null): ProofExperience {
+  if (!proof?.economicRecord) return "recorded";
+  if (proof.verification === "conflict" || proof.verification === "inconsistent") return "review";
+  if (publicationPresentation(proof) === "published") return "verified";
+  if (proof.publicationState === "submitting") return "publishing";
+  if (proof.publicationState === "failed" || proof.verification === "failed") return "retryable";
+  if (proof.publicationState === "pending") return "pending";
+  return "recorded";
+}
+
+const TX_HASH = /^[0-9a-f]{64}$/i;
+const CONTRACT_ID = /^C[A-Z2-7]{55}$/;
+
+/** Testnet explorer links. Any other network, hash, or contract id yields no URL. */
+export function stellarExpertTransactionUrl(network: string | null, transactionHash: string | null): string | null {
+  if (network !== "testnet" || !transactionHash || !TX_HASH.test(transactionHash)) return null;
+  return `https://stellar.expert/explorer/testnet/tx/${transactionHash.toLowerCase()}`;
+}
+
+export function stellarExpertContractUrl(network: string | null, contractId: string | null): string | null {
+  if (network !== "testnet" || !contractId || !CONTRACT_ID.test(contractId)) return null;
+  return `https://stellar.expert/explorer/testnet/contract/${contractId}`;
 }
 
 export function shortenRef(value: string, head: number, tail: number): string {
