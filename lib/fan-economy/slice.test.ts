@@ -24,6 +24,7 @@ import {
   submitEvidence,
   traceRedemption,
 } from "@/lib/fan-economy/service";
+import { completeRedeemReward } from "@/lib/fan-economy/redeemApplication";
 import { groupSupportHistory } from "@/lib/fan-economy/supportHistory";
 
 const ARTIST = "moc:actor:11111111-1111-4111-8111-111111111111";
@@ -357,6 +358,95 @@ describe("Fan Economy vertical slice", { timeout: 30_000 }, () => {
     expect(await prisma.economicRevenue.count()).toBe(1);
     expect(await prisma.economicEntitlement.count()).toBe(1);
     expect((await prisma.rewardEntitlement.findUnique({ where: { id: reward.id } }))?.consumedUnits).toBe("1000000");
+  });
+
+  it("keeps the committed economy when post-commit publication throws", async () => {
+    const prisma = await db();
+    const { reward } = await granted(prisma, 10_000_000n, 1_000_000n);
+    const release = await releaseWith(prisma, [{ actorRef: ARTIST, percent: 100 }]);
+    const value = await completeRedeemReward(
+      {
+        fanActorRef: FAN,
+        rewardEntitlementId: reward.id,
+        amount: { units: 1_000_000n, ...USDC },
+        redemptionId: "redeem-rpc-fail",
+        releaseId: release.id,
+      },
+      prisma,
+      async () => {
+        throw new Error("RPC_FAILURE");
+      }
+    );
+    expect(value.redemptionId).toBe("redeem-rpc-fail");
+    expect(await prisma.redemption.count()).toBe(1);
+    expect(await prisma.economicRevenue.count()).toBe(1);
+    expect(await prisma.economicEntitlement.count()).toBe(1);
+    const retry = await completeRedeemReward(
+      {
+        fanActorRef: FAN,
+        rewardEntitlementId: reward.id,
+        amount: { units: 1_000_000n, ...USDC },
+        redemptionId: "redeem-rpc-fail",
+        releaseId: release.id,
+      },
+      prisma,
+      async () => {
+        throw new Error("RPC_FAILURE");
+      }
+    );
+    expect(retry.idempotent).toBe(true);
+    expect(retry.revenueId).toBe(value.revenueId);
+    expect(await prisma.economicRevenue.count()).toBe(1);
+  });
+
+  it("does not publish when the economic transaction fails", async () => {
+    const prisma = await db();
+    const { reward } = await granted(prisma);
+    const short = await releaseWith(prisma, [
+      { actorRef: ARTIST, percent: 60 },
+      { actorRef: PARTNER, percent: 30 },
+    ]);
+    let calls = 0;
+    await expect(
+      completeRedeemReward(
+        {
+          fanActorRef: FAN,
+          rewardEntitlementId: reward.id,
+          amount: { units: 1_000_000n, ...USDC },
+          redemptionId: "redeem-no-publish",
+          releaseId: short.id,
+        },
+        prisma,
+        async () => {
+          calls += 1;
+        }
+      )
+    ).rejects.toMatchObject({ code: "SHARES_MUST_SUM_TO_10000_BPS" });
+    expect(calls).toBe(0);
+    expect(await prisma.redemption.count()).toBe(0);
+    expect(await prisma.economicRevenue.count()).toBe(0);
+    expect(await prisma.economicEntitlement.count()).toBe(0);
+  });
+
+  it("does not let two concurrent application intents create two economic facts", async () => {
+    const prisma = await db();
+    const { reward } = await granted(prisma, 10_000_000n, 1_000_000n);
+    const release = await releaseWith(prisma, [{ actorRef: ARTIST, percent: 100 }]);
+    const input = {
+      fanActorRef: FAN,
+      rewardEntitlementId: reward.id,
+      amount: { units: 1_000_000n, ...USDC },
+      redemptionId: "redeem-app-race",
+      releaseId: release.id,
+    };
+    const results = await Promise.allSettled([
+      completeRedeemReward(input, prisma, async () => undefined),
+      completeRedeemReward(input, prisma, async () => undefined),
+    ]);
+    expect(results.every((row) => row.status === "fulfilled")).toBe(true);
+    expect(await prisma.redemption.count()).toBe(1);
+    expect(await prisma.economicRevenue.count()).toBe(1);
+    expect(await prisma.economicEntitlement.count()).toBe(1);
   });
 
   it("does not let two concurrent redemptions exceed remaining purchasing power", async () => {

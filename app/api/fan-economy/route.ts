@@ -9,7 +9,6 @@ import {
   createMission,
   fanDesk,
   recordVerification,
-  redeemReward,
   releaseReward,
   reverseRedemption,
   submitEvidence,
@@ -18,6 +17,7 @@ import {
 import { configuredTrust } from "@/lib/fan-economy/trust/configured";
 import { readRedemptionProof, readTestnetProof } from "@/lib/fan-economy/trust/testnetProof";
 import { reconcileForActor } from "@/lib/fan-economy/materialization/publish";
+import { completeRedeemReward } from "@/lib/fan-economy/redeemApplication";
 import { ingestConfiguredContractEvents } from "@/lib/fan-economy/events/ingest";
 import { acceptedMaterializationBody, canonicalFanForReader } from "@/lib/fan-economy/materialization/access";
 import { reconcileRedemption } from "@/lib/fan-economy/trust/flow";
@@ -156,16 +156,13 @@ export async function POST(request: NextRequest) {
           }, prisma, trust),
         });
       case "redeemReward": {
-        // Soroban mode must not enter redeemWithTrust: that path asks the chain
-        // before the economic commit. The certified path records PostgreSQL first.
-        // publishIfConfigured then materializes only when MOC_TRUST_EXECUTION=soroban.
-        const value = await redeemReward({
+        const value = await completeRedeemReward({
           fanActorRef: actorRef,
           rewardEntitlementId: String(body.rewardEntitlementId ?? ""),
           amount: amount(body),
           redemptionId: String(body.redemptionId ?? ""),
           releaseId: String(body.releaseId ?? ""),
-        }, prisma, null);
+        }, prisma);
         return NextResponse.json({ ok: true, value });
       }
       case "ingestContractEvents": {

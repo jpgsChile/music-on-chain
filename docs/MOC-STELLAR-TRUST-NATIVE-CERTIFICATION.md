@@ -49,7 +49,7 @@ SupportMusic
 → materializeRedemption
 ```
 
-`redeemReward` on this path validates the intent, writes Redemption, EconomicRevenue, and EconomicEntitlement, commits, and only then asks Soroban to materialize. A Stellar failure does not remove the economic record. EconomicChainEvidence does not replace EconomicRevenue. ChainEventObservation does not create Actor, IdentityBinding, Reward, Redemption, Revenue, Entitlement, or Release.
+`redeemReward` validates the intent, writes Redemption, EconomicRevenue, and EconomicEntitlement, and commits. It cannot call Soroban. The application calls `publishIfConfigured` only after that function returns. A Stellar failure does not remove the economic record. EconomicChainEvidence does not replace EconomicRevenue. ChainEventObservation does not create Actor, IdentityBinding, Reward, Redemption, Revenue, Entitlement, or Release.
 
 ## Authority matrix
 

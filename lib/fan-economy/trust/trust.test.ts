@@ -19,7 +19,6 @@ import {
   createMission,
   fanDesk,
   recordVerification,
-  redeemReward,
   releaseReward,
   submitEvidence,
 } from "@/lib/fan-economy/service";
@@ -36,7 +35,7 @@ import {
   revenueHash,
   assetHash,
 } from "@/lib/fan-economy/trust/canonical";
-import { protocolDisagreement, reconcileRedemption } from "@/lib/fan-economy/trust/flow";
+import { protocolDisagreement, reconcileRedemption, redeemWithTrust } from "@/lib/fan-economy/trust/flow";
 import { startLocalTrust, type LocalSorobanTrust } from "@/lib/fan-economy/trust/localContract";
 import type { FanEconomyTrustExecution } from "@/lib/fan-economy/trust/port";
 import { closeIsolatedPrisma, openIsolatedPrisma } from "@/lib/persistence/testDatabase";
@@ -150,7 +149,7 @@ describe("Soroban trust execution", { timeout: 60_000 }, () => {
   it("projects one protocol grant and one redemption revenue", async () => {
     const prisma = await db();
     const { reward, release } = await granted(prisma);
-    const redeemed = await redeemReward(
+    const redeemed = await redeemWithTrust(
       {
         fanActorRef: FAN,
         rewardEntitlementId: reward.id,
@@ -161,7 +160,7 @@ describe("Soroban trust execution", { timeout: 60_000 }, () => {
       prisma,
       trust
     );
-    const again = await redeemReward(
+    const again = await redeemWithTrust(
       {
         fanActorRef: FAN,
         rewardEntitlementId: reward.id,
@@ -199,7 +198,7 @@ describe("Soroban trust execution", { timeout: 60_000 }, () => {
       getReward: (id) => trust.getReward(id),
       getRedemption: (id) => trust.getRedemption(id),
     };
-    await redeemReward(
+    await redeemWithTrust(
       {
         fanActorRef: FAN,
         rewardEntitlementId: reward.id,
@@ -280,7 +279,7 @@ describe("Soroban trust execution", { timeout: 60_000 }, () => {
   it("detects a falsified Prisma projection and keeps the protocol read", async () => {
     const prisma = await db();
     const { assignment, reward, release } = await granted(prisma);
-    await redeemReward(
+    await redeemWithTrust(
       {
         fanActorRef: FAN,
         rewardEntitlementId: reward.id,
@@ -308,7 +307,7 @@ describe("Soroban trust execution", { timeout: 60_000 }, () => {
     const prisma = await db();
     const { reward, release } = await granted(prisma);
     await expect(
-      redeemReward(
+      redeemWithTrust(
         {
           fanActorRef: OTHER,
           rewardEntitlementId: reward.id,

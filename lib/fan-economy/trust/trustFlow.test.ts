@@ -17,13 +17,12 @@ import {
   createMission,
   fanDesk,
   recordVerification,
-  redeemReward,
   releaseReward,
   reverseRedemption,
   submitEvidence,
 } from "@/lib/fan-economy/service";
 import { distributionHash, hex32 } from "@/lib/fan-economy/trust/canonical";
-import { syncRewardProjectionFromProtocol } from "@/lib/fan-economy/trust/flow";
+import { redeemWithTrust, syncRewardProjectionFromProtocol } from "@/lib/fan-economy/trust/flow";
 import { startLocalTrust, type LocalSorobanTrust } from "@/lib/fan-economy/trust/localContract";
 import type { FanEconomyTrustExecution, RewardTrustState } from "@/lib/fan-economy/trust/port";
 import { closeIsolatedPrisma, openIsolatedPrisma } from "@/lib/persistence/testDatabase";
@@ -156,7 +155,7 @@ describe("local trust-native flow", { timeout: 60_000 }, () => {
       getReward: (id) => trust.getReward(id),
       getRedemption: (id) => trust.getRedemption(id),
     };
-    const redeemed = await redeemReward(
+    const redeemed = await redeemWithTrust(
       {
         fanActorRef: FAN,
         rewardEntitlementId: reward.id,
@@ -213,7 +212,7 @@ describe("local trust-native flow", { timeout: 60_000 }, () => {
     const prisma = await db();
     const { campaign, assignment, reward } = await grant(prisma);
     const release = await releaseFor(prisma, "Release");
-    await redeemReward(
+    await redeemWithTrust(
       {
         fanActorRef: FAN,
         rewardEntitlementId: reward.id,
@@ -229,7 +228,7 @@ describe("local trust-native flow", { timeout: 60_000 }, () => {
       data: { consumedUnits: "0", releasedUnits: "0" },
     });
     await expect(
-      redeemReward(
+      redeemWithTrust(
         {
           fanActorRef: FAN,
           rewardEntitlementId: reward.id,
@@ -267,7 +266,7 @@ describe("local trust-native flow", { timeout: 60_000 }, () => {
     );
     const release = await releaseFor(prisma, "Release");
     await expect(
-      redeemReward(
+      redeemWithTrust(
         {
           fanActorRef: FAN,
           rewardEntitlementId: reward.id,
@@ -281,7 +280,7 @@ describe("local trust-native flow", { timeout: 60_000 }, () => {
     ).rejects.toMatchObject({ code: "INSUFFICIENT_REMAINING" });
     await prisma.rewardEntitlement.update({ where: { id: reward.id }, data: { releasedUnits: "0" } });
     await expect(
-      redeemReward(
+      redeemWithTrust(
         {
           fanActorRef: FAN,
           rewardEntitlementId: reward.id,
@@ -313,14 +312,14 @@ describe("local trust-native flow", { timeout: 60_000 }, () => {
       redemptionId: "redeem-flow-004",
       releaseId: release.id,
     };
-    await redeemReward(input, prisma, trust);
-    await redeemReward(input, prisma, trust);
+    await redeemWithTrust(input, prisma, trust);
+    await redeemWithTrust(input, prisma, trust);
     expect(await prisma.economicRevenue.count()).toBe(1);
     expect((await trust.getReward(assignment.id))?.consumed).toBe("3");
     await expect(
-      redeemReward({ ...input, amount: { units: 1n, ...UNIT } }, prisma, trust)
+      redeemWithTrust({ ...input, amount: { units: 1n, ...UNIT } }, prisma, trust)
     ).rejects.toMatchObject({ code: "REDEMPTION_PAYLOAD_CONFLICT" });
-    await expect(redeemReward({ ...input, releaseId: other.id }, prisma, trust)).rejects.toMatchObject({
+    await expect(redeemWithTrust({ ...input, releaseId: other.id }, prisma, trust)).rejects.toMatchObject({
       code: "REDEMPTION_PAYLOAD_CONFLICT",
     });
     await prisma.participation.updateMany({
@@ -331,7 +330,7 @@ describe("local trust-native flow", { timeout: 60_000 }, () => {
       where: { releaseId: release.id, actorRef: COLLABORATOR },
       data: { revenueSharePercent: 40 },
     });
-    await expect(redeemReward(input, prisma, trust)).rejects.toMatchObject({ code: "REDEMPTION_PAYLOAD_CONFLICT" });
+    await expect(redeemWithTrust(input, prisma, trust)).rejects.toMatchObject({ code: "REDEMPTION_PAYLOAD_CONFLICT" });
     expect(await prisma.economicRevenue.count()).toBe(1);
     expect((await trust.getReward(assignment.id))?.consumed).toBe("3");
     expect((await trust.getRedemption("redeem-flow-004"))?.amount).toBe("3");
@@ -355,7 +354,7 @@ describe("local trust-native flow", { timeout: 60_000 }, () => {
       getReward: (id) => trust.getReward(id),
       getRedemption: (id) => trust.getRedemption(id),
     };
-    await redeemReward(
+    await redeemWithTrust(
       {
         fanActorRef: FAN,
         rewardEntitlementId: reward.id,
@@ -377,7 +376,7 @@ describe("local trust-native flow", { timeout: 60_000 }, () => {
 
     const lockedReward = await grant(prisma);
     const lockedRelease = await releaseFor(prisma, "Locked release");
-    await redeemReward(
+    await redeemWithTrust(
       {
         fanActorRef: FAN,
         rewardEntitlementId: lockedReward.reward.id,
@@ -477,7 +476,7 @@ describe("local trust-native flow", { timeout: 60_000 }, () => {
       getReward: (id) => trust.getReward(id),
       getRedemption: (id) => trust.getRedemption(id),
     };
-    await redeemReward(
+    await redeemWithTrust(
       {
         fanActorRef: FAN,
         rewardEntitlementId: reward.id,

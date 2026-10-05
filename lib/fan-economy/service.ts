@@ -26,11 +26,9 @@ import type { FanEconomyTrustExecution } from "@/lib/fan-economy/trust/port";
 import {
   authorizeWithTrust,
   commitCampaignReserve,
-  redeemWithTrust,
   releaseWithTrust,
   reverseWithTrust,
 } from "@/lib/fan-economy/trust/flow";
-import { publishIfConfigured } from "@/lib/fan-economy/materialization/publish";
 import { resolveReleaseCoverUrl } from "@/lib/release/coverUrl";
 
 type Tx = Prisma.TransactionClient;
@@ -516,14 +514,9 @@ export async function redeemReward(
     redemptionId: string;
     releaseId: string;
   },
-  client: PrismaClient = getPrisma(),
-  trust: FanEconomyTrustExecution | null = null
+  client: PrismaClient = getPrisma()
 ) {
   const redemptionId = input.redemptionId.trim();
-  if (trust) {
-    await redeemWithTrust({ ...input, redemptionId }, client, trust);
-    return readRedemption(client, redemptionId, input.fanActorRef);
-  }
   if (!/^[A-Za-z0-9:_-]{8,80}$/.test(redemptionId)) throw new FanEconomyError("INVALID_REDEMPTION_ID");
   if (input.amount.units <= 0n) throw new FanEconomyError("INVALID_AMOUNT");
   const hash = canonicalHash({
@@ -615,14 +608,12 @@ export async function redeemReward(
       return { idempotent: false };
     }, { timeout: 20_000 });
     const viewResult = await readRedemption(client, redemptionId, input.fanActorRef);
-    await publishIfConfigured({ redemptionId, fanActorRef: input.fanActorRef }, client);
     return { ...viewResult, idempotent: outcome.idempotent };
   } catch (error) {
     if (!isUnique(error)) throw error;
     const existing = await client.redemption.findUnique({ where: { id: redemptionId } });
     if (existing?.payloadHash === hash && existing.fanActorRef === input.fanActorRef) {
       const viewResult = await readRedemption(client, redemptionId, input.fanActorRef);
-      await publishIfConfigured({ redemptionId, fanActorRef: input.fanActorRef }, client);
       return { ...viewResult, idempotent: true };
     }
     if (existing) throw new FanEconomyError("REDEMPTION_PAYLOAD_CONFLICT");
