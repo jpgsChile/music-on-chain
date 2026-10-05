@@ -20,6 +20,29 @@ function redemption(
   };
 }
 
+describe("purchasing power from the reward balance", () => {
+  function available(authorized: bigint, consumed: bigint, released = 0n) {
+    const remaining = remainingUnits({
+      authorizedUnits: authorized,
+      consumedUnits: consumed,
+      releasedUnits: released,
+    });
+    return purchasingPower([{ remainingUnits: remaining, asset: "USDC", scale: 6 }]);
+  }
+
+  it("shows 1 USDC when the grant is unused", () => {
+    expect(available(1_000_000n, 0n)).toEqual([{ units: "1000000", scale: 6, asset: "USDC" }]);
+  });
+
+  it("shows nothing after that 1 USDC is consumed", () => {
+    expect(available(1_000_000n, 1_000_000n)).toEqual([]);
+  });
+
+  it("shows nothing after two 5 USDC redemptions consume a 10 USDC grant", () => {
+    expect(available(10_000_000n, 5_000_000n + 5_000_000n)).toEqual([]);
+  });
+});
+
 describe("fan support history projection", () => {
   it("renders two $5 redemptions of the same release as independent rows totaling $10", () => {
     const rows = [

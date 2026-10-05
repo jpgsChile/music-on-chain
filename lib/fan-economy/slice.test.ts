@@ -340,6 +340,25 @@ describe("Fan Economy vertical slice", { timeout: 30_000 }, () => {
     expect((await prisma.rewardEntitlement.findUnique({ where: { id: reward.id } }))?.consumedUnits).toBe("1000000");
   });
 
+  it("treats two concurrent requests for the same support intent as one redemption", async () => {
+    const prisma = await db();
+    const { reward } = await granted(prisma, 10_000_000n, 1_000_000n);
+    const release = await releaseWith(prisma, [{ actorRef: ARTIST, percent: 100 }]);
+    const input = {
+      fanActorRef: FAN,
+      rewardEntitlementId: reward.id,
+      amount: { units: 1_000_000n, ...USDC },
+      redemptionId: "redeem-double-click",
+      releaseId: release.id,
+    };
+    const results = await Promise.allSettled([redeemReward(input, prisma), redeemReward(input, prisma)]);
+    expect(results.every((row) => row.status === "fulfilled")).toBe(true);
+    expect(await prisma.redemption.count()).toBe(1);
+    expect(await prisma.economicRevenue.count()).toBe(1);
+    expect(await prisma.economicEntitlement.count()).toBe(1);
+    expect((await prisma.rewardEntitlement.findUnique({ where: { id: reward.id } }))?.consumedUnits).toBe("1000000");
+  });
+
   it("does not let two concurrent redemptions exceed remaining purchasing power", async () => {
     const prisma = await db();
     const { reward } = await granted(prisma, 10_000_000n, 5_000_000n);

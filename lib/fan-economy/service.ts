@@ -30,6 +30,7 @@ import {
   releaseWithTrust,
   reverseWithTrust,
 } from "@/lib/fan-economy/trust/flow";
+import { publishIfConfigured } from "@/lib/fan-economy/materialization/publish";
 import { resolveReleaseCoverUrl } from "@/lib/release/coverUrl";
 
 type Tx = Prisma.TransactionClient;
@@ -614,12 +615,14 @@ export async function redeemReward(
       return { idempotent: false };
     }, { timeout: 20_000 });
     const viewResult = await readRedemption(client, redemptionId, input.fanActorRef);
+    await publishIfConfigured({ redemptionId, fanActorRef: input.fanActorRef }, client);
     return { ...viewResult, idempotent: outcome.idempotent };
   } catch (error) {
     if (!isUnique(error)) throw error;
     const existing = await client.redemption.findUnique({ where: { id: redemptionId } });
     if (existing?.payloadHash === hash && existing.fanActorRef === input.fanActorRef) {
       const viewResult = await readRedemption(client, redemptionId, input.fanActorRef);
+      await publishIfConfigured({ redemptionId, fanActorRef: input.fanActorRef }, client);
       return { ...viewResult, idempotent: true };
     }
     if (existing) throw new FanEconomyError("REDEMPTION_PAYLOAD_CONFLICT");

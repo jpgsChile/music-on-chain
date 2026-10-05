@@ -3,6 +3,8 @@ import { FanEconomyError } from "@/lib/domain/fanEconomy/errors";
 import { configuredTrust } from "@/lib/fan-economy/trust/configured";
 import { assertStellarTestnet, assertStellarTestnetRpc } from "@/lib/fan-economy/trust/networkGuard";
 import { createSorobanRpcTrust, readSorobanTrustConfig } from "@/lib/fan-economy/trust/rpc";
+import { publishIfConfigured } from "@/lib/fan-economy/materialization/publish";
+import { ingestConfiguredContractEvents } from "@/lib/fan-economy/events/ingest";
 import { readTestnetProof } from "@/lib/fan-economy/trust/testnetProof";
 
 const ready = {
@@ -42,5 +44,15 @@ describe("Stellar testnet guard", () => {
       "STELLAR_MAINNET_FORBIDDEN"
     );
     await expect(readTestnetProof({ STELLAR_NETWORK: "mainnet" })).rejects.toThrow("STELLAR_MAINNET_FORBIDDEN");
+    const { MOC_TRUST_EXECUTION: _ignored, ...withoutExecution } = ready;
+    void _ignored;
+    await expect(publishIfConfigured(
+      { redemptionId: "redeem-flag", fanActorRef: "moc:actor:b2b2b2b2-b2b2-42b2-82b2-b2b2b2b2b2b2" },
+      {} as never,
+      withoutExecution
+    )).resolves.toBeNull();
+    await expect(ingestConfiguredContractEvents({} as never, { ...ready, MOC_TRUST_EXECUTION: "off" })).resolves.toEqual({
+      status: "not-configured",
+    });
   });
 });

@@ -14,10 +14,12 @@ import {
   reverseRedemption,
   submitEvidence,
   traceRedemption,
-  trustProof,
 } from "@/lib/fan-economy/service";
 import { configuredTrust } from "@/lib/fan-economy/trust/configured";
-import { readTestnetProof } from "@/lib/fan-economy/trust/testnetProof";
+import { readRedemptionProof, readTestnetProof } from "@/lib/fan-economy/trust/testnetProof";
+import { reconcileForActor } from "@/lib/fan-economy/materialization/publish";
+import { ingestConfiguredContractEvents } from "@/lib/fan-economy/events/ingest";
+import { acceptedMaterializationBody, canonicalFanForReader } from "@/lib/fan-economy/materialization/access";
 import { reconcileRedemption } from "@/lib/fan-economy/trust/flow";
 import { getPrisma } from "@/lib/db";
 
@@ -49,7 +51,6 @@ export async function GET(request: NextRequest) {
   const session = await requireActorSession(request);
   if (!isActorSession(session)) return session;
   const view = request.nextUrl.searchParams.get("view");
-  const trust = configuredTrust();
   try {
     if (view === "artist") {
       return NextResponse.json({ ok: true, campaigns: await artistDesk(session.actorRef) });
@@ -57,22 +58,21 @@ export async function GET(request: NextRequest) {
     if (view === "testnet-proof") {
       return NextResponse.json({ ok: true, proof: await readTestnetProof() });
     }
-    if (view === "trust") {
+    if (view === "materialization" || view === "trust") {
       const redemptionId = request.nextUrl.searchParams.get("redemptionId")?.trim() ?? "";
-      try {
-        return NextResponse.json({ ok: true, proof: await trustProof(session.actorRef, redemptionId, getPrisma(), trust) });
-      } catch (error) {
-        if (isFanEconomyError(error) && error.code === "TRUST_RPC_NOT_READY") {
-          return NextResponse.json({ ok: true, proof: { published: false } });
-        }
-        throw error;
-      }
+      const fanActorRef = await canonicalFanForReader(getPrisma(), session.actorRef, redemptionId);
+      return NextResponse.json({
+        ok: true,
+        proof: await readRedemptionProof({ redemptionId, fanActorRef }, getPrisma()),
+      });
     }
     if (view === "trace") {
       const redemptionId = request.nextUrl.searchParams.get("redemptionId")?.trim() ?? "";
       return NextResponse.json({ ok: true, value: await traceRedemption(session.actorRef, redemptionId) });
     }
-    return NextResponse.json({ ok: true, ...(await fanDesk(session.actorRef, getPrisma(), trust)) });
+    // Purchasing power is the PostgreSQL balance. The Soroban adapter refuses
+    // getReward, and calling it here blanks the desk before any support.
+    return NextResponse.json({ ok: true, ...(await fanDesk(session.actorRef, getPrisma(), null)) });
   } catch (error) {
     return fail(error);
   }
@@ -155,17 +155,34 @@ export async function POST(request: NextRequest) {
             commandId: String(body.commandId ?? ""),
           }, prisma, trust),
         });
-      case "redeemReward":
-        return NextResponse.json({
-          ok: true,
-          value: await redeemReward({
-            fanActorRef: actorRef,
-            rewardEntitlementId: String(body.rewardEntitlementId ?? ""),
-            amount: amount(body),
-            redemptionId: String(body.redemptionId ?? ""),
-            releaseId: String(body.releaseId ?? ""),
-          }, prisma, trust),
-        });
+      case "redeemReward": {
+        // Soroban mode must not enter redeemWithTrust: that path asks the chain
+        // before the economic commit. The certified path records PostgreSQL first.
+        // publishIfConfigured then materializes only when MOC_TRUST_EXECUTION=soroban.
+        const value = await redeemReward({
+          fanActorRef: actorRef,
+          rewardEntitlementId: String(body.rewardEntitlementId ?? ""),
+          amount: amount(body),
+          redemptionId: String(body.redemptionId ?? ""),
+          releaseId: String(body.releaseId ?? ""),
+        }, prisma, null);
+        return NextResponse.json({ ok: true, value });
+      }
+      case "ingestContractEvents": {
+        const result = await ingestConfiguredContractEvents(prisma);
+        if ("status" in result) return NextResponse.json({ ok: true, result });
+        const counts = result.outcomes.reduce<Record<string, number>>((totals, outcome) => {
+          totals[outcome] = (totals[outcome] ?? 0) + 1;
+          return totals;
+        }, {});
+        return NextResponse.json({ ok: true, result: { counts, lastLedger: result.lastLedger, advanced: result.advanced } });
+      }
+      case "materializeRedemption":
+      case "reconcileMaterialization": {
+        const { redemptionId } = acceptedMaterializationBody(body);
+        const result = await reconcileForActor({ actorRef, redemptionId }, prisma);
+        return NextResponse.json({ ok: true, decision: result.decision, proof: result.proof });
+      }
       case "reverseRedemption":
         return NextResponse.json({
           ok: true,

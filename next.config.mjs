@@ -15,7 +15,7 @@ const nextConfig = {
     '@moc/shared',
   ],
 
-  serverExternalPackages: ["pg", "@prisma/adapter-pg"],
+  serverExternalPackages: ["pg", "@prisma/adapter-pg", "@stellar/stellar-sdk"],
 
   experimental: {
     optimizePackageImports: ['wagmi', 'viem', '@tanstack/react-query'],

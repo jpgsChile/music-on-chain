@@ -409,6 +409,60 @@ model Redemption {
 
   @@index([fanActorRef])
   @@index([rewardEntitlementId])
+  chainEvidence       EconomicChainEvidence[]
+}
+
+/// Verifiable Stellar evidence for an already committed redemption. Not Revenue and not settlement.
+model EconomicChainEvidence {
+  id                  String     @id
+  redemptionId        String
+  redemption          Redemption @relation(fields: [redemptionId], references: [id])
+  revenueId           String     @unique
+  network             String
+  contractId          String
+  transactionHash     String?
+  ledger              Int?
+  materializationHash String?
+  state               String
+  attemptCount        Int        @default(0)
+  lastError           String?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  publishedAt         DateTime?
+
+  @@unique([network, contractId, redemptionId])
+  @@index([redemptionId])
+}
+
+/// Resumable Stellar event checkpoint. Not revenue and not a publication proof.
+model ChainEventCursor {
+  id          String   @id
+  network     String
+  contractId  String
+  lastLedger  Int      @default(0)
+  pagingToken String?
+  updatedAt   DateTime @updatedAt
+
+  @@unique([network, contractId])
+}
+
+/// Idempotent observation of a contract event. It does not copy Revenue.
+model ChainEventObservation {
+  id              String   @id
+  network         String
+  contractId      String
+  ledger          Int
+  transactionHash String
+  pagingToken     String
+  eventType       String
+  canonicalHash   String?
+  amount          String?
+  payloadHash     String
+  outcome         String
+  observedAt      DateTime @default(now())
+
+  @@unique([network, contractId, pagingToken])
+  @@index([transactionHash])
 }
 
 model RewardReleaseCommand {

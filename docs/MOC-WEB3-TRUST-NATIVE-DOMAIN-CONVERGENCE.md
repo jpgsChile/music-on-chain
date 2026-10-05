@@ -6,8 +6,8 @@
 | **Dependencies** | [Documentation Hub](./README.md) · [C-BIND/1 consumption](./C-BIND.md) · [Standards](./_system/STANDARDS.md) |
 | **Status** | Active |
 | **Owner** | Architecture / Domain |
-| **Last Updated** | 2026-09-07 |
-| **Related Documents** | [Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Artist Profile](./ARTIST_PROFILE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Product structure](./product-structure.md) |
+| **Last Updated** | 2026-10-05 |
+| **Related Documents** | [Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Artist Profile](./ARTIST_PROFILE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Product structure](./product-structure.md) · [Stellar certification](./MOC-STELLAR-TRUST-NATIVE-CERTIFICATION.md) |
 
 <!-- doc-id: MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md -->
 

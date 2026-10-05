@@ -7,6 +7,7 @@ import { getTranslations } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale/LocaleContext";
 import { useAuth } from "@/lib/auth/useAuth";
 import { useStudioIdentity } from "@/lib/identity/StudioIdentity";
+import StellarEvidence from "@/components/fan-economy/StellarEvidence";
 import StatCard from "@/components/StatCard";
 import {
   StudioEmptyState,
@@ -20,6 +21,7 @@ type MoneyWire = { units: string; scale: number; asset: string };
 
 type FanSupportRow = {
   entitlementId: string;
+  redemptionId: string | null;
   revenueId: string;
   releaseId: string | null;
   releaseTitle: string;
@@ -101,8 +103,10 @@ export default function StudioSalesPage() {
               amount: MoneyWire;
               gross: MoneyWire;
               status: string;
+              origin?: { kind?: string; id?: string } | null;
             }) => ({
               entitlementId: row.entitlementId,
+              redemptionId: row.origin?.kind === "redemption" ? row.origin.id ?? null : null,
               revenueId: row.revenueId,
               releaseId: row.releaseId ?? null,
               releaseTitle: row.releaseId ? titleById.get(row.releaseId) ?? row.releaseId : "—",
@@ -171,6 +175,10 @@ export default function StudioSalesPage() {
                     </dd>
                   </div>
                   <div className="sm:col-span-2">
+                    <dt className="text-xs uppercase tracking-wide text-foreground/45">{t.economicRecord}</dt>
+                    <dd className="mt-1 font-medium text-foreground/90">{t.economicCreated}</dd>
+                  </div>
+                  <div className="sm:col-span-2">
                     <dt className="text-xs uppercase tracking-wide text-foreground/45">{t.statusLabel}</dt>
                     <dd className="mt-1">
                       <span className="font-medium text-foreground/90">
@@ -181,6 +189,11 @@ export default function StudioSalesPage() {
                       ) : null}
                     </dd>
                   </div>
+                  {row.redemptionId ? (
+                    <div className="sm:col-span-2">
+                      <StellarEvidence redemptionId={row.redemptionId} />
+                    </div>
+                  ) : null}
                 </dl>
               </li>
             ))}

@@ -10,6 +10,7 @@ import { StudioEmptyState, StudioLoading, StudioPageHeader } from "@/components/
 import TestnetProof from "@/components/fan-economy/TestnetProof";
 import { EvidenceBody } from "@/components/fan-economy/EvidenceBody";
 import { releaseCoverSrc } from "@/lib/release/coverUrl";
+import StellarEvidence from "@/components/fan-economy/StellarEvidence";
 
 type Money = { units: string; scale: number; asset: string };
 
@@ -399,7 +400,10 @@ export default function SupportMusic() {
                           </li>
                         ))}
                       </ul>
-                      <TrustProof redemptionId={row.redemptionId} />
+                      <p className="mt-3 text-xs uppercase tracking-[0.14em] text-foreground/45">{t.economicSection}</p>
+                      <p className="text-sm font-medium">{t.supportRegistered}</p>
+                      <p className="text-sm text-foreground/80">{t.economicCreated}</p>
+                      <StellarEvidence redemptionId={row.redemptionId} />
                     </li>
                   ))}
                 </ul>
@@ -407,60 +411,6 @@ export default function SupportMusic() {
             ))}
           </div>
         </section>
-      ) : null}
-    </div>
-  );
-}
-
-function TrustProof({ redemptionId }: { redemptionId: string }) {
-  const t = getTranslations(useLocale()).studio.fanEconomy;
-  const [proof, setProof] = useState<Record<string, string> | null>(null);
-  const [open, setOpen] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-
-  async function toggle() {
-    const next = !open;
-    setOpen(next);
-    if (!next || loaded) return;
-    const response = await fetch(`/api/fan-economy?view=trust&redemptionId=${encodeURIComponent(redemptionId)}`, {
-      credentials: "include",
-    });
-    const json = await response.json();
-    if (!json.ok || !json.proof?.published) {
-      setProof(null);
-      setLoaded(true);
-      return;
-    }
-    const value = json.proof as Record<string, string | null>;
-    const shown: Record<string, string> = {};
-    for (const key of ["network", "contractId", "status", "actorHash", "redemptionId", "distributionHash"]) {
-      if (typeof value[key] === "string" && value[key]) shown[key] = value[key] as string;
-    }
-    setProof(shown);
-    setLoaded(true);
-  }
-
-  return (
-    <div className="mt-4">
-      <button type="button" className="text-sm text-foreground/60 underline" onClick={toggle}>
-        {t.redemptionProofToggle}
-      </button>
-      {open ? (
-        <div className="mt-3 space-y-2 text-sm">
-          <p className="font-medium text-foreground/90">{t.redemptionEconomicRecord}</p>
-          {proof && Object.keys(proof).length > 0 ? (
-            <dl className="space-y-1 text-xs text-foreground/70">
-              {Object.entries(proof).map(([key, value]) => (
-                <div key={key}>
-                  <dt className="inline text-foreground/45">{key}: </dt>
-                  <dd className="inline break-all">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : (
-            <p className="text-foreground/60">{t.redemptionOnChainPending}</p>
-          )}
-        </div>
       ) : null}
     </div>
   );
