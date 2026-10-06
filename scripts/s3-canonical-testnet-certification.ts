@@ -1,4 +1,6 @@
 /**
+ * CERTIFICATION ONLY — MAY WRITE TO STELLAR TESTNET.
+ * Not part of the judge quick start.
  * One controlled Stellar Testnet certification.
  * Refuses any database that is not the local disposable certification database.
  * Never prints key material.

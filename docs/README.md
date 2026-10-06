@@ -6,10 +6,22 @@
 | **Dependencies** | [`_system/STANDARDS.md`](./_system/STANDARDS.md) |
 | **Status** | Active |
 | **Owner** | Documentation Steward |
-| **Last Updated** | 2026-10-05 |
+| **Last Updated** | 2026-10-06 |
 | **Related Documents** | [Standards](./_system/STANDARDS.md) · [Backend Architecture](./backend-architecture/README.md) · [Data Model](./data-model/README.md) · [Sprints](./sprints/README.md) · [C-BIND/1](./C-BIND.md) · [CDR index](./cdr/README.md) · [Web3 Trust-Native domain](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [On-chain execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) · [Base settlement contract](./MOC-BASE-ONCHAIN-SETTLEMENT-CONTRACT.md) · [Base Sepolia deployment](./MOC-BASE-SEPOLIA-CONTROLLED-DEPLOYMENT.md) · [Dev/test environments](./MOC-DEVELOPMENT-TEST-ENVIRONMENT-ARCHITECTURE.md) · [Final Trust-Native validation](./MOC-FINAL-END-TO-END-WEB3-TRUST-NATIVE-ARCHITECTURE-VALIDATION.md) · [Stellar trust-native certification](./MOC-STELLAR-TRUST-NATIVE-CERTIFICATION.md) · [Persistent economic ledger](./MOC-PERSISTENT-ECONOMIC-LEDGER-VERIFIED-ACTOR-SESSION.md) · [Verified Privy session](./MOC-VERIFIED-PRIVY-SERVER-SESSION-HARDENING.md) · [First real band pilot](./MOC-FIRST-REAL-BAND-PILOT.md) · [Root README](../README.md) · [Packages](../packages/README.md) |
 
 ---
+
+## Judge path
+
+Start here, in this order. Historical documents stay in the catalog below. They are not the first reading.
+
+| Step | Document |
+| --- | --- |
+| Start here | [Root README](../README.md) |
+| Architecture | [Stellar trust-native certification](./MOC-STELLAR-TRUST-NATIVE-CERTIFICATION.md) · [C-BIND/1](./C-BIND.md) |
+| Stellar | [Soroban contract index](../contracts/README.md) · [fan-economy-trust](../contracts/soroban/fan-economy-trust/src/lib.rs) |
+| Certification | [Stellar trust-native certification](./MOC-STELLAR-TRUST-NATIVE-CERTIFICATION.md) |
+| Deep technical documentation | Catalog below. Backend architecture notes describe an earlier system view. The running application is the Next.js app in this repository. |
 
 ## How to use this system
 

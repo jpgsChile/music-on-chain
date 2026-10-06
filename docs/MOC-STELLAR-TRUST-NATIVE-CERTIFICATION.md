@@ -6,8 +6,8 @@
 | **Dependencies** | [Documentation Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) |
 | **Status** | Active |
 | **Owner** | Architecture |
-| **Last Updated** | 2026-10-05 |
-| **Related Documents** | [Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Domain convergence](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) |
+| **Last Updated** | 2026-10-06 |
+| **Related Documents** | [Hub](./README.md) · [Root README](../README.md) · [C-BIND/1](./C-BIND.md) · [Domain convergence](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) |
 
 <!-- doc-id: MOC-STELLAR-TRUST-NATIVE-CERTIFICATION.md -->
 
@@ -72,11 +72,16 @@ S6.4 application-native support:
 | --- | --- |
 | Redemption | `redeem-b3e4df75-2f1` |
 | Revenue | `revenue:redemption:redeem-b3e4df75-2f1` |
-| Amount | 1 USDC, 1000000 units, scale 6 |
+| Amount | 1000000 USDC-denominated minor units, scale 6. The contract does not custody USDC. |
 | Materialization hash | `a5c9d5a53c8f5e804d3a2e310438073e23a337ab77d557b498799b30506d50d9` |
 | Authorize | `e651c75434b6cd372487b80f7e07d1cae0580abb78d481cc0b7e49e1944ee1ab`, ledger 5041381 |
 | Redeem | `c7daff8ceb380d76568b32d96fa5c15863780cd98b1762f2a2ca218512ad895d`, ledger 5041382 |
 | Lock | `fcb8bb94eec5be7e853c2db3d59a83dbca6a5c7e3c22079e2f33dba6fc3c2119`, ledger 5041383 |
+
+**TESTNET.** Public inspection, not Mainnet:
+
+- Contract: https://stellar.expert/explorer/testnet/contract/CDLQPK73RFCLHZ5FIT3W3UI3SW54PGTYXECFPXXISVFHCFSKZJ72UOYI
+- Lock transaction: https://stellar.expert/explorer/testnet/tx/fcb8bb94eec5be7e853c2db3d59a83dbca6a5c7e3c22079e2f33dba6fc3c2119
 
 Public capabilities: artist `GC6TY6NERUT5GQLXXHWPR2RIKAHMNKJSTK2FBOXWTRNQNMSKYD6ONEFE`, fan `GDW3BMZWIO7NL6M25XLVUBNDNKHKUYOMK7V4EOWFICDOIBZD55O32O6M`, materializer `GASACPYNRZL2TRKPLXKVS3PJX7TVRTOCEWTULPRKBAX2YXJYQZU3PEA7`.
 

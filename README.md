@@ -1,107 +1,237 @@
-# Music On Chain Protocol
+# Music On Chain
 
-**Music On Chain** es un **protocolo de derechos musicales**: ownership, licensing, distribución, regalías y liquidación.
+Music On Chain is a Web3 music platform that creates a direct, verifiable economic relationship between artists and fans.
 
-El **Marketplace** es la **primera aplicación** construida sobre el protocolo. Encima también viven el **Portal del Artista**, el **Portal del Fan** y la **Developer Platform** (SDK).
+Fans earn participation value and can use it to support music. Artists see attributable economic participation. Stellar and Soroban provide evidence that anyone can inspect. A real **Stellar Testnet** transaction is already public.
 
----
-
-## Documentación (sistema vivo)
-
-La documentación se trata como código. Entrada única:
-
-- **[Documentation Hub](./docs/README.md)** — catálogo  
-- **[Standards](./docs/_system/STANDARDS.md)** — metadatos, anti-duplicación, sin huérfanos  
-- **[Backend Architecture](./docs/backend-architecture/README.md)** · **[Data Model](./docs/data-model/README.md)** · **[Sprints](./docs/sprints/README.md)**
-
-Validación: `npm run docs:validate`
+[Verified on Stellar Testnet](#verified-on-stellar-testnet) · [Why Stellar](#why-stellar) · [How to verify](#quick-start) · [Español](#espanol)
 
 ---
 
-## Jerarquía del producto
+## Problem
 
-1. Music On Chain Protocol  
-2. SDK  
-3. Marketplace  
-4. Artist Portal  
-5. Fan Portal  
-6. Developer Platform  
+Independent artists work across fragmented tools. Fan participation rarely becomes a direct economic flow. Attributing that participation is hard to verify without trusting a single operator.
 
----
+## Solution
 
-## Qué puedes probar en esta demo
+Music On Chain connects artist, music, campaign, fan participation, reward, support, revenue, entitlement, and verifiable evidence in one product flow.
 
-- Protocolo / Architecture Experience (`/protocol`)
-- Marketplace de obras y artistas (`/`)
-- Portal del Artista (publicar obras, regalías, ingresos)
-- Portal del Fan (licencias, acceso, ownership)
-- SDK playground (métodos públicos simulados)
-- Liquidación etiquetada en USDC · Base
+MOC records the economic support in USDC-denominated units in its canonical PostgreSQL ledger. Soroban independently commits and verifies cryptographic evidence of that operation. The Soroban contract does not custody or transfer the underlying USDC, and the support is not settled on Stellar.
 
----
+## What we built
 
-## Para quién
+| Area | State |
+| --- | --- |
+| Artist Studio, including sales | Built |
+| Fan participation, missions, and rewards | Built |
+| Support a release with reward value | Built |
+| Canonical economic record in PostgreSQL | Built |
+| Soroban materialization after that record is committed | Built, Stellar Testnet |
+| Separate artist, fan, and materializer authority | Built |
+| Chain evidence and event observation | Built |
+| The same verified proof for the fan and the artist | Built |
+| Spanish and English product copy | Built |
+| Stellar Mainnet, production settlement | Not in this submission |
 
-### Artistas
-- Publicar obras con ownership y regalías programables
-- Distribución de ingresos transparente
-- Portal dedicado encima del protocolo
+## Why Stellar
 
-### Fans
-- Adquirir licencias
-- Acceso y ownership verificables
-- Marketplace como primera app
+PostgreSQL remains the economic ledger. Stellar does not replace it. Stellar adds a verifiable trust layer over a fact that MOC has already recorded.
 
-### Desarrolladores
-- SDK para construir más apps sobre el mismo núcleo
+That layer provides:
 
----
+- an independent protocol authority, separate from the application database
+- distinct signatures for the artist, the fan, and the materializer
+- cryptographic commitments to the support, the revenue, the distribution, and the evidence
+- public verifiability on Stellar Testnet
+- deterministic, idempotent protocol state: the same payload replays, a different payload conflicts
+- evidence a reviewer can open without trusting the MOC interface
 
-## 🧭 Cómo funciona (resumen)
+The artist capability commits a reserve and authorizes a reward. The fan capability redeems that reward as support. The materializer closes the operation by locking the redemption. None of those three can sign the others' actions.
 
-1. El fan explora artistas  
-2. Escucha un preview del track  
-3. Compra el track usando USDC  
-4. La blockchain registra la transacción  
-5. El fan obtiene **propiedad digital**  
-6. El contenido se desbloquea automáticamente  
+## Verified on Stellar Testnet
 
----
+**TESTNET.** These identifiers are not Mainnet.
 
-## 🖥️ Estructura de la demo
+| Fact | Value |
+| --- | --- |
+| Contract | [`CDLQPK73RFCLHZ5FIT3W3UI3SW54PGTYXECFPXXISVFHCFSKZJ72UOYI`](https://stellar.expert/explorer/testnet/contract/CDLQPK73RFCLHZ5FIT3W3UI3SW54PGTYXECFPXXISVFHCFSKZJ72UOYI) |
+| Lock transaction | [`fcb8bb94eec5be7e853c2db3d59a83dbca6a5c7e3c22079e2f33dba6fc3c2119`](https://stellar.expert/explorer/testnet/tx/fcb8bb94eec5be7e853c2db3d59a83dbca6a5c7e3c22079e2f33dba6fc3c2119) |
+| Ledger | 5041383 |
+| Materialization commitment | `a5c9d5a53c8f5e804d3a2e310438073e23a337ab77d557b498799b30506d50d9` |
 
-- **Home**  
-  Lista de artistas disponibles
+The lock is `lock_redemption` on that contract. The same commitment is what the fan and the artist see in the product proof.
 
-- **Página de Artista**  
-  - Información del artista  
-  - Tracks disponibles  
-  - Crowdfunding activo (si aplica)  
-  - NFTs / tickets (MVP)  
-  - Redes sociales  
+## Architecture
 
-- **Compra Web3**
-  - Login social (Privy)
-  - Wallet embebida automática
-  - Pago en USDT/USDC 
+```mermaid
+flowchart TD
+  human[Human]
+  privy[Privy authentication]
+  cbind[C-BIND]
+  actor[ActorRef]
+  app[MOC application]
+  pg[PostgreSQL economic transaction]
+  commit[COMMIT]
+  boundary[Trust boundary]
+  soroban[Soroban materialization]
+  evidence[EconomicChainEvidence]
+  observation[Chain event observation]
+  proof[Fan and artist verified proof]
 
----
+  human --> privy --> cbind --> actor --> app --> pg --> commit --> boundary --> soroban --> evidence --> observation --> proof
+```
 
-## 🔗 Tecnología utilizada
+Authorities beside that boundary, not inside identity:
 
-- **Frontend:** Next.js (App Router)
-- **Web3 Auth:** Privy
-- **Blockchain:** Base Sepolia (desarrollo)
-- **Pagos:** USDC
-- **Wallets:** Embedded Wallet / Coinbase Wallet
-- **Audio:** HTML5 Audio
-- **Persistencia (MVP):** LocalStorage
-- **Arquitectura:** Multi-artista, data-driven
+| Capability | Signs |
+| --- | --- |
+| Artist capability | `commit_reserve`, `authorize_reward` |
+| Fan capability | `redeem` |
+| Materializer | `lock_redemption` |
 
----
+A Stellar account is a capability. It is not the ActorRef, and it is not how MOC decides who the fan or the artist is.
 
-## ⚠️ Importante (sobre esta demo)
+## Trust model
 
-- Esta demo corre sobre **testnet**
-- Los tokens utilizados **no tienen valor real**
-- El objetivo es **mostrar funcionalidad y experiencia**, no producción f
+| Concern | Authority / source |
+| --- | --- |
+| Authentication | Privy |
+| Identity | ActorRef |
+| Binding | C-BIND |
+| Economic truth | PostgreSQL |
+| Protocol execution | Soroban on Stellar Testnet |
+| Artist authority | Artist capability |
+| Fan authority | Fan capability |
+| Closure | Materializer |
+| Proof | EconomicChainEvidence |
+| Observation | ChainEventObservation. It records chain events and does not create revenue, a redemption, or an identity. |
+
+Privy subject is not an ActorRef. An ActorRef is not a wallet. A wallet is not identity.
+
+Canonical statement: [Stellar trust-native certification](docs/MOC-STELLAR-TRUST-NATIVE-CERTIFICATION.md). Identity binding: [C-BIND](docs/C-BIND.md).
+
+## Demo flow
+
+1. A fan completes a mission and receives a reward.
+2. The fan supports a release with that value.
+3. MOC commits the canonical economic record in PostgreSQL.
+4. Only after that commit, Soroban materializes the evidence.
+5. The fan sees a verified proof.
+6. The artist sees the same proof beside accrued revenue. That accrued record is not a completed settlement.
+
+| Stage | Where |
+| --- | --- |
+| Session | [`app/api/identity/session/route.ts`](app/api/identity/session/route.ts) |
+| Support command | [`app/api/fan-economy/route.ts`](app/api/fan-economy/route.ts) |
+| Economic commit | [`lib/fan-economy/service.ts`](lib/fan-economy/service.ts) (`redeemReward`) |
+| Post-commit publication | [`lib/fan-economy/redeemApplication.ts`](lib/fan-economy/redeemApplication.ts) calls [`publishIfConfigured`](lib/fan-economy/materialization/publish.ts) |
+| Soroban materialization | [`lib/fan-economy/materialization/service.ts`](lib/fan-economy/materialization/service.ts) |
+| Fan proof | [`app/dashboard/support/page.tsx`](app/dashboard/support/page.tsx) |
+| Artist proof | [`app/dashboard/sales/page.tsx`](app/dashboard/sales/page.tsx) |
+
+## Soroban contract
+
+The contract is an accounting commitment, not asset custody. Source: [`contracts/soroban/fan-economy-trust/src/lib.rs`](contracts/soroban/fan-economy-trust/src/lib.rs). Tests: [`contracts/soroban/fan-economy-trust/tests/protocol.rs`](contracts/soroban/fan-economy-trust/tests/protocol.rs).
+
+A redemption is committed, then either locked or reversed. A locked redemption cannot be reversed. Replaying the same payload is idempotent. A conflicting payload is rejected. The materialization commitment is fixed when the materializer locks the redemption.
+
+Canonical hashes live in [`lib/fan-economy/trust/canonical.ts`](lib/fan-economy/trust/canonical.ts). The browser does not supply them.
+
+## Where to look
+
+| Question | Path |
+| --- | --- |
+| Soroban contract | [`contracts/soroban/fan-economy-trust/src/lib.rs`](contracts/soroban/fan-economy-trust/src/lib.rs) |
+| Fan economy | [`lib/fan-economy/service.ts`](lib/fan-economy/service.ts) |
+| Post-commit materialization | [`lib/fan-economy/materialization/publish.ts`](lib/fan-economy/materialization/publish.ts) |
+| Event reconciliation | [`lib/fan-economy/events/ingest.ts`](lib/fan-economy/events/ingest.ts) |
+| Identity | [`docs/C-BIND.md`](docs/C-BIND.md) |
+| Persistence | [`prisma/schema.prisma`](prisma/schema.prisma) |
+| Proof UX | [`components/fan-economy/StellarProofCard.tsx`](components/fan-economy/StellarProofCard.tsx) |
+| Proof read API | [`lib/fan-economy/materialization/proofCard.ts`](lib/fan-economy/materialization/proofCard.ts) |
+| Application tests | [`lib/fan-economy/`](lib/fan-economy/) |
+| Contract tests | [`contracts/soroban/fan-economy-trust/tests/protocol.rs`](contracts/soroban/fan-economy-trust/tests/protocol.rs) |
+
+The documentation hub is [docs/README.md](docs/README.md). Start with the certification document above, not the historical backend notes.
+
+## Quick start
+
+Judge-safe validation does not need preproduction credentials, a production database, or Stellar signing keys.
+
+```bash
+npm install
+npm test
+npm run typecheck
+npm run build
+npm run test:e2e
+cargo test --manifest-path contracts/soroban/fan-economy-trust/Cargo.toml
+```
+
+`npm test` forces a mock settlement adapter and does not send Base or Stellar transactions. `npm run test:e2e` runs the local EVM settlement checks. It does not exercise the fan-support proof and it does not use Base Mainnet.
+
+### Local development
+
+Copy [`.env.example`](.env.example) to a local env file and fill placeholders on your machine. Do not commit secrets. `npm run dev` needs a PostgreSQL database and a Privy app id before the signed-in product flow will open. Those are not required for the commands above.
+
+Leave `MOC_TRUST_EXECUTION` unset or `off`. The proof can still be read when Testnet RPC settings are present. Writing evidence requires an explicit server switch and signing keys.
+
+### Live Testnet materialization
+
+Advanced. Requires server-side signing secrets. Not part of this quick start.
+
+`scripts/s3-canonical-testnet-certification.ts` is **CERTIFICATION ONLY — MAY WRITE TO STELLAR TESTNET**. Do not run it to review the submission.
+
+## Testing
+
+Counts below are the certified baseline at `5bcfcfc`. This documentation change does not alter those suites.
+
+| Command | What it proves | Certified count |
+| --- | --- | --- |
+| `npm test` | Application behavior, including the post-commit boundary, with settlement mocked | 255 |
+| `cargo test --manifest-path contracts/soroban/fan-economy-trust/Cargo.toml` | Soroban authority, state transitions, and conflicts | 10 |
+| `npm run test:e2e` | Local EVM settlement contract behavior on chain id 31337 | 18 |
+| `npm run typecheck` | TypeScript program consistency | — |
+| `npm run build` | Production Next.js build | — |
+
+`npm test` excludes the Base contract, integration, fork, and live Sepolia files. Those live-network files are not part of judge-safe validation.
+
+## Security
+
+- Signing keys stay on the server. They are not `NEXT_PUBLIC_` values.
+- The browser cannot choose the network, the contract, or the hashes.
+- The browser cannot mark evidence as verified. The server derives that state.
+- Stellar publication runs only after the PostgreSQL commit returns.
+- If Stellar or RPC fails, the economic record remains.
+- Stellar Mainnet is rejected. Base Mainnet is rejected.
+- Testnet is an explicit configuration, not an implicit fallback.
+
+## Known limitations
+
+- The public proof is Stellar Testnet only.
+- Some earlier supports have an economic record and no confirmed Stellar evidence. The product shows those as pending. They are not re-sent from this repository.
+- Stellar publication stays off unless `MOC_TRUST_EXECUTION=soroban` is set on the server.
+- The signed-in fan and artist flows require Privy.
+- There is no production settlement in this submission.
+- License: not yet specified.
+
+## Team
+
+Carlos Concha, Founder and CEO. Musician, sound technician, and music-industry operator, with artist relationships.
+
+Pablo Guzmán, CTO. About 30 years in IT, focused on Web3 development and education since 2024.
+
+## Visual walkthrough
+
+This repository does not yet contain product screenshots. Do not treat missing images as missing evidence: the Testnet transaction above is the public proof. Captures still to be taken from the certified flow, without creating a new support:
+
+1. Fan reward and support history.
+2. Verified Stellar proof on the fan support page.
+3. The same transaction open on Stellar Expert Testnet.
+4. Artist sales with the same proof and attributable participation.
+5. The architecture diagram in this README is the diagram. It does not need a screenshot.
+
+<a id="espanol"></a>
+
+## Español
+
+Este documento de envío está en inglés. Music On Chain conecta a artistas y fans: el fan obtiene valor por participar y puede apoyar música; el artista ve un ingreso atribuible; Stellar Testnet permite inspeccionar la evidencia. La prueba pública está en [Verified on Stellar Testnet](#verified-on-stellar-testnet). El recorrido de verificación está en [Quick start](#quick-start).
