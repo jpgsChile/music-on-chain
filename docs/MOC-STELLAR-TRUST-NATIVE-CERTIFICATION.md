@@ -6,7 +6,7 @@
 | **Dependencies** | [Documentation Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) |
 | **Status** | Active |
 | **Owner** | Architecture |
-| **Last Updated** | 2026-10-06 |
+| **Last Updated** | 2026-10-07 |
 | **Related Documents** | [Hub](./README.md) · [Root README](../README.md) · [C-BIND/1](./C-BIND.md) · [Domain convergence](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) |
 
 <!-- doc-id: MOC-STELLAR-TRUST-NATIVE-CERTIFICATION.md -->
@@ -86,3 +86,18 @@ S6.4 application-native support:
 Public capabilities: artist `GC6TY6NERUT5GQLXXHWPR2RIKAHMNKJSTK2FBOXWTRNQNMSKYD6ONEFE`, fan `GDW3BMZWIO7NL6M25XLVUBNDNKHKUYOMK7V4EOWFICDOIBZD55O32O6M`, materializer `GASACPYNRZL2TRKPLXKVS3PJX7TVRTOCEWTULPRKBAX2YXJYQZU3PEA7`.
 
 `MOC_TRUST_EXECUTION=soroban` is a server process switch. It is not a client flag and it is not stored as a secret.
+
+## Hackathon release candidate
+
+Certified on 2026-10-07 as `S9C_ISOLATED_HACKATHON_RC_CERTIFIED`.
+
+| Fact | Value |
+| --- | --- |
+| Source baseline | `ec0a164172827ec0905d7feb6eca92fd9098af14` |
+| Deployment | `dpl_8BvxESSUGz1S2iYJrWiXWvGYnN3Y` |
+| Release candidate | https://moc-hackathon-rc.vercel.app |
+| Public proof | https://moc-hackathon-rc.vercel.app/demo/stellar-proof |
+
+A judge only reads. The deployment has no Stellar signing secrets and no Base executor. Trust execution is off. The settlement adapter is mock. The public page projects persisted certified evidence. PostgreSQL remains the economic ledger. The contract does not custody or transfer USDC. Accrued participation is not completed settlement.
+
+An earlier release attempt was blocked after one accidental read against production, caused by local environment contamination. That attempt wrote nothing to production. The clean-room recertification that followed had no production access and no preproduction access.

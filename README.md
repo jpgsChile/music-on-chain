@@ -4,7 +4,24 @@ Music On Chain is a Web3 music platform that creates a direct, verifiable econom
 
 Fans earn participation value and can use it to support music. Artists see attributable economic participation. Stellar and Soroban provide evidence that anyone can inspect. A real **Stellar Testnet** transaction is already public.
 
-[Verified on Stellar Testnet](#verified-on-stellar-testnet) · [Why Stellar](#why-stellar) · [How to verify](#quick-start) · [Español](#espanol)
+[Verified on Stellar Testnet](#verified-on-stellar-testnet) · [Try the certified proof](#try-the-certified-proof) · [Why Stellar](#why-stellar) · [How to verify](#quick-start) · [Español](#espanol)
+
+## Try the certified proof
+
+Hackathon release candidate: https://moc-hackathon-rc.vercel.app
+
+Public Stellar proof, no login: https://moc-hackathon-rc.vercel.app/demo/stellar-proof
+
+1. Open the landing page.
+2. Choose **Ver prueba verificada en Stellar** (English: **View verified Stellar proof**).
+3. Fan support is $1.00 USDC. Artist participation is the same $1.00 USDC.
+4. The artist state is accrued, not settled.
+5. The network is Stellar Testnet. The protocol state shown is LOCKED.
+6. Open the same transaction on Stellar Expert.
+
+That $1 is 1,000,000 USDC-denominated minor units in the canonical PostgreSQL ledger. PostgreSQL does not hold USDC. Soroban records cryptographic evidence of the operation. The contract does not custody or transfer USDC, and accrued participation is not a completed settlement.
+
+A judge only reads. The release candidate has no Stellar signing secrets and no Base executor. Trust execution is off. The settlement adapter is mock. The page shows persisted certified evidence.
 
 ---
 
@@ -128,7 +145,7 @@ Canonical statement: [Stellar trust-native certification](docs/MOC-STELLAR-TRUST
 | Soroban materialization | [`lib/fan-economy/materialization/service.ts`](lib/fan-economy/materialization/service.ts) |
 | Fan proof | [`app/dashboard/support/page.tsx`](app/dashboard/support/page.tsx) |
 | Artist proof | [`app/dashboard/sales/page.tsx`](app/dashboard/sales/page.tsx) |
-| Public receipt | [`app/demo/stellar-proof/page.tsx`](app/demo/stellar-proof/page.tsx). Read-only projection of the certified operation. No login and no new transaction. |
+| Public receipt | [Live proof](https://moc-hackathon-rc.vercel.app/demo/stellar-proof) and [`app/demo/stellar-proof/page.tsx`](app/demo/stellar-proof/page.tsx). Read-only projection of the certified operation. No login and no new transaction. |
 
 ## Soroban contract
 
@@ -235,4 +252,4 @@ This repository does not yet contain product screenshots. Do not treat missing i
 
 ## Español
 
-Este documento de envío está en inglés. Music On Chain conecta a artistas y fans: el fan obtiene valor por participar y puede apoyar música; el artista ve un ingreso atribuible; Stellar Testnet permite inspeccionar la evidencia. La prueba pública está en [Verified on Stellar Testnet](#verified-on-stellar-testnet). El recorrido de verificación está en [Quick start](#quick-start).
+Este documento de envío está en inglés. Music On Chain conecta a artistas y fans: el fan obtiene valor por participar y puede apoyar música; el artista ve un ingreso atribuible; Stellar Testnet permite inspeccionar la evidencia. La prueba pública, sin inicio de sesión, está en https://moc-hackathon-rc.vercel.app/demo/stellar-proof. El recorrido está en [Try the certified proof](#try-the-certified-proof).
