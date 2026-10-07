@@ -6,6 +6,8 @@
  * - MOC_DB_TARGET is not hackathon_rc
  * - the connection is not the dedicated Neon RC endpoint
  */
+import { pathToFileURL } from "node:url";
+import type { PrismaClient } from "@prisma/client";
 import { createPrismaClient } from "@/lib/db";
 import { canonicalHash, redemptionRevenueId } from "@/lib/domain/fanEconomy/amounts";
 import { MOC_REDEMPTION_FEE_POLICY_V1, recordRevenue } from "@/lib/domain/economics";
@@ -47,13 +49,12 @@ const FIELD_MANIFEST = {
   EconomicChainEvidence: ["id", "redemptionId", "revenueId", "network", "contractId", "transactionHash", "ledger", "materializationHash", "state", "publishedAt"],
 };
 
-function fail(code: string): never {
-  console.error(code);
-  process.exit(1);
+function reject(code: string): never {
+  throw new Error(code);
 }
 
 function assessedCopy() {
-  if (redemptionRevenueId(REDEMPTION_ID) !== REVENUE_ID) fail("REVENUE_ID_MISMATCH");
+  if (redemptionRevenueId(REDEMPTION_ID) !== REVENUE_ID) reject("REVENUE_ID_MISMATCH");
   const assessed = recordRevenue({
     revenueId: REVENUE_ID,
     distributionId: `dist:redemption:${REDEMPTION_ID}`,
@@ -67,25 +68,25 @@ function assessedCopy() {
     origin: { kind: "redemption", id: REDEMPTION_ID },
     occurredAt: OCCURRED_AT,
   });
-  if (assessed.revenue.gross.units !== UNITS) fail("GROSS_MISMATCH");
+  if (assessed.revenue.gross.units !== UNITS) reject("GROSS_MISMATCH");
   if (assessed.assessment.policy.protocolFeeBps !== 0 || assessed.assessment.policy.convenienceFeeBps !== 0) {
-    fail("FEE_MISMATCH");
+    reject("FEE_MISMATCH");
   }
-  if (assessed.entitlements.length !== 1) fail("ENTITLEMENT_COUNT");
+  if (assessed.entitlements.length !== 1) reject("ENTITLEMENT_COUNT");
   const entitlement = assessed.entitlements[0];
   if (entitlement.status !== "accrued" || entitlement.shareBps !== 10_000 || entitlement.amount.units !== UNITS) {
-    fail("ENTITLEMENT_MISMATCH");
+    reject("ENTITLEMENT_MISMATCH");
   }
   const commitments = canonicalCommitments({
     redemptionId: REDEMPTION_ID,
     revenueId: assessed.revenue.revenueId,
     shares: [{ actorRef: entitlement.actorRef, shareBps: entitlement.shareBps }],
   });
-  if (commitments.materializationHash !== MATERIALIZATION) fail("MATERIALIZATION_MISMATCH");
+  if (commitments.materializationHash !== MATERIALIZATION) reject("MATERIALIZATION_MISMATCH");
   return { assessed, commitments, entitlement };
 }
 
-async function census(prisma: ReturnType<typeof createPrismaClient>) {
+async function census(prisma: PrismaClient) {
   return {
     actors: await prisma.actor.count(),
     bindings: await prisma.identityBinding.count(),
@@ -98,7 +99,7 @@ async function census(prisma: ReturnType<typeof createPrismaClient>) {
   };
 }
 
-async function certify(prisma: ReturnType<typeof createPrismaClient>) {
+async function certify(prisma: PrismaClient) {
   const redemption = await prisma.redemption.findUnique({ where: { id: REDEMPTION_ID } });
   const revenue = await prisma.economicRevenue.findUnique({
     where: { id: REVENUE_ID },
@@ -107,20 +108,20 @@ async function certify(prisma: ReturnType<typeof createPrismaClient>) {
   const evidence = await prisma.economicChainEvidence.findUnique({ where: { id: EVIDENCE_ID } });
   const proof = await readCertifiedHackathonProof(prisma);
   const counts = await census(prisma);
-  if (!redemption || !revenue || !evidence || !proof.available) fail("CERTIFIED_RECORD_MISSING");
+  if (!redemption || !revenue || !evidence || !proof.available) reject("CERTIFIED_RECORD_MISSING");
   if (counts.redemptions !== 1 || counts.revenues !== 1 || counts.entitlements !== 1 || counts.evidence !== 1) {
-    fail("CERTIFIED_RECORD_NOT_UNIQUE");
+    reject("CERTIFIED_RECORD_NOT_UNIQUE");
   }
   if (redemption.units !== "1000000" || redemption.scale !== 6 || redemption.asset !== "USDC" || redemption.state !== "recorded") {
-    fail("REDEMPTION_VALUE_MISMATCH");
+    reject("REDEMPTION_VALUE_MISMATCH");
   }
   if (revenue.grossUnits !== "1000000" || revenue.originKind !== "redemption" || revenue.originId !== REDEMPTION_ID) {
-    fail("REVENUE_VALUE_MISMATCH");
+    reject("REVENUE_VALUE_MISMATCH");
   }
   if (revenue.entitlements.length !== 1 || revenue.entitlements[0].status !== "accrued" || revenue.entitlements[0].shareBps !== 10_000) {
-    fail("ENTITLEMENT_VALUE_MISMATCH");
+    reject("ENTITLEMENT_VALUE_MISMATCH");
   }
-  if (revenue.entitlements[0].settledAt != null) fail("ENTITLEMENT_SETTLED");
+  if (revenue.entitlements[0].settledAt != null) reject("ENTITLEMENT_SETTLED");
   if (
     evidence.state !== "confirmed" ||
     evidence.network !== "testnet" ||
@@ -129,7 +130,7 @@ async function certify(prisma: ReturnType<typeof createPrismaClient>) {
     evidence.ledger !== LEDGER ||
     evidence.materializationHash !== MATERIALIZATION
   ) {
-    fail("EVIDENCE_VALUE_MISMATCH");
+    reject("EVIDENCE_VALUE_MISMATCH");
   }
   if (
     proof.revenueId !== REVENUE_ID ||
@@ -141,11 +142,11 @@ async function certify(prisma: ReturnType<typeof createPrismaClient>) {
     proof.ledger !== LEDGER ||
     proof.commitments?.materialization !== MATERIALIZATION
   ) {
-    fail("PUBLIC_PROJECTION_MISMATCH");
+    reject("PUBLIC_PROJECTION_MISMATCH");
   }
   const serialized = JSON.stringify(proof);
   if (serialized.includes(ARTIST) || serialized.includes(FAN) || serialized.toLowerCase().includes("privy") || serialized.includes("@")) {
-    fail("PUBLIC_PROJECTION_LEAK");
+    reject("PUBLIC_PROJECTION_LEAK");
   }
   console.log(
     JSON.stringify({
@@ -175,6 +176,156 @@ async function certify(prisma: ReturnType<typeof createPrismaClient>) {
   );
 }
 
+/** Copies the certified operation. Throws before any write when the computed proof does not match. */
+export async function copyCertifiedHackathonProof(prisma: PrismaClient): Promise<"inserted" | "already-present"> {
+  const { assessed, commitments, entitlement } = assessedCopy();
+  const existing = await prisma.redemption.findUnique({ where: { id: REDEMPTION_ID } });
+  if (existing) {
+    await certify(prisma);
+    return "already-present";
+  }
+  const before = await census(prisma);
+  if (before.redemptions !== 0 || before.revenues !== 0 || before.evidence !== 0) reject("UNEXPECTED_EXISTING_ECONOMICS");
+
+  const payloadHash = canonicalHash({
+    redemptionId: REDEMPTION_ID,
+    rewardEntitlementId: REWARD_ID,
+    fanActorRef: FAN,
+    releaseId: RELEASE_ID,
+    units: UNITS.toString(),
+    asset: "USDC",
+    scale: "6",
+  });
+  const occurredAt = new Date(OCCURRED_AT);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.actor.create({ data: { actorRef: ARTIST } });
+    await tx.musicalWork.create({ data: { id: WORK_ID, actorRef: ARTIST, title: "MOC Preprod Test" } });
+    await tx.musicRelease.create({
+      data: {
+        id: RELEASE_ID,
+        workId: WORK_ID,
+        actorRef: ARTIST,
+        title: "MOC Preprod Test",
+        releaseType: "single",
+        language: "es",
+        primaryGenre: "pop",
+        status: "PUBLISHED",
+        network: "stellar-testnet",
+        currency: "USDC",
+      },
+    });
+    await tx.campaign.create({
+      data: {
+        id: CAMPAIGN_ID,
+        artistActorRef: ARTIST,
+        title: "RC campaign",
+        asset: "USDC",
+        scale: 6,
+        committedUnits: UNITS.toString(),
+        reserveKind: "artist",
+      },
+    });
+    await tx.mission.create({
+      data: {
+        id: MISSION_ID,
+        campaignId: CAMPAIGN_ID,
+        title: "RC mission",
+        criterion: "support",
+        maximumRewardUnits: UNITS.toString(),
+        asset: "USDC",
+        scale: 6,
+        assignmentMode: "fan-accept",
+        status: "open",
+      },
+    });
+    await tx.missionAssignment.create({
+      data: { id: ASSIGNMENT_ID, missionId: MISSION_ID, fanActorRef: FAN, state: "active" },
+    });
+    await tx.rewardEntitlement.create({
+      data: {
+        id: REWARD_ID,
+        assignmentId: ASSIGNMENT_ID,
+        campaignId: CAMPAIGN_ID,
+        fanActorRef: FAN,
+        verificationId: VERIFICATION_ID,
+        authorizedUnits: UNITS.toString(),
+        consumedUnits: UNITS.toString(),
+        releasedUnits: "0",
+        asset: "USDC",
+        scale: 6,
+      },
+    });
+    await tx.economicRevenue.create({
+      data: {
+        id: assessed.revenue.revenueId,
+        originKind: assessed.revenue.origin.kind,
+        originId: assessed.revenue.origin.id,
+        releaseId: RELEASE_ID,
+        grossUnits: assessed.revenue.gross.units.toString(),
+        protocolFeeUnits: "0",
+        convenienceFeeUnits: "0",
+        netUnits: assessed.assessment.netDistributable.units.toString(),
+        scale: 6,
+        asset: "USDC",
+        policyId: assessed.assessment.policy.policyId,
+        policyVersion: assessed.assessment.policy.version,
+        protocolFeeBps: 0,
+        convenienceFeeBps: 0,
+        ruleId: assessed.distribution.ruleId,
+        status: assessed.revenue.status,
+        occurredAt,
+      },
+    });
+    await tx.economicEntitlement.create({
+      data: {
+        id: entitlement.entitlementId,
+        revenueId: entitlement.revenueId,
+        distributionId: entitlement.distributionId,
+        actorRef: entitlement.actorRef,
+        units: entitlement.amount.units.toString(),
+        scale: entitlement.amount.scale,
+        asset: entitlement.amount.asset,
+        shareBps: entitlement.shareBps,
+        sourceKind: entitlement.source.kind,
+        sourceId: entitlement.source.id ?? null,
+        status: entitlement.status,
+        createdAt: occurredAt,
+      },
+    });
+    await tx.redemption.create({
+      data: {
+        id: REDEMPTION_ID,
+        rewardEntitlementId: REWARD_ID,
+        fanActorRef: FAN,
+        releaseId: RELEASE_ID,
+        units: UNITS.toString(),
+        asset: "USDC",
+        scale: 6,
+        payloadHash,
+        revenueId: REVENUE_ID,
+        state: "recorded",
+      },
+    });
+    await tx.economicChainEvidence.create({
+      data: {
+        id: EVIDENCE_ID,
+        redemptionId: REDEMPTION_ID,
+        revenueId: REVENUE_ID,
+        network: "testnet",
+        contractId: CONTRACT,
+        transactionHash: TX,
+        ledger: LEDGER,
+        materializationHash: commitments.materializationHash,
+        state: "confirmed",
+        publishedAt: occurredAt,
+      },
+    });
+  });
+  await certify(prisma);
+  return "inserted";
+}
+
 async function main() {
   assertOperatorLabel(process.env.MOC_DB_TARGET);
   const url = process.env.DATABASE_URL ?? "";
@@ -188,171 +339,29 @@ async function main() {
     "BASE_EXECUTOR_PRIVATE_KEY",
     "MOC_TRUST_EXECUTION",
   ]) {
-    if (process.env[name]) fail("SIGNING_OR_TRUST_ENV_PRESENT");
+    if (process.env[name]) reject("SIGNING_OR_TRUST_ENV_PRESENT");
   }
 
   console.log(JSON.stringify({ RC_PERSONAL_DATA_MINIMIZED: "PASS", copiedFields: FIELD_MANIFEST, excluded: ["email", "IdentityBinding", "ActorWallet", "ActorSession", "Participation", "privySubject", "sessionToken", "ChainEventObservation"] }));
 
-  const { assessed, commitments, entitlement } = assessedCopy();
   const prisma = createPrismaClient(direct);
   try {
     if (process.argv.includes("--counts")) {
       console.log(JSON.stringify({ counts: await census(prisma) }));
       return;
     }
-    const existing = await prisma.redemption.findUnique({ where: { id: REDEMPTION_ID } });
-    if (existing) {
-      console.log(JSON.stringify({ RC_SEED_IDEMPOTENCY: "ALREADY_PRESENT" }));
-      await certify(prisma);
-      return;
-    }
-    const before = await census(prisma);
-    if (before.redemptions !== 0 || before.revenues !== 0 || before.evidence !== 0) fail("UNEXPECTED_EXISTING_ECONOMICS");
-
-    const payloadHash = canonicalHash({
-      redemptionId: REDEMPTION_ID,
-      rewardEntitlementId: REWARD_ID,
-      fanActorRef: FAN,
-      releaseId: RELEASE_ID,
-      units: UNITS.toString(),
-      asset: "USDC",
-      scale: "6",
-    });
-    const occurredAt = new Date(OCCURRED_AT);
-
-    await prisma.$transaction(async (tx) => {
-      await tx.actor.create({ data: { actorRef: ARTIST } });
-      await tx.musicalWork.create({ data: { id: WORK_ID, actorRef: ARTIST, title: "MOC Preprod Test" } });
-      await tx.musicRelease.create({
-        data: {
-          id: RELEASE_ID,
-          workId: WORK_ID,
-          actorRef: ARTIST,
-          title: "MOC Preprod Test",
-          releaseType: "single",
-          language: "es",
-          primaryGenre: "pop",
-          status: "PUBLISHED",
-          network: "stellar-testnet",
-          currency: "USDC",
-        },
-      });
-      await tx.campaign.create({
-        data: {
-          id: CAMPAIGN_ID,
-          artistActorRef: ARTIST,
-          title: "RC campaign",
-          asset: "USDC",
-          scale: 6,
-          committedUnits: UNITS.toString(),
-          reserveKind: "artist",
-        },
-      });
-      await tx.mission.create({
-        data: {
-          id: MISSION_ID,
-          campaignId: CAMPAIGN_ID,
-          title: "RC mission",
-          criterion: "support",
-          maximumRewardUnits: UNITS.toString(),
-          asset: "USDC",
-          scale: 6,
-          assignmentMode: "fan-accept",
-          status: "open",
-        },
-      });
-      await tx.missionAssignment.create({
-        data: { id: ASSIGNMENT_ID, missionId: MISSION_ID, fanActorRef: FAN, state: "active" },
-      });
-      await tx.rewardEntitlement.create({
-        data: {
-          id: REWARD_ID,
-          assignmentId: ASSIGNMENT_ID,
-          campaignId: CAMPAIGN_ID,
-          fanActorRef: FAN,
-          verificationId: VERIFICATION_ID,
-          authorizedUnits: UNITS.toString(),
-          consumedUnits: UNITS.toString(),
-          releasedUnits: "0",
-          asset: "USDC",
-          scale: 6,
-        },
-      });
-      await tx.economicRevenue.create({
-        data: {
-          id: assessed.revenue.revenueId,
-          originKind: assessed.revenue.origin.kind,
-          originId: assessed.revenue.origin.id,
-          releaseId: RELEASE_ID,
-          grossUnits: assessed.revenue.gross.units.toString(),
-          protocolFeeUnits: "0",
-          convenienceFeeUnits: "0",
-          netUnits: assessed.assessment.netDistributable.units.toString(),
-          scale: 6,
-          asset: "USDC",
-          policyId: assessed.assessment.policy.policyId,
-          policyVersion: assessed.assessment.policy.version,
-          protocolFeeBps: 0,
-          convenienceFeeBps: 0,
-          ruleId: assessed.distribution.ruleId,
-          status: assessed.revenue.status,
-          occurredAt,
-        },
-      });
-      await tx.economicEntitlement.create({
-        data: {
-          id: entitlement.entitlementId,
-          revenueId: entitlement.revenueId,
-          distributionId: entitlement.distributionId,
-          actorRef: entitlement.actorRef,
-          units: entitlement.amount.units.toString(),
-          scale: entitlement.amount.scale,
-          asset: entitlement.amount.asset,
-          shareBps: entitlement.shareBps,
-          sourceKind: entitlement.source.kind,
-          sourceId: entitlement.source.id ?? null,
-          status: entitlement.status,
-          createdAt: occurredAt,
-        },
-      });
-      await tx.redemption.create({
-        data: {
-          id: REDEMPTION_ID,
-          rewardEntitlementId: REWARD_ID,
-          fanActorRef: FAN,
-          releaseId: RELEASE_ID,
-          units: UNITS.toString(),
-          asset: "USDC",
-          scale: 6,
-          payloadHash,
-          revenueId: REVENUE_ID,
-          state: "recorded",
-        },
-      });
-      await tx.economicChainEvidence.create({
-        data: {
-          id: EVIDENCE_ID,
-          redemptionId: REDEMPTION_ID,
-          revenueId: REVENUE_ID,
-          network: "testnet",
-          contractId: CONTRACT,
-          transactionHash: TX,
-          ledger: LEDGER,
-          materializationHash: commitments.materializationHash,
-          state: "confirmed",
-          publishedAt: occurredAt,
-        },
-      });
-    });
-    console.log(JSON.stringify({ RC_SEED_IDEMPOTENCY: "INSERTED", chainWrites: 0 }));
-    await certify(prisma);
+    const outcome = await copyCertifiedHackathonProof(prisma);
+    console.log(JSON.stringify({ RC_SEED_IDEMPOTENCY: outcome === "inserted" ? "INSERTED" : "ALREADY_PRESENT", chainWrites: 0 }));
   } finally {
     await prisma.$disconnect();
   }
 }
 
-main().catch((error) => {
-  const message = error instanceof Error ? error.message : "SEED_FAILED";
-  console.error(message.replace(/postgres(?:ql)?:\/\/\S+/gi, "[redacted-url]").slice(0, 500));
-  process.exit(1);
-});
+const invokedDirectly = process.argv[1] ? import.meta.url === pathToFileURL(process.argv[1]).href : false;
+if (invokedDirectly) {
+  main().catch((error) => {
+    const message = error instanceof Error ? error.message : "SEED_FAILED";
+    console.error(message.replace(/postgres(?:ql)?:\/\/\S+/gi, "[redacted-url]").slice(0, 500));
+    process.exit(1);
+  });
+}

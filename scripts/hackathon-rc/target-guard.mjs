@@ -18,13 +18,23 @@ const FORBIDDEN = [
   "aws-0-ca-central-1",
 ];
 
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function decodedIdentity(parsed) {
+  const params = [];
+  for (const [key, value] of parsed.searchParams) params.push(`${safeDecode(key)}=${safeDecode(value)}`);
+  return [parsed.hostname, safeDecode(parsed.username), safeDecode(parsed.pathname), params.join("&")].join("\n").toLowerCase();
+}
+
 export function assertHackathonRcTarget(url, label) {
   if (!url || typeof url !== "string") {
     throw new Error(`${label}_MISSING`);
-  }
-  const blob = url.toLowerCase();
-  for (const marker of FORBIDDEN) {
-    if (blob.includes(marker)) throw new Error(`${label}_FORBIDDEN_TARGET`);
   }
   let parsed;
   try {
@@ -32,15 +42,17 @@ export function assertHackathonRcTarget(url, label) {
   } catch {
     throw new Error(`${label}_UNPARSEABLE`);
   }
+  const identity = `${url}\n${decodedIdentity(parsed)}`.toLowerCase();
+  for (const marker of FORBIDDEN) {
+    if (identity.includes(marker)) throw new Error(`${label}_FORBIDDEN_TARGET`);
+  }
   if (parsed.protocol !== "postgresql:" && parsed.protocol !== "postgres:") {
     throw new Error(`${label}_NOT_POSTGRES`);
   }
   if (!parsed.hostname.endsWith(".neon.tech")) throw new Error(`${label}_NOT_NEON`);
   if (!parsed.hostname.includes(RC_HOST_MARKER)) throw new Error(`${label}_HOST_MISMATCH`);
-  const database = parsed.pathname.replace(/^\//, "");
+  const database = decodeURIComponent(parsed.pathname.replace(/^\//, ""));
   if (database !== RC_DATABASE_NAME) throw new Error(`${label}_DATABASE_MISMATCH`);
-  if (parsed.username.toLowerCase().includes("hcfknaiwjkwjjdwfjmjq")) throw new Error(`${label}_FORBIDDEN_TARGET`);
-  if (parsed.username.toLowerCase().includes("cqxnnmwwxpxjmnkpdbjm")) throw new Error(`${label}_FORBIDDEN_TARGET`);
   return { host: parsed.hostname, database };
 }
 
