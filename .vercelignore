@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+out
+coverage
+contracts/out
+contracts/cache
+contracts/soroban/**/target
+contracts/soroban/**/test_snapshots
+broadcast
+cache
+prisma/dev.db
+.env
+.env*.local
+*.pem
+.vercel
