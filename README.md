@@ -128,6 +128,7 @@ Canonical statement: [Stellar trust-native certification](docs/MOC-STELLAR-TRUST
 | Soroban materialization | [`lib/fan-economy/materialization/service.ts`](lib/fan-economy/materialization/service.ts) |
 | Fan proof | [`app/dashboard/support/page.tsx`](app/dashboard/support/page.tsx) |
 | Artist proof | [`app/dashboard/sales/page.tsx`](app/dashboard/sales/page.tsx) |
+| Public receipt | [`app/demo/stellar-proof/page.tsx`](app/demo/stellar-proof/page.tsx). Read-only projection of the certified operation. No login and no new transaction. |
 
 ## Soroban contract
 

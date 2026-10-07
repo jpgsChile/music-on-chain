@@ -53,6 +53,12 @@ export default function HeroBanner({ lang = "es" }: HeroBannerProps) {
               {t.hero.ctaMarketplace}
             </a>
           </div>
+          <Link
+            href="/demo/stellar-proof"
+            className="mt-5 inline-block text-sm text-foreground/55 underline-offset-4 hover:text-foreground hover:underline"
+          >
+            {t.hero.verifiedProof}
+          </Link>
         </div>
       </div>
     </section>
