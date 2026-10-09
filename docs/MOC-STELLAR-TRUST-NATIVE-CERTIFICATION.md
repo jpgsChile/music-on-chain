@@ -6,7 +6,7 @@
 | **Dependencies** | [Documentation Hub](./README.md) · [C-BIND/1](./C-BIND.md) · [Economic & Rights Foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) |
 | **Status** | Active |
 | **Owner** | Architecture |
-| **Last Updated** | 2026-10-07 |
+| **Last Updated** | 2026-10-09 |
 | **Related Documents** | [Hub](./README.md) · [Root README](../README.md) · [C-BIND/1](./C-BIND.md) · [Domain convergence](./MOC-WEB3-TRUST-NATIVE-DOMAIN-CONVERGENCE.md) · [Economic foundation](./MOC-ECONOMIC-RIGHTS-FOUNDATION.md) · [Execution boundary](./MOC-ONCHAIN-EXECUTION-SETTLEMENT-BOUNDARY.md) |
 
 <!-- doc-id: MOC-STELLAR-TRUST-NATIVE-CERTIFICATION.md -->
@@ -89,7 +89,7 @@ Public capabilities: artist `GC6TY6NERUT5GQLXXHWPR2RIKAHMNKJSTK2FBOXWTRNQNMSKYD6
 
 ## Hackathon release candidate
 
-Certified on 2026-10-07 as `S9C_ISOLATED_HACKATHON_RC_CERTIFIED`.
+Certified on 2026-10-07 as `S9C_ISOLATED_HACKATHON_RC_CERTIFIED`. That historical release remains:
 
 | Fact | Value |
 | --- | --- |
@@ -97,6 +97,10 @@ Certified on 2026-10-07 as `S9C_ISOLATED_HACKATHON_RC_CERTIFIED`.
 | Deployment | `dpl_8BvxESSUGz1S2iYJrWiXWvGYnN3Y` |
 | Release candidate | https://moc-hackathon-rc.vercel.app |
 | Public proof | https://moc-hackathon-rc.vercel.app/demo/stellar-proof |
+
+The active judge deployment is `dpl_3aZTuSRSZKNweFEXjxFP7j7V5v1V`. It serves the same release-candidate and public-proof URLs. It was built from HEAD `0aa0e1e4640acfce61d6fb1d97bbc790da5e9496` plus four certified UI files that are not in a commit yet. Do not attribute this deployment to a commit that does not exist.
+
+The four files are `components/HeroBanner.tsx`, `lib/i18n.ts`, `components/public-proof/PublicCertifiedProofView.tsx`, and `components/fan-economy/TestnetProof.tsx`. Their certified fingerprint, hashing each path, a null byte, the file bytes, and a null byte, in that order, is `c8d5a0d4964f3359d0e5fc025ffcb86c334957cb0c2ec482bb6781e542b34854`.
 
 A judge only reads. The deployment has no Stellar signing secrets and no Base executor. Trust execution is off. The settlement adapter is mock. The public page projects persisted certified evidence. PostgreSQL remains the economic ledger. The contract does not custody or transfer USDC. Accrued participation is not completed settlement.
 

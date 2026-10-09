@@ -109,7 +109,7 @@ export default function PublicCertifiedProofView({
         <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground/55">{t.sameOperation}</h2>
         <p className="mt-1 text-sm text-foreground/70">{t.sameEvidence}</p>
         <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Field label={t.network} value={t.network} />
+          <Field label={t.networkLabel} value={t.network} />
           <Field label={t.protocolState} value={t.locked} />
           <Field label={t.ledger} value={String(proof.ledger)} />
           <HashRow label={t.contract} value={proof.contractId} copyLabel={t.copy} copiedLabel={t.copied} />

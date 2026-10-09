@@ -13,7 +13,7 @@ Hackathon release candidate: https://moc-hackathon-rc.vercel.app
 Public Stellar proof, no login: https://moc-hackathon-rc.vercel.app/demo/stellar-proof
 
 1. Open the landing page.
-2. Choose **Ver prueba verificada en Stellar** (English: **View verified Stellar proof**).
+2. Choose **Abrir demo verificada** (English: **Explore verified demo**). It opens `/demo/stellar-proof`.
 3. Fan support is $1.00 USDC. Artist participation is the same $1.00 USDC.
 4. The artist state is accrued, not settled.
 5. The network is Stellar Testnet. The protocol state shown is LOCKED.

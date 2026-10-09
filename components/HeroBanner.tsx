@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { stellarExpertTransactionUrl } from "@/lib/fan-economy/materialization/presentation";
 import { getTranslations } from "@/lib/i18n";
 import type { Language } from "@/lib/i18n";
 
@@ -8,57 +9,66 @@ interface HeroBannerProps {
   lang?: Language;
 }
 
-const LOGO_SRC = "/assets/moc/moc-logo.png";
+/** Certified lock transaction. The explorer URL exists only if the Testnet guard accepts it. */
+const CERTIFIED_LOCK_TRANSACTION = "fcb8bb94eec5be7e853c2db3d59a83dbca6a5c7e3c22079e2f33dba6fc3c2119";
 
 export default function HeroBanner({ lang = "es" }: HeroBannerProps) {
   const t = getTranslations(lang);
+  const verifyUrl = stellarExpertTransactionUrl("testnet", CERTIFIED_LOCK_TRANSACTION);
+
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-b from-accent/10 via-background to-background border-b border-border">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-        <div className="text-center max-w-2xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.2em] text-accent mb-4">
-            {t.hero.eyebrow}
+    <section className="relative w-full overflow-hidden border-b border-border bg-gradient-to-b from-accent/10 via-background to-background">
+      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+        <div className="text-center">
+          <p className="text-xs uppercase tracking-[0.2em] text-foreground/55">{t.hero.judgeEyebrow}</p>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{t.hero.judgeTitle}</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-foreground/70 sm:text-lg">{t.hero.judgeSubtitle}</p>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-border bg-border/20 px-5 py-6 text-center sm:px-8 sm:py-8">
+          <p className="text-sm font-medium text-foreground">
+            <span className="mr-2 text-accent" aria-hidden="true">
+              ✓
+            </span>
+            {t.hero.demoEyebrow}
           </p>
-          <Link
-            href="/"
-            className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-lg min-h-[72px] flex items-center justify-center"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={LOGO_SRC}
-              alt="Music On Chain"
-              className="w-full max-w-[280px] sm:max-w-[320px] h-auto mx-auto drop-shadow-[0_0_20px_rgba(0,0,0,0.4)] hover:drop-shadow-[0_0_28px_rgba(34,211,238,0.35)] transition-shadow duration-300"
-              width={320}
-              height={80}
-              fetchPriority="high"
-            />
-          </Link>
-          <h1 className="mt-6 text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
-            {t.hero.title}
-          </h1>
-          <p className="mt-4 text-lg sm:text-xl text-foreground/70">
-            {t.hero.subtitle}
-          </p>
-          <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center justify-center px-6 py-3.5 text-base font-medium rounded-lg bg-accent text-background hover:bg-accent-hover transition-colors"
-            >
-              {t.hero.ctaArtist}
-            </Link>
-            <a
-              href="#marketplace"
-              className="inline-flex items-center justify-center px-6 py-3.5 text-base font-medium rounded-lg border border-border bg-background hover:bg-border/30 transition-colors"
-            >
-              {t.hero.ctaMarketplace}
-            </a>
-          </div>
+          <p className="mt-3 text-4xl font-semibold tracking-tight text-foreground">{t.hero.demoAmount}</p>
+          <p className="mt-2 text-sm text-foreground/60">{t.hero.demoStatus}</p>
           <Link
             href="/demo/stellar-proof"
-            className="mt-5 inline-block text-sm text-foreground/55 underline-offset-4 hover:text-foreground hover:underline"
+            className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-accent px-6 py-3.5 text-base font-medium text-background transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            {t.hero.verifiedProof}
+            {t.hero.demoCta}
           </Link>
+          <p className="mt-3 text-xs text-foreground/45">{t.hero.demoNote}</p>
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-border p-5 text-left">
+            <p className="font-semibold text-foreground">{t.hero.exploreTitle}</p>
+            <p className="mt-2 text-sm text-foreground/70">{t.hero.exploreBody}</p>
+            <div className="mt-4 flex flex-col items-start gap-2 text-sm">
+              <a href="#marketplace" className="underline-offset-4 hover:underline">
+                {t.hero.ctaMarketplace}
+              </a>
+              <Link href="/dashboard" className="underline-offset-4 hover:underline">
+                {t.hero.ctaArtist}
+              </Link>
+            </div>
+            <p className="mt-4 text-xs text-foreground/45">{t.hero.exploreNote}</p>
+          </div>
+          {verifyUrl ? (
+            <a
+              href={verifyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl border border-border p-5 text-left transition-colors hover:bg-border/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <p className="font-semibold text-foreground">{t.hero.verifyTitle}</p>
+              <p className="mt-2 text-sm text-foreground/70">{t.hero.verifyBody}</p>
+              <p className="mt-4 text-xs text-foreground/45">{t.hero.verifyNote}</p>
+            </a>
+          ) : null}
         </div>
       </div>
     </section>
